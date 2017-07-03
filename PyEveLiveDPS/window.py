@@ -18,8 +18,10 @@ class BorderlessWindow(tk.Tk):
         self.wm_attributes("-topmost", True)
         self.columnconfigure(10, weight=1)
         self.rowconfigure(10, weight=1)
+        self.configure(background="black")
+        self.minsize(220,100)
                 
-        self.mainFrame = tk.Frame(width=400, height=200, background="black")
+        self.mainFrame = tk.Frame(background="black")
         self.mainFrame.grid(row="1", column="1", rowspan="19", columnspan="19", sticky="nesw")
         self.makeDraggable(self.mainFrame)
         
@@ -90,6 +92,25 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu["menu"] = self.mainMenu.menu
         self.mainMenu.menu.add_command(label="Quit", command=self.quit)
         
+        self.makeCharacterMenu()
+        
+        self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
+        self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
+        self.makeDraggable(self.dpsFrame)
+        
+        self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 0.0", fg="white", background="black")
+        self.dpsOutLabel.pack(side=tk.LEFT)
+        self.makeDraggable(self.dpsOutLabel)
+        
+        self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
+        self.dpsInLabel.pack(side=tk.RIGHT)
+        self.makeDraggable(self.dpsInLabel)
+        
+        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, background="black", borderwidth="0")
+        self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
+        self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
+        
+    def makeCharacterMenu(self):
         self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -97,23 +118,6 @@ class BorderlessWindow(tk.Tk):
         self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
         self.characterMenu["menu"] = self.characterMenu.menu
         self.characterMenu.menu.add_checkbutton(label="Char1")
-        
-        self.dpsFrame = tk.Frame(height="10", borderwidth="1", background="black")
-        self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
-        self.makeDraggable(self.dpsFrame)
-        
-        self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 100", fg="white", background="black")
-        self.dpsOutLabel.pack(side=tk.LEFT)
-        self.makeDraggable(self.dpsOutLabel)
-        
-        self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 100", fg="white", background="black")
-        self.dpsInLabel.pack(side=tk.RIGHT)
-        self.makeDraggable(self.dpsInLabel)
-        
-        self.graphFrame = graph.DPSGraph()
-        self.graphFrame.configure(background="black", borderwidth="0")
-        self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
-        self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
     def makeDraggable(self, widget):
         widget.bind("<ButtonPress-1>", self.StartMove)
@@ -140,7 +144,10 @@ class BorderlessWindow(tk.Tk):
     def StopMove(self, event):
         self.x = None
         self.y = None
-
+        if (self.graphFrame):
+            self.graphFrame.readjust(left=(40/self.winfo_width()), 
+                                     top=(1-15/self.winfo_width()), bottom=(15/self.winfo_width()))
+        
     def OnMotionMove(self, event):
         deltax = event.x - self.x
         deltay = event.y - self.y

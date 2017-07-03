@@ -9,5 +9,5 @@ class App():
         graphWindow = window.BorderlessWindow()
         graphWindow.mainWindowDecorator()
         graphWindow.mainloop()
-        
+    
 App()
