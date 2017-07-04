@@ -1,3 +1,7 @@
+"""
+
+"""
+
 import matplotlib
 from matplotlib.animation import FuncAnimation
 matplotlib.use("TkAgg")
@@ -16,12 +20,16 @@ class DPSGraph(tk.Frame):
         self.dpsInLabel = dpsInLabel
         
         self.degree = 5
-        self.historicalDamageOut = [0] * 100
-        self.historicalDamageIn = [0] * 100
-        self.yValuesOut = np.array([0] * 100)
-        self.yValuesIn = np.array([0] * 100)
+        self.seconds = 10
+        self.interval = 100
+
+        self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
+        self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
+        self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
+        self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
         
         self.characterDetector = characterDetector
+        self.characterDetector.setGraphInstance(self)
         
         self.graphFigure = Figure(figsize=(4,2), dpi=100, facecolor="black")
         
@@ -29,9 +37,11 @@ class DPSGraph(tk.Frame):
         self.subplot.tick_params(axis="y", colors="grey", direction="in")
         self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
         
-        initSize = 90-(self.degree*2-1)
-        self.plotLineIn, = self.subplot.plot(range(5, initSize+5),[0] * initSize, 'r')
-        self.plotLineOut, = self.subplot.plot(range(5, initSize+5),[0] * initSize, 'c')
+        self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
+        self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
+        self.plotLineIn, = self.subplot.plot(self.ySmoothIn, 'r')
+        self.plotLineOut, = self.subplot.plot(self.ySmoothOut, 'c')
+        self.subplot.margins(0,0)
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
         self.graphFigure.subplots_adjust(left=(40/410), bottom=(15/410), right=1, top=(1-15/410), wspace=0, hspace=0)
@@ -40,7 +50,7 @@ class DPSGraph(tk.Frame):
         self.canvas.get_tk_widget().configure(bg="black")
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         
-        self.ani = FuncAnimation(self.graphFigure, self.animate, interval=100, blit=False, init_func=self.init_animation)
+        self.ani = FuncAnimation(self.graphFigure, self.animate, interval=self.interval, blit=False, init_func=self.init_animation)
         
         self.canvas.show()
         
@@ -48,26 +58,34 @@ class DPSGraph(tk.Frame):
         self.ani.event_source.stop()
         self.subplot.clear()
         
-        self.historicalDamageOut = [0] * int((seconds*1000)/interval)
-        self.historicalDamageIn = [0] * int((seconds*1000)/interval)
-        self.yValuesOut = np.array([0] * int((seconds*1000)/interval))
-        self.yValuesIn = np.array([0] * int((seconds*1000)/interval))
+        self.seconds = seconds
+        self.interval = interval
         
-        initSize = (((seconds*1000)/interval)*0.91)-(self.degree*2-1)
-        rangeModifier = int(((seconds*1000)/interval)*0.05)
-        self.plotLineIn, = self.subplot.plot(range(rangeModifier, int(initSize)+rangeModifier),[0] * int(initSize), 'r')
-        self.plotLineOut, = self.subplot.plot(range(rangeModifier, int(initSize)+rangeModifier),[0] * int(initSize), 'c')
+        self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
+        self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
+        self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
+        self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
+        
+        self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
+        self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
+        
+        self.plotLineIn, = self.subplot.plot(self.ySmoothIn, 'r')
+        self.plotLineOut, = self.subplot.plot(self.ySmoothOut, 'c')
+        self.subplot.margins(0,0)
         
         self.ani.event_source.interval = interval
         
         self.ani.event_source.start()
+        
+    def catchup(self):
+        self.changeSettings(self.seconds, self.interval)
         
     def readjust(self, **kwargs):
         self.graphFigure.subplots_adjust(**kwargs)
         self.canvas.draw()
         
     def init_animation(self):
-        return self.animate(0)
+        return
     
     def animate(self, i):
         damageOut, damageIn = self.characterDetector.readLog()
@@ -76,7 +94,7 @@ class DPSGraph(tk.Frame):
         self.historicalDamageOut.insert(len(self.historicalDamageOut), damageOut)
         
         self.yValuesOut = self.yValuesOut[1:]
-        damageOutAverage = (np.sum(self.historicalDamageOut)*10)/len(self.historicalDamageOut)
+        damageOutAverage = (np.sum(self.historicalDamageOut)*(1000/self.interval))/len(self.historicalDamageOut)
         self.yValuesOut = np.append(self.yValuesOut, damageOutAverage)
         self.dpsOutLabel.configure(text="DPS Out: " + str(damageOutAverage))
         
@@ -84,7 +102,7 @@ class DPSGraph(tk.Frame):
         self.historicalDamageIn.insert(len(self.historicalDamageIn), damageIn)
         
         self.yValuesIn = self.yValuesIn[1:]
-        damageInAverage = (np.sum(self.historicalDamageIn)*10)/len(self.historicalDamageIn)
+        damageInAverage = (np.sum(self.historicalDamageIn)*(1000/self.interval))/len(self.historicalDamageIn)
         self.yValuesIn = np.append(self.yValuesIn, damageInAverage)
         self.dpsInLabel.configure(text="DPS In: " + str(damageInAverage))
         
@@ -98,8 +116,8 @@ class DPSGraph(tk.Frame):
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
         
-        self.plotLineOut.set_data(range(1, len(self.ySmoothOut)+1), self.ySmoothOut)
-        self.plotLineIn.set_data(range(1, len(self.ySmoothIn)+1), self.ySmoothIn)
+        self.plotLineOut.set_data(range(0, len(self.ySmoothOut)), self.ySmoothOut)
+        self.plotLineIn.set_data(range(0, len(self.ySmoothIn)), self.ySmoothIn)
         
         if (highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)

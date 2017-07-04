@@ -47,12 +47,24 @@ class CharacterDetector(FileSystemEventHandler):
         
         for i in range(len(self.menuEntries)):
             if (character == self.menuEntries[i]):
-                self.logReaders[i] = LogReader(logPath)
+                try:
+                    newLogReader = LogReader(logPath)
+                except BadLogException:
+                    return
+                self.logReaders[i] = newLogReader
                 return
-        self.logReaders.append(LogReader(logPath))
+        
+        try:
+            newLogReader = LogReader(logPath)
+        except BadLogException:
+            return
+        self.logReaders.append(newLogReader)
         self.characterMenu.menu.add_radiobutton(label=character, variable=self.selectedIndex, 
                                                 value=len(self.menuEntries), command=self.catchupLog)
         self.menuEntries.append(character)
+        
+    def setGraphInstance(self, graphInstance):
+        self.graphInstance = graphInstance
         
     def stop(self):
         self.observer.stop()
@@ -64,6 +76,7 @@ class CharacterDetector(FileSystemEventHandler):
             return 0,0
     
     def catchupLog(self):
+        self.graphInstance.catchup()
         self.logReaders[self.selectedIndex.get()].catchup()
         
 class LogReader():
@@ -86,7 +99,8 @@ class LogReader():
             messagebox.showinfo("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
-                                "Please restart the client of the character you want to track to use this program.")
+                                "Please restart the client of the character you want to track to use this program.\n" + 
+                                "If you already did, you can ignore this message, or delete this log file:\n" + logPath)
             raise BadLogException("log file collision")
         self.log.read()
             

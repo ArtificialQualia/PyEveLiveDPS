@@ -12,7 +12,6 @@ from tkinter import ttk
 import tkinter.font as tkFont
 import graph
 import logreader
-from tkinter.ttk import OptionMenu
 
 class BorderlessWindow(tk.Tk):
     def __init__(self):
@@ -164,20 +163,41 @@ class BorderlessWindow(tk.Tk):
         try:
             secondsSetting = int(self.secondsVar.get())
         except ValueError:
-            tk.messagebox.showinfo("Error", "Please enter a number for number of seconds to average DPS")
+            tk.messagebox.showerror("Error", "Please enter a number for number of seconds to average DPS")
             return
         if (secondsSetting < 2 or secondsSetting > 600):
-            tk.messagebox.showinfo("Error", "Please enter a value between 2-600 for number of seconds to average DPS")
+            tk.messagebox.showerror("Error", "Please enter a value between 2-600 for number of seconds to average DPS")
             return  
         
         try:
             intervalSetting = int(self.intervalVar.get())
         except ValueError:
-            tk.messagebox.showinfo("Error", "Please enter a number for milliseconds to update graph")
+            tk.messagebox.showerror("Error", "Please enter a number for milliseconds to update graph")
             return
-        if (intervalSetting < 10 or intervalSetting > 10000):
-            tk.messagebox.showinfo("Error", "Please enter a value between 10-10000 for milliseconds to update graph")
+        if (intervalSetting < 10 or intervalSetting > 1000):
+            tk.messagebox.showerror("Error", "Please enter a value between 10-1000 for milliseconds to update graph")
             return
+        
+        if ((secondsSetting*1000)/intervalSetting <= 10):
+            tk.messagebox.showerror("Error", "(Seconds to average DPS*1000)/(Graph update interval) must be > 10.\n" +
+                                   "If it is less than 10, we won't have enough data to draw an accurate graph!")
+            return
+        
+        if ((secondsSetting*1000)/intervalSetting < 20):
+            okCancel = tk.messagebox.askokcancel("Continue?", "(Seconds to average DPS*1000)/(Graph update interval)\n is < 20\n" +
+                                   "This is ok, but it is recommended to increase your (Seconds to average DPS) or \n" +
+                                   "decrease your (Graph update interval) to improve your graphing experience.\n"
+                                   "Would you like to keep these settings?")
+            if not okCancel:
+                return
+            
+        if (intervalSetting < 50):
+            okCancel = tk.messagebox.askokcancel("Continue?", "Setting the graph update interval to less than 50ms\n" +
+                                                 "Is generally a bad idea.  Your CPU won't like it."
+                                                 "Would you like to keep these settings?")
+            if not okCancel:
+                return
+            
         
         self.graphFrame.changeSettings(secondsSetting, intervalSetting)
         
