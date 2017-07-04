@@ -11,6 +11,8 @@ You can run multiple copies to track different characters at the same time.
 
 If you want PELD to overlay on top of your eve client, make sure you are running eve in borderless windowed mode.
 
+Currently this app only works on Windows.  Cross platform support will be addressed at a later release.
+
 ## What is it?
 
 PyEveLiveDPS (PELD) is a utility you can use to visualize both the incoming and outgoing DPS you are doing in real time.  
@@ -33,10 +35,10 @@ This is an initial release, so if you encounter any bugs or you think there are 
 
 If you wish to contribute to the project codebase, I will of course be accepting pull requests.
 
-If you love the program enough that you feel compelled to donate, ISK donations are welcome to my eve character: Demogorgon Asmodeous
+If you love the program enough that you feel compelled to donate, ISK donations are welcome to my eve character: **Demogorgon Asmodeous**
 
 ## Packaging and Building Locally
-To build locally, run the following commands with Python 3.5:
+To build locally, run the following commands with **Python 3.5**:
 ```
 pip install -r requirements.txt
 pyinstaller setup.spec
