@@ -7,11 +7,11 @@ https://github.com/ArtificialQualia/PyEveLiveDPS/releases
 
 To run, simply unzip and run peld.exe
 
-You can run multiple copies to track different characters at the same time.
-
 If you want PELD to overlay on top of your eve client, make sure you are running eve in borderless windowed mode.
 
-Currently this app only works on Windows.  Cross platform support will be addressed at a later release.
+You can run multiple copies to track different characters at the same time.
+
+The packaged release is for Windows.  To run on Linux, run from source.  See below about how to run from source.  Other OSes are untested but may be addressed at a later date.
 
 ## What is it?
 

@@ -10,6 +10,7 @@ By detatching it from the window manager with overrideredirect(true), one
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
+import platform
 import graph
 import logreader
 
@@ -22,6 +23,8 @@ class BorderlessWindow(tk.Tk):
         self.rowconfigure(10, weight=1)
         self.configure(background="black")
         self.minsize(220,100)
+        
+        self.platform = platform.system()
         
         self.secondsVar = tk.StringVar()
         self.secondsVar.set("10")
@@ -56,25 +59,37 @@ class BorderlessWindow(tk.Tk):
         self.rightResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.rightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeXRight)
         
-        self.topLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_nw_se")
+        if (self.platform == "Windows"):
+            self.topLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_nw_se")
+        else:
+            self.topLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="top_left_corner")
         self.topLeftResizeFrame.grid(row="0", column="0")
         self.topLeftResizeFrame.bind("<ButtonPress-1>", self.StartMove)
         self.topLeftResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.topLeftResizeFrame.bind("<B1-Motion>", self.OnMotionResizeNw)
         
-        self.topRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_ne_sw")
+        if (self.platform == "Windows"):
+            self.topRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_ne_sw")
+        else:
+            self.topRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="top_right_corner")
         self.topRightResizeFrame.grid(row="0", column="20")
         self.topRightResizeFrame.bind("<ButtonPress-1>", self.StartMove)
         self.topRightResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.topRightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeNe)
         
-        self.bottomLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_ne_sw")
+        if (self.platform == "Windows"):
+            self.bottomLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_ne_sw")
+        else:
+            self.bottomLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="bottom_left_corner")
         self.bottomLeftResizeFrame.grid(row="20", column="0")
         self.bottomLeftResizeFrame.bind("<ButtonPress-1>", self.StartMove)
         self.bottomLeftResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.bottomLeftResizeFrame.bind("<B1-Motion>", self.OnMotionResizeSw)
         
-        self.bottomRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_nw_se")
+        if (self.platform == "Windows"):
+            self.bottomRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_nw_se")
+        else:
+            self.bottomRightResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="bottom_right_corner")
         self.bottomRightResizeFrame.grid(row="20", column="20")
         self.bottomRightResizeFrame.bind("<ButtonPress-1>", self.StartMove)
         self.bottomRightResizeFrame.bind("<ButtonRelease-1>", self.StopMove)

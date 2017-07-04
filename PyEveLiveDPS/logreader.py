@@ -2,6 +2,7 @@ import re
 import os
 import datetime
 import time
+import platform
 from tkinter import messagebox, IntVar
 
 from watchdog.events import FileSystemEventHandler
@@ -11,7 +12,11 @@ class CharacterDetector(FileSystemEventHandler):
     def __init__(self, characterMenu):
         self.characterMenu = characterMenu
         self.observer = Observer()
-        self.path = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs\\"
+        
+        if (platform.system() == "Windows"):
+            self.path = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs\\"
+        else:
+            self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
         self.menuEntries = []
         self.logReaders = []
