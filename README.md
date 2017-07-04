@@ -27,6 +27,14 @@ How long of a time period to average your DPS over is a user configurable settin
 
 Note that since it is a moving average, you will see peaks and valleys as hits fall 'off' the graph, and new ones are added.  You can increase the time period (up to 10 minutes) of the moving average to minimize this effect, but then it will be harder to see how much of an effect each hit is having.
 
+###Problems?  Feedback?
+
+This is an initial release, so if you encounter any bugs or you think there are missing features please let me know [on the issues page](https://github.com/ArtificialQualia/PyEveLiveDPS/issues).
+
+If you wish to contribute to the project codebase, I will of course be accepting pull requests.
+
+If you love the program enough that you feel compelled to donate, ISK donations are welcome to my eve character: Demogorgon Asmodeous
+
 ## Packaging and Building Locally
 To build locally, run the following commands with Python 3.5:
 ```
