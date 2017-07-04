@@ -9,7 +9,10 @@ By detatching it from the window manager with overrideredirect(true), one
 
 import tkinter as tk
 from tkinter import ttk
+import tkinter.font as tkFont
 import graph
+import logreader
+from tkinter.ttk import OptionMenu
 
 class BorderlessWindow(tk.Tk):
     def __init__(self):
@@ -20,6 +23,11 @@ class BorderlessWindow(tk.Tk):
         self.rowconfigure(10, weight=1)
         self.configure(background="black")
         self.minsize(220,100)
+        
+        self.secondsVar = tk.StringVar()
+        self.secondsVar.set("10")
+        self.intervalVar = tk.StringVar()
+        self.intervalVar.set("100")
                 
         self.mainFrame = tk.Frame(background="black")
         self.mainFrame.grid(row="1", column="1", rowspan="19", columnspan="19", sticky="nesw")
@@ -90,9 +98,16 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.grid(row="5", column="1")
         self.mainMenu.menu = tk.Menu(self.mainMenu, tearoff=False)
         self.mainMenu["menu"] = self.mainMenu.menu
+        self.mainMenu.menu.add_command(label="Settings", command=self.openSettings)
         self.mainMenu.menu.add_command(label="Quit", command=self.quit)
         
-        self.makeCharacterMenu()
+        self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
+                                      highlightbackground="black", highlightthickness="1",
+                                      activebackground="gray25", activeforeground="white")
+        self.characterMenu.grid(row="5", column="2")
+        self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
+        self.characterMenu["menu"] = self.characterMenu.menu
+        self.characterDetector = logreader.CharacterDetector(self.characterMenu)
         
         self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
         self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
@@ -106,19 +121,68 @@ class BorderlessWindow(tk.Tk):
         self.dpsInLabel.pack(side=tk.RIGHT)
         self.makeDraggable(self.dpsInLabel)
         
-        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.characterDetector,
+                                          background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
-    def makeCharacterMenu(self):
-        self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
-                                      highlightbackground="black", highlightthickness="1",
-                                      activebackground="gray25", activeforeground="white")
-        self.characterMenu.grid(row="5", column="2")
-        self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
-        self.characterMenu["menu"] = self.characterMenu.menu
-        self.characterMenu.menu.add_checkbutton(label="Char1")
+    def openSettings(self):
+        self.settingsWindow = tk.Toplevel()
+        self.settingsWindow.wm_attributes("-topmost", True)
+        self.settingsWindow.geometry("360x160")
         
+        secondsLabel = tk.Label(self.settingsWindow, text="Number of seconds to average DPS:")
+        secondsLabel.grid(row="0", column="0")
+        secondsEntry = tk.Entry(self.settingsWindow, textvariable=self.secondsVar, width=10)
+        secondsEntry.grid(row="0", column="1")
+        secondsDescriptor = tk.Label(self.settingsWindow, text="Recommended to set this value higher than your weapon cycle time")
+        font = tkFont.Font(font=secondsDescriptor['font'])
+        font.config(slant='italic')
+        secondsDescriptor['font'] = font
+        secondsDescriptor.grid(row="1", column="0", columnspan="5")
+        
+        spacer = tk.Frame(self.settingsWindow, height="20", width="10")
+        spacer.grid(row="2", column="1", columnspan="5")
+        
+        intervalLabel = tk.Label(self.settingsWindow, text="How often to update the graph in milliseconds:")
+        intervalLabel.grid(row="3", column="0")
+        intervalEntry = tk.Entry(self.settingsWindow, textvariable=self.intervalVar, width=10)
+        intervalEntry.grid(row="3", column="1")
+        intervalDescriptor = tk.Label(self.settingsWindow, text="The lower you set this value, the higher your CPU usage will be")
+        font = tkFont.Font(font=intervalDescriptor['font'])
+        font.config(slant='italic')
+        intervalDescriptor['font'] = font
+        intervalDescriptor.grid(row="4", column="0", columnspan="5")
+        
+        spacer2 = tk.Frame(self.settingsWindow, height="20", width="10")
+        spacer2.grid(row="5", column="1", columnspan="5")
+        
+        okButton = tk.Button(self.settingsWindow, text="  OK  ", command=self.doSettings)
+        okButton.grid(row="6", column="0", columnspan="5")
+        
+    def doSettings(self):
+        try:
+            secondsSetting = int(self.secondsVar.get())
+        except ValueError:
+            tk.messagebox.showinfo("Error", "Please enter a number for number of seconds to average DPS")
+            return
+        if (secondsSetting < 2 or secondsSetting > 600):
+            tk.messagebox.showinfo("Error", "Please enter a value between 2-600 for number of seconds to average DPS")
+            return  
+        
+        try:
+            intervalSetting = int(self.intervalVar.get())
+        except ValueError:
+            tk.messagebox.showinfo("Error", "Please enter a number for milliseconds to update graph")
+            return
+        if (intervalSetting < 10 or intervalSetting > 10000):
+            tk.messagebox.showinfo("Error", "Please enter a value between 10-10000 for milliseconds to update graph")
+            return
+        
+        self.graphFrame.changeSettings(secondsSetting, intervalSetting)
+        
+        self.settingsWindow.destroy()
+    
     def makeDraggable(self, widget):
         widget.bind("<ButtonPress-1>", self.StartMove)
         widget.bind("<ButtonRelease-1>", self.StopMove)
@@ -135,6 +199,8 @@ class BorderlessWindow(tk.Tk):
         
     def quitEvent(self, event):
         if (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
+            if hasattr(self, "caracterDetector"):
+                self.characterDetector.stop()
             self.quit()
     
     def StartMove(self, event):
@@ -211,9 +277,4 @@ class BorderlessWindow(tk.Tk):
         x0 = self.winfo_rootx()
         self.geometry("%sx%s" % ((x1-x0),y))
         
-        
-        #self.bQuit = tk.Button(text="Quit", command=self.quit)
-        #self.bQuit.pack(pady=20)
-        
-
     

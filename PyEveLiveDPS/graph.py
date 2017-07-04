@@ -10,7 +10,7 @@ import logreader
 
 class DPSGraph(tk.Frame):
 
-    def __init__(self, dpsOutLabel, dpsInLabel, **kwargs):
+    def __init__(self, dpsOutLabel, dpsInLabel, characterDetector, **kwargs):
         tk.Frame.__init__(self, **kwargs)
         self.dpsOutLabel = dpsOutLabel
         self.dpsInLabel = dpsInLabel
@@ -21,10 +21,7 @@ class DPSGraph(tk.Frame):
         self.yValuesOut = np.array([0] * 100)
         self.yValuesIn = np.array([0] * 100)
         
-        #try:
-        self.logReader = logreader.LogReader()
-        #except Exception:
-        #    raise Exception
+        self.characterDetector = characterDetector
         
         self.graphFigure = Figure(figsize=(4,2), dpi=100, facecolor="black")
         
@@ -32,9 +29,9 @@ class DPSGraph(tk.Frame):
         self.subplot.tick_params(axis="y", colors="grey", direction="in")
         self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
         
-        initSize = 93-(self.degree*2-1)
-        self.plotLineIn, = self.subplot.plot(range(4, initSize+4),[0] * initSize, 'r')
-        self.plotLineOut, = self.subplot.plot(range(4, initSize+4),[0] * initSize, 'c')
+        initSize = 90-(self.degree*2-1)
+        self.plotLineIn, = self.subplot.plot(range(5, initSize+5),[0] * initSize, 'r')
+        self.plotLineOut, = self.subplot.plot(range(5, initSize+5),[0] * initSize, 'c')
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
         self.graphFigure.subplots_adjust(left=(40/410), bottom=(15/410), right=1, top=(1-15/410), wspace=0, hspace=0)
@@ -47,6 +44,24 @@ class DPSGraph(tk.Frame):
         
         self.canvas.show()
         
+    def changeSettings(self, seconds, interval):
+        self.ani.event_source.stop()
+        self.subplot.clear()
+        
+        self.historicalDamageOut = [0] * int((seconds*1000)/interval)
+        self.historicalDamageIn = [0] * int((seconds*1000)/interval)
+        self.yValuesOut = np.array([0] * int((seconds*1000)/interval))
+        self.yValuesIn = np.array([0] * int((seconds*1000)/interval))
+        
+        initSize = (((seconds*1000)/interval)*0.91)-(self.degree*2-1)
+        rangeModifier = int(((seconds*1000)/interval)*0.05)
+        self.plotLineIn, = self.subplot.plot(range(rangeModifier, int(initSize)+rangeModifier),[0] * int(initSize), 'r')
+        self.plotLineOut, = self.subplot.plot(range(rangeModifier, int(initSize)+rangeModifier),[0] * int(initSize), 'c')
+        
+        self.ani.event_source.interval = interval
+        
+        self.ani.event_source.start()
+        
     def readjust(self, **kwargs):
         self.graphFigure.subplots_adjust(**kwargs)
         self.canvas.draw()
@@ -55,7 +70,7 @@ class DPSGraph(tk.Frame):
         return self.animate(0)
     
     def animate(self, i):
-        damageOut, damageIn = self.logReader.readLog()
+        damageOut, damageIn = self.characterDetector.readLog()
         
         self.historicalDamageOut.pop(0)
         self.historicalDamageOut.insert(len(self.historicalDamageOut), damageOut)
@@ -93,9 +108,6 @@ class DPSGraph(tk.Frame):
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
         
         return self.plotLineOut, self.plotLineIn
-    
-    def animateLine(self):
-        x = 0
         
     def smoothListGaussian(self, list, degree=5):  
      window=degree*2-1  

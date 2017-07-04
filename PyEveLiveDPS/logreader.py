@@ -1,29 +1,74 @@
 import re
-from tkinter import messagebox
-
-import logging
-import sys
-import time
 import os
+import datetime
+import time
+from tkinter import messagebox, IntVar
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-class CharacterDetector():
-    def __init__(self):
-        self.observer = observer
-        self.filename = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs"
+class CharacterDetector(FileSystemEventHandler):
+    def __init__(self, characterMenu):
+        self.characterMenu = characterMenu
+        self.observer = Observer()
+        self.path = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs\\"
+        
+        self.menuEntries = []
+        self.logReaders = []
+        self.selectedIndex = IntVar()
+        
+        oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+        for filename in os.listdir(self.path):
+            timeString = filename.strip(".txt")
+            fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
+            if (fileTime >= oneDayAgo):
+                self.addLog(self.path + filename)
+        
+        self.selectedIndex.set(0)
+        
+        self.observer.schedule(self, self.path, recursive=False)
+        self.observer.start()
         
     def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith(self.filename):
-            print("file created")
-            self.observer.stop()
-
+        self.addLog(event.src_path)
+        
+    def addLog(self, logPath):
+        log = open(logPath)
+        log.readline()
+        log.readline()
+        characterLine = log.readline()
+        character = re.search("(?<=Listener: ).*", characterLine)
+        if character:
+            character = character.group(0)
+        else:
+            #print("Log created, but not a character log.")
+            return
+        log.close()
+        
+        for i in range(len(self.menuEntries)):
+            if (character == self.menuEntries[i]):
+                self.logReaders[i] = LogReader(logPath)
+                return
+        self.logReaders.append(LogReader(logPath))
+        self.characterMenu.menu.add_radiobutton(label=character, variable=self.selectedIndex, 
+                                                value=len(self.menuEntries), command=self.catchupLog)
+        self.menuEntries.append(character)
+        
+    def stop(self):
+        self.observer.stop()
+        
+    def readLog(self):
+        if (len(self.menuEntries) > 0):
+            return self.logReaders[self.selectedIndex.get()].readLog()
+        else:
+            return 0,0
+    
+    def catchupLog(self):
+        self.logReaders[self.selectedIndex.get()].catchup()
+        
 class LogReader():
-    def __init__(self):
-        path = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs"
-        self.log = open(path + "\\20170703_161846.txt", 'r')
-        #self.log = open("C:\\Users\\Kendall\\Documents\\EVE\\logs\\Gamelogs\\20170703_001918.txt", 'r')
+    def __init__(self, logPath):
+        self.log = open(logPath, 'r')
         self.log.readline()
         self.log.readline()
         characterLine = self.log.readline()
@@ -31,8 +76,7 @@ class LogReader():
         if character:
             character = character.group(0)
         else:
-            messagebox.showinfo("Error", "this is not a character logfile")
-        print(character)
+            raise BadLogException("not character log")
         self.log.readline()
         self.log.readline()
         self.logLine = self.log.readline()
@@ -43,6 +87,7 @@ class LogReader():
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
                                 "Please restart the client of the character you want to track to use this program.")
+            raise BadLogException("log file collision")
         self.log.read()
             
     def readLog(self):
@@ -61,3 +106,9 @@ class LogReader():
                 damageIn += int(match)
                 
         return damageOut, damageIn
+    
+    def catchup(self):
+        self.log.read()
+    
+class BadLogException(Exception):
+    pass
