@@ -4,6 +4,7 @@ import datetime
 import time
 import platform
 from tkinter import messagebox, IntVar
+import win32com.client
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -14,7 +15,8 @@ class CharacterDetector(FileSystemEventHandler):
         self.observer = Observer()
         
         if (platform.system() == "Windows"):
-            self.path = os.environ['HOMEPATH'] + "\\Documents\\EVE\\logs\\Gamelogs\\"
+            oShell = win32com.client.Dispatch("Wscript.Shell")
+            self.path = oShell.SpecialFolders("MyDocuments") + "\\EVE\\logs\\Gamelogs\\"
         else:
             self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
