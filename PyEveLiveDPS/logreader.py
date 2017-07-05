@@ -27,7 +27,10 @@ class CharacterDetector(FileSystemEventHandler):
         oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
         for filename in os.listdir(self.path):
             timeString = filename.strip(".txt")
-            fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
+            try:
+                fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
+            except ValueError:
+                continue
             if (fileTime >= oneDayAgo):
                 self.addLog(self.path + filename)
         
