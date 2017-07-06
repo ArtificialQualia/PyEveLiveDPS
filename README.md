@@ -37,13 +37,10 @@ If you wish to contribute to the project codebase, I will of course be accepting
 
 If you love the program enough that you feel compelled to donate, ISK donations are welcome to my eve character: **Demogorgon Asmodeous**
 
-## Packaging and Building Locally
-To build locally, run the following commands with **Python 3.5**:
+## Running from source
+To run PELD directly from the source code, run the following commands with **Python 3.5**:
 ```
 pip install -r requirements.txt
-pyinstaller setup.spec
+python ./PyEveLiveDPS/peld.py
 ```
-Executable will then be located in ./dist/peld/
-
-Alternatively, if you want to run the python code without building, simply run:  
-`python ./PyEveLiveDPS/peld.py`
+If you want to build an .exe yourself, see BUILDING.md
