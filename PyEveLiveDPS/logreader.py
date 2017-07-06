@@ -1,3 +1,22 @@
+"""
+This file contains two classes:
+
+    CharacterDetector:
+        This class monitors the eve gamelog directory for new files,
+        as well as initializes PELD with the last day's worth of eve logs
+        and keeps track of what eve character belongs to which log.
+        
+        When a new file enters the gamelog directory, CharacterDetector
+        either replaces an existing character with the new log file,
+        or adds a new character to the character menu.
+        
+    LogReader:
+        This class does the actual reading of the logs.  Each eve
+        character has it's own instance of this class.  This class
+        contains the regex which process new log entries into a consumable
+        format.
+"""
+
 import re
 import os
 import datetime
@@ -113,18 +132,21 @@ class LogReader():
                                 "If you already did, you can ignore this message, or delete this log file:\n" + logPath)
             raise BadLogException("log file collision")
         self.log.read()
+        
+        self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
+        self.damageInGroup = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
             
     def readLog(self):
         logData = self.log.read()
         
         damageOut = 0
-        damageOutGroup = re.findall("\(combat\) <.*?><b>([0-9]+).*>to<", logData)
+        damageOutGroup = self.damageOutRegex.findall(logData)
         if damageOutGroup:
             for match in damageOutGroup:
                 damageOut += int(match)
                 
         damageIn = 0
-        damageInGroup = re.findall("\(combat\) <.*?><b>([0-9]+).*>from<", logData)
+        damageInGroup = self.damageInGroup.findall(logData)
         if damageInGroup:
             for match in damageInGroup:
                 damageIn += int(match)

@@ -44,3 +44,5 @@ pip install -r requirements.txt
 python ./PyEveLiveDPS/peld.py
 ```
 If you want to build an .exe yourself, see BUILDING.md
+
+If you are running on Linux, you may need to modify logreader.py to point to the correct directory where your eve logs are stored.

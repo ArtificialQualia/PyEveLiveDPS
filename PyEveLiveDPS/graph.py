@@ -1,5 +1,19 @@
 """
-
+DPSGraph:
+    This does everything relating to the actual graph and DPS calculations.
+    
+    matplotlib is used for all graphing
+    
+    The function of interest here is "animate".  It gets run every
+    self.interval, which defaults to 100ms, so a balance must be struck
+    between how much we can do in that function with how often it is run.
+    If the interval is too high, the graph is choppy and less accurate.
+    If the interval is too low, the CPU usage spikes (mostly from redrwaing
+    the graph).
+    
+    Blitting the graph (only rewriting parts that changed) has almost no
+    effect on performance in my testing (and the ticks don't redraw, so we have
+    to redraw that every frame anyways).
 """
 
 import matplotlib
@@ -55,6 +69,7 @@ class DPSGraph(tk.Frame):
         self.canvas.show()
         
     def changeSettings(self, seconds, interval):
+        """This function is called when a user changes settings AFTER the settings are verified in window.py"""
         self.ani.event_source.stop()
         self.subplot.clear()
         
@@ -78,13 +93,18 @@ class DPSGraph(tk.Frame):
         self.ani.event_source.start()
         
     def catchup(self):
+        """This is just to 'clear' the graph"""
         self.changeSettings(self.seconds, self.interval)
         
     def readjust(self, **kwargs):
+        """This is for when a user resizes the window, we must change how much room we have to draw numbers
+        on the left-hand side.
+        Annoyingly, we have to use a %, not a number of pixels"""
         self.graphFigure.subplots_adjust(**kwargs)
         self.canvas.draw()
         
     def init_animation(self):
+        """when blitting we need this, but as of now we do not"""
         return
     
     def animate(self, i):
@@ -127,21 +147,26 @@ class DPSGraph(tk.Frame):
         
         return self.plotLineOut, self.plotLineIn
         
-    def smoothListGaussian(self, list, degree=5):  
-     window=degree*2-1  
-     weight=np.array([1.0]*window)  
-     weightGauss=[]  
+    def smoothListGaussian(self, list, degree=5):
+        """Standard Gaussian (1D) function to smooth out out line
+        It's not great computationally that we have to do this every time,
+        but it makes the graph look soooo much better.
+        Degree of 5 is choosen to strike a balance between prettiness and
+        accuracy/granularity of data"""
+        window=degree*2-1  
+        weight=np.array([1.0]*window)  
+        weightGauss=[]  
 
-     for i in range(window):  
-         i=i-degree+1  
-         frac=i/float(window)  
-         gauss=1/(np.exp((4*(frac))**2))  
-         weightGauss.append(gauss)  
+        for i in range(window):  
+            i=i-degree+1  
+            frac=i/float(window)  
+            gauss=1/(np.exp((4*(frac))**2))  
+            weightGauss.append(gauss)  
 
-     weight=np.array(weightGauss)*weight  
-     smoothed=[0.0]*(len(list)-window) 
+        weight=np.array(weightGauss)*weight  
+        smoothed=[0.0]*(len(list)-window) 
 
-     for i in range(len(smoothed)):  
-         smoothed[i]=sum(np.array(list[i:i+window])*weight)/sum(weight)  
+        for i in range(len(smoothed)):  
+            smoothed[i]=sum(np.array(list[i:i+window])*weight)/sum(weight)  
 
-     return smoothed  
+        return smoothed  

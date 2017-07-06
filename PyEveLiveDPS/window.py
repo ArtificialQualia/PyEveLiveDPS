@@ -1,4 +1,6 @@
 """
+BorderlessWindow:
+
 In order to create the type of window that will work well while running EVE,
  we must perform many customizations on the window.
  
@@ -16,6 +18,9 @@ import logreader
 
 class BorderlessWindow(tk.Tk):
     def __init__(self):
+        """This function probably does too much.
+        It certainly could be separated out into multiple functions,
+        but I could see no real benefit of doing so"""
         tk.Tk.__init__(self)
         self.overrideredirect(True)
         self.wm_attributes("-topmost", True)
@@ -24,17 +29,21 @@ class BorderlessWindow(tk.Tk):
         self.configure(background="black")
         self.minsize(220,100)
         
+        #We need to get the user's system type (Windows or non-windows) for some windows specific cursor types
         self.platform = platform.system()
         
+        #These are for the "Settings" window
         self.secondsVar = tk.StringVar()
         self.secondsVar.set("10")
         self.intervalVar = tk.StringVar()
         self.intervalVar.set("100")
                 
+        #This frame takes up all the extra nooks and crannies in the window, so we can drag them like a user would expect
         self.mainFrame = tk.Frame(background="black")
         self.mainFrame.grid(row="1", column="1", rowspan="19", columnspan="19", sticky="nesw")
         self.makeDraggable(self.mainFrame)
         
+        #Next four sections are for setting up the draggable edges for resizing.
         self.topResizeFrame = tk.Frame(height=5, background="black", cursor="sb_v_double_arrow")
         self.topResizeFrame.grid(row="0", column="1", columnspan="50", sticky="ew")
         self.topResizeFrame.bind("<ButtonPress-1>", self.StartMove)
@@ -59,6 +68,7 @@ class BorderlessWindow(tk.Tk):
         self.rightResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.rightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeXRight)
         
+        #Next four sections are for setting up the resizeable corners
         if (self.platform == "Windows"):
             self.topLeftResizeFrame = tk.Frame(width=5, height=5, background="black", cursor="size_nw_se")
         else:
@@ -95,6 +105,7 @@ class BorderlessWindow(tk.Tk):
         self.bottomRightResizeFrame.bind("<ButtonRelease-1>", self.StopMove)
         self.bottomRightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeSe)
         
+        #Fancy quit button...
         self.quitButton = tk.Canvas(width=15, height=15, background="black",
                                     highlightbackground="white", highlightthickness="1")
         self.quitButton.create_line(0,0,16,16,fill="white")
@@ -105,7 +116,7 @@ class BorderlessWindow(tk.Tk):
         self.quitButton.bind("<ButtonPress-1>", self.QuitButtonDimGray)
         self.quitButton.bind("<ButtonRelease-1>", self.quitEvent)
         
-    def mainWindowDecorator(self):
+        #Set up menu options
         self.mainMenu = tk.Menubutton(text="File...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -115,6 +126,7 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.menu.add_command(label="Settings", command=self.openSettings)
         self.mainMenu.menu.add_command(label="Quit", command=self.quit)
         
+        #character menu options are added dynamically by CharacterDetector, so we pass this into that
         self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -123,6 +135,7 @@ class BorderlessWindow(tk.Tk):
         self.characterMenu["menu"] = self.characterMenu.menu
         self.characterDetector = logreader.CharacterDetector(self.characterMenu)
         
+        #Container for our "dps labels"
         self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
         self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
         self.makeDraggable(self.dpsFrame)
@@ -135,12 +148,16 @@ class BorderlessWindow(tk.Tk):
         self.dpsInLabel.pack(side=tk.RIGHT)
         self.makeDraggable(self.dpsInLabel)
         
+        #The hero of our app
         self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.characterDetector,
                                           background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
     def openSettings(self):
+        """Makes a Settings window
+        which acceps user input, and validates it in 'doSettings'
+        """
         self.settingsWindow = tk.Toplevel()
         self.settingsWindow.wm_attributes("-topmost", True)
         self.settingsWindow.geometry("360x160")
