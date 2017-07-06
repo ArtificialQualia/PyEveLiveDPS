@@ -25,6 +25,7 @@ from matplotlib.figure import Figure, Axes
 import numpy as np
 import tkinter as tk
 import logreader
+import decimal
 
 class DPSGraph(tk.Frame):
 
@@ -36,11 +37,13 @@ class DPSGraph(tk.Frame):
         self.degree = 5
         self.seconds = 10
         self.interval = 100
+        self.windowWidth = 410
 
         self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
         self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
+        self.highestAverage = 0
         
         self.characterDetector = characterDetector
         self.characterDetector.setGraphInstance(self)
@@ -58,7 +61,8 @@ class DPSGraph(tk.Frame):
         self.subplot.margins(0,0)
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
-        self.graphFigure.subplots_adjust(left=(40/410), bottom=(15/410), right=1, top=(1-15/410), wspace=0, hspace=0)
+        self.graphFigure.subplots_adjust(left=(30/self.windowWidth), bottom=(15/self.windowWidth), 
+                                         right=1, top=(1-15/self.windowWidth), wspace=0, hspace=0)
 
         self.canvas = FigureCanvasTkAgg(self.graphFigure, self)
         self.canvas.get_tk_widget().configure(bg="black")
@@ -96,12 +100,21 @@ class DPSGraph(tk.Frame):
         """This is just to 'clear' the graph"""
         self.changeSettings(self.seconds, self.interval)
         
-    def readjust(self, **kwargs):
+    def readjust(self, windowWidth):
         """This is for when a user resizes the window, we must change how much room we have to draw numbers
         on the left-hand side.
         Annoyingly, we have to use a %, not a number of pixels"""
-        self.graphFigure.subplots_adjust(**kwargs)
-        self.canvas.draw()
+        self.windowWidth = windowWidth
+        if (self.highestAverage < 900):
+            self.graphFigure.subplots_adjust(left=(30/self.windowWidth), top=(1-15/self.windowWidth), 
+                                             bottom=(15/self.windowWidth))
+        elif (self.highestAverage < 9000):
+            self.graphFigure.subplots_adjust(left=(40/self.windowWidth), top=(1-15/self.windowWidth), 
+                                             bottom=(15/self.windowWidth))
+        else:
+            self.graphFigure.subplots_adjust(left=(50/self.windowWidth), top=(1-15/self.windowWidth), 
+                                             bottom=(15/self.windowWidth))
+        #self.canvas.draw()
         
     def init_animation(self):
         """when blitting we need this, but as of now we do not"""
@@ -116,7 +129,8 @@ class DPSGraph(tk.Frame):
         self.yValuesOut = self.yValuesOut[1:]
         damageOutAverage = (np.sum(self.historicalDamageOut)*(1000/self.interval))/len(self.historicalDamageOut)
         self.yValuesOut = np.append(self.yValuesOut, damageOutAverage)
-        self.dpsOutLabel.configure(text="DPS Out: " + str(damageOutAverage))
+        dpsOutString = str(decimal.Decimal(damageOutAverage).quantize(decimal.Decimal('.01')))
+        self.dpsOutLabel.configure(text="DPS Out: " + dpsOutString)
         
         self.historicalDamageIn.pop(0)
         self.historicalDamageIn.insert(len(self.historicalDamageIn), damageIn)
@@ -124,14 +138,15 @@ class DPSGraph(tk.Frame):
         self.yValuesIn = self.yValuesIn[1:]
         damageInAverage = (np.sum(self.historicalDamageIn)*(1000/self.interval))/len(self.historicalDamageIn)
         self.yValuesIn = np.append(self.yValuesIn, damageInAverage)
-        self.dpsInLabel.configure(text="DPS In: " + str(damageInAverage))
+        dpsInString = str(decimal.Decimal(damageInAverage).quantize(decimal.Decimal('.01')))
+        self.dpsInLabel.configure(text="DPS In: " + dpsInString)
         
-        highestAverage = 0
+        self.highestAverage = 0
         for i in range(len(self.yValuesOut)):
-            if (self.yValuesOut[i] > highestAverage):
-                highestAverage = self.yValuesOut[i]
-            if (self.yValuesIn[i] > highestAverage):
-                highestAverage = self.yValuesIn[i]
+            if (self.yValuesOut[i] > self.highestAverage):
+                self.highestAverage = self.yValuesOut[i]
+            if (self.yValuesIn[i] > self.highestAverage):
+                self.highestAverage = self.yValuesIn[i]
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
@@ -139,11 +154,12 @@ class DPSGraph(tk.Frame):
         self.plotLineOut.set_data(range(0, len(self.ySmoothOut)), self.ySmoothOut)
         self.plotLineIn.set_data(range(0, len(self.ySmoothIn)), self.ySmoothIn)
         
-        if (highestAverage < 100):
+        if (self.highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
         else:
-            self.graphFigure.axes[0].set_ylim(bottom=0, top=(highestAverage+highestAverage*0.1))
+            self.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
+        self.readjust(self.windowWidth)
         
         return self.plotLineOut, self.plotLineIn
         

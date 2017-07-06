@@ -263,8 +263,7 @@ class BorderlessWindow(tk.Tk):
         self.x = None
         self.y = None
         if (self.graphFrame):
-            self.graphFrame.readjust(left=(40/self.winfo_width()), 
-                                     top=(1-15/self.winfo_width()), bottom=(15/self.winfo_width()))
+            self.graphFrame.readjust(self.winfo_width())
         
     def OnMotionMove(self, event):
         deltax = event.x - self.x
