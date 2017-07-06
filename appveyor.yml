@@ -1,0 +1,37 @@
+version: Build {build}
+
+skip_non_tags: true
+
+build:
+    verbosity: minimal
+
+environment:
+    matrix:
+        - PYTHON: "C:\\Python35"
+
+install:
+    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+    - "pip install -r requirements.txt"
+    - "pip install pyinstaller"
+
+build_script:
+    - "pyinstaller setup.spec"
+
+after_build:
+    - "cp README.md dist"
+    - "cd dist && 7z a peld_%APPVEYOR_REPO_TAG_NAME%.zip . -tzip -mx=7"
+
+artifacts:
+    - path: dist\peld_$(APPVEYOR_REPO_TAG_NAME).zip
+      name: peld
+
+deploy:
+    - provider: GitHub
+      description: ""
+      artifact: peld
+      draft: false
+      prerelease: false
+      on:
+        appveyor_repo_tag: true
+      auth_token:
+        secure: nJm0eDjrcfLhUCTsM7AiTp7GJi40mWXB8LPFRHek/uMqcvX2mdxxZ8cusuns5GAO
