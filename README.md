@@ -31,7 +31,7 @@ Note that since it is a moving average, you will see peaks and valleys as hits f
 
 ## Problems?  Feedback?
 
-This is an initial release, so if you encounter any bugs or you think there are missing features please let me know [on the issues page](https://github.com/ArtificialQualia/PyEveLiveDPS/issues).
+This is still a young project, so if you encounter any bugs or you think there are missing features please let me know [on the issues page](https://github.com/ArtificialQualia/PyEveLiveDPS/issues).
 
 If you wish to contribute to the project codebase, I will of course be accepting pull requests.
 
