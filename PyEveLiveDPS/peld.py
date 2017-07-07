@@ -9,10 +9,15 @@ allow that to control it for now.
 """
 
 import window
+import traceback
 
 class App():
     def __init__(self):
         graphWindow = window.BorderlessWindow()
         graphWindow.mainloop()
     
-App()
+try:
+    App()
+except Exception:
+    traceback.print_exc()
+    input("Press any key to close console")

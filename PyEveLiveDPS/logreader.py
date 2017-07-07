@@ -62,7 +62,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.addLog(event.src_path)
         
     def addLog(self, logPath):
-        log = open(logPath)
+        log = open(logPath, 'r', encoding="utf8")
         log.readline()
         log.readline()
         characterLine = log.readline()
@@ -110,7 +110,7 @@ class CharacterDetector(FileSystemEventHandler):
         
 class LogReader():
     def __init__(self, logPath):
-        self.log = open(logPath, 'r')
+        self.log = open(logPath, 'r', encoding="utf8")
         self.log.readline()
         self.log.readline()
         characterLine = self.log.readline()
