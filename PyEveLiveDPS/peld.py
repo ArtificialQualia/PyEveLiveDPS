@@ -15,6 +15,9 @@ class App():
     def __init__(self):
         graphWindow = window.BorderlessWindow()
         graphWindow.mainloop()
+        
+    def destroy(self):
+        graphWindow.destroy()
     
 try:
     App()
