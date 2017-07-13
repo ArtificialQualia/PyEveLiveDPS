@@ -29,10 +29,11 @@ import decimal
 
 class DPSGraph(tk.Frame):
 
-    def __init__(self, dpsOutLabel, dpsInLabel, characterDetector, **kwargs):
+    def __init__(self, dpsOutLabel, dpsInLabel, logiLabel, characterDetector, **kwargs):
         tk.Frame.__init__(self, **kwargs)
         self.dpsOutLabel = dpsOutLabel
         self.dpsInLabel = dpsInLabel
+        self.logiLabel = logiLabel
         
         self.degree = 5
         self.seconds = 10
@@ -44,6 +45,7 @@ class DPSGraph(tk.Frame):
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
         self.highestAverage = 0
+        self.showLogi = False
         
         self.characterDetector = characterDetector
         self.characterDetector.setGraphInstance(self)
@@ -85,17 +87,29 @@ class DPSGraph(tk.Frame):
         
         self.seconds = seconds
         self.interval = interval
+        self.showLogi = logiSetting
         
         self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
         self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
+        if (self.showLogi):
+            self.historicalLogi = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesLogi = np.array([0] * int((self.seconds*1000)/self.interval))
+            self.logiLabel.grid()
+        else:
+            self.logiLabel.grid_remove()
+        
+        if self.showLogi:
+            self.ySmoothLogi = self.smoothListGaussian(self.yValuesLogi, self.degree)
+            self.plotLineLogi, = self.subplot.plot(self.ySmoothLogi, 'y')
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
         
         self.plotLineIn, = self.subplot.plot(self.ySmoothIn, 'r')
         self.plotLineOut, = self.subplot.plot(self.ySmoothOut, 'c')
+        
         self.subplot.margins(0,0)
         
         self.yInLines = [self.plotLineIn]
@@ -107,6 +121,21 @@ class DPSGraph(tk.Frame):
         self.ani.event_source.interval = interval
         
         self.ani.event_source.start()
+        
+    def getSeconds(self):
+        return self.seconds
+    
+    def getInterval(self):
+        return self.interval
+    
+    def getShowLogi(self):
+        return self.showLogi
+    
+    def getInCategories(self):
+        return self.yInLinesCategories
+    
+    def getOutCategories(self):
+        return self.yOutLinesCategories
         
     def catchup(self):
         """This is just to 'clear' the graph"""
@@ -126,7 +155,6 @@ class DPSGraph(tk.Frame):
         else:
             self.graphFigure.subplots_adjust(left=(50/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
-        #self.canvas.draw()
         
     def init_animation(self):
         """when blitting we need this, but as of now we do not"""
@@ -153,20 +181,34 @@ class DPSGraph(tk.Frame):
         dpsInString = str(decimal.Decimal(damageInAverage).quantize(decimal.Decimal('.01')))
         self.dpsInLabel.configure(text="DPS In: " + dpsInString)
         
+        if self.showLogi:
+            self.historicalLogi.pop(0)
+            self.historicalLogi.insert(len(self.historicalLogi), logistics)
+            self.yValuesLogi = self.yValuesLogi[1:]
+            logiAverage = (np.sum(self.historicalLogi)*(1000/self.interval))/len(self.historicalLogi)
+            self.yValuesLogi = np.append(self.yValuesLogi, logiAverage)
+            logiString = str(decimal.Decimal(logiAverage).quantize(decimal.Decimal('.01')))
+            self.logiLabel.configure(text="Logi: " + logiString)
+        
         self.highestAverage = 0
         for i in range(len(self.yValuesOut)):
             if (self.yValuesOut[i] > self.highestAverage):
                 self.highestAverage = self.yValuesOut[i]
             if (self.yValuesIn[i] > self.highestAverage):
                 self.highestAverage = self.yValuesIn[i]
+            if self.showLogi:
+                if (self.yValuesLogi[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesLogi[i]
+        
+        
+        if self.showLogi:
+            self.ySmoothLogi = self.smoothListGaussian(self.yValuesLogi, self.degree)
+            self.plotLineLogi.set_data(range(0, len(self.ySmoothLogi)), self.ySmoothLogi)
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
         
         self.animateLines()
-        
-        #self.plotLineOut.set_data(range(0, len(self.ySmoothOut)), self.ySmoothOut)
-        #self.plotLineIn.set_data(range(0, len(self.ySmoothIn)), self.ySmoothIn)
         
         if (self.highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
@@ -174,8 +216,6 @@ class DPSGraph(tk.Frame):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
         self.readjust(self.windowWidth)
-        
-        return self.plotLineOut, self.plotLineIn
         
     def animateLines(self):
         """

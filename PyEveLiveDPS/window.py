@@ -140,18 +140,24 @@ class BorderlessWindow(tk.Tk):
         self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
         self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
         self.makeDraggable(self.dpsFrame)
+        self.dpsFrame.grid_columnconfigure(1, weight="1")
         
         self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 0.0", fg="white", background="black")
-        self.dpsOutLabel.pack(side=tk.LEFT)
+        self.dpsOutLabel.grid(row="0", column="0")
         self.makeDraggable(self.dpsOutLabel)
         
+        self.logiLabel = tk.Label(self.dpsFrame, text="Logi: 0.0", fg="white", background="black")
+        self.logiLabel.grid(row="0", column="1")
+        self.makeDraggable(self.logiLabel)
+        self.logiLabel.grid_remove()
+        
         self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
-        self.dpsInLabel.pack(side=tk.RIGHT)
+        self.dpsInLabel.grid(row="0", column="2", sticky="e")
         self.makeDraggable(self.dpsInLabel)
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.characterDetector,
-                                          background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabel,
+                                          self.characterDetector, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
@@ -222,8 +228,13 @@ class BorderlessWindow(tk.Tk):
         
         tk.Frame(self.settingsWindow, height="20", width="10").grid(row="99", column="1", columnspan="5")
         
-        okButton = tk.Button(self.settingsWindow, text="  Apply  ", command=self.doSettings)
-        okButton.grid(row="100", column="0", columnspan="5")
+        buttonFrame = tk.Frame(self.settingsWindow)
+        buttonFrame.grid(row="100", column="0", columnspan="5")
+        okButton = tk.Button(buttonFrame, text="  Apply  ", command=self.doSettings)
+        okButton.grid(row="0", column="0")
+        tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
+        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.settingsWindow.destroy)
+        cancelButton.grid(row="0", column="2")
         
     def expandDPSSettings(self, checkboxValue, dpsFrame, settingsList):
         if not checkboxValue.get():

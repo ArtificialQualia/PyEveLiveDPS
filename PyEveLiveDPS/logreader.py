@@ -136,6 +136,7 @@ class LogReader():
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
         self.armorRepairedRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <")
+        self.hullRepairedRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <")
         self.shieldBoostedRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <")
             
     def readLog(self):
@@ -157,6 +158,10 @@ class LogReader():
         armorRepGroup = self.armorRepairedRegex.findall(logData)
         if armorRepGroup:
             for match in armorRepGroup:
+                logistics += int(match)
+        hullRepGroup = self.hullRepairedRegex.findall(logData)
+        if hullRepGroup:
+            for match in hullRepGroup:
                 logistics += int(match)
         shieldBoostGroup = self.shieldBoostedRegex.findall(logData)
         if shieldBoostGroup:
