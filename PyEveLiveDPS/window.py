@@ -12,6 +12,7 @@ By detatching it from the window manager with overrideredirect(true), one
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
+import tkinter.colorchooser as colorchooser
 import platform
 import graph
 import logreader
@@ -139,18 +140,24 @@ class BorderlessWindow(tk.Tk):
         self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
         self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
         self.makeDraggable(self.dpsFrame)
+        self.dpsFrame.grid_columnconfigure(1, weight="1")
         
         self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 0.0", fg="white", background="black")
-        self.dpsOutLabel.pack(side=tk.LEFT)
+        self.dpsOutLabel.grid(row="0", column="0")
         self.makeDraggable(self.dpsOutLabel)
         
+        self.logiLabel = tk.Label(self.dpsFrame, text="Logi: 0.0", fg="white", background="black")
+        self.logiLabel.grid(row="0", column="1")
+        self.makeDraggable(self.logiLabel)
+        self.logiLabel.grid_remove()
+        
         self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
-        self.dpsInLabel.pack(side=tk.RIGHT)
+        self.dpsInLabel.grid(row="0", column="2", sticky="e")
         self.makeDraggable(self.dpsInLabel)
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.characterDetector,
-                                          background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabel,
+                                          self.characterDetector, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
@@ -160,7 +167,7 @@ class BorderlessWindow(tk.Tk):
         """
         self.settingsWindow = tk.Toplevel()
         self.settingsWindow.wm_attributes("-topmost", True)
-        self.settingsWindow.geometry("360x160")
+        self.settingsWindow.geometry("390x300")
         
         secondsLabel = tk.Label(self.settingsWindow, text="Number of seconds to average DPS:")
         secondsLabel.grid(row="0", column="0")
@@ -172,8 +179,7 @@ class BorderlessWindow(tk.Tk):
         secondsDescriptor['font'] = font
         secondsDescriptor.grid(row="1", column="0", columnspan="5")
         
-        spacer = tk.Frame(self.settingsWindow, height="20", width="10")
-        spacer.grid(row="2", column="1", columnspan="5")
+        tk.Frame(self.settingsWindow, height="20", width="10").grid(row="2", column="1", columnspan="5")
         
         intervalLabel = tk.Label(self.settingsWindow, text="How often to update the graph in milliseconds:")
         intervalLabel.grid(row="3", column="0")
@@ -185,11 +191,97 @@ class BorderlessWindow(tk.Tk):
         intervalDescriptor['font'] = font
         intervalDescriptor.grid(row="4", column="0", columnspan="5")
         
-        spacer2 = tk.Frame(self.settingsWindow, height="20", width="10")
-        spacer2.grid(row="5", column="1", columnspan="5")
+        tk.Frame(self.settingsWindow, height="20", width="10").grid(row="5", column="1", columnspan="5")
         
-        okButton = tk.Button(self.settingsWindow, text="  OK  ", command=self.doSettings)
-        okButton.grid(row="6", column="0", columnspan="5")
+        logiLabel = tk.Label(self.settingsWindow, text="Add logistics tracking?")
+        logiLabel.grid(row="6", column="0")
+        self.logiValue = tk.BooleanVar()
+        self.logiValue.set(False)
+        logiCheckbox = tk.Checkbutton(self.settingsWindow, variable=self.logiValue)
+        logiCheckbox.grid(row="6", column="1")
+        
+        tk.Frame(self.settingsWindow, height="10", width="10").grid(row="7", column="1", columnspan="5")
+        
+        dpsInCustomLabel = tk.Label(self.settingsWindow, text="Use custom colors with thresholds for incoming DPS line?")
+        dpsInCustomLabel.grid(row="8", column="0")
+        dpsInCustomCheckboxValue = tk.BooleanVar()
+        dpsInCustomCheckboxValue.set(False)
+        dpsInCustomFrame = tk.Frame(self.settingsWindow)
+        dpsInCustomFrame.grid(row="9", column="0", columnspan="5")
+        self.dpsInSettings = []
+        dpsInCustomCheckbox = tk.Checkbutton(self.settingsWindow, variable=dpsInCustomCheckboxValue, 
+                                             command=lambda:self.expandDPSSettings(dpsInCustomCheckboxValue, dpsInCustomFrame, self.dpsInSettings))
+        dpsInCustomCheckbox.grid(row="8", column="1")
+        
+        tk.Frame(self.settingsWindow, height="20", width="10").grid(row="10", column="1", columnspan="5")
+        
+        dpsOutCustomLabel = tk.Label(self.settingsWindow, text="Use custom colors with thresholds for outgoing DPS line?")
+        dpsOutCustomLabel.grid(row="11", column="0")
+        dpsOutCustomCheckboxValue = tk.BooleanVar()
+        dpsOutCustomCheckboxValue.set(False)
+        dpsOutCustomFrame = tk.Frame(self.settingsWindow)
+        dpsOutCustomFrame.grid(row="12", column="0", columnspan="5")
+        self.dpsOutSettings = []
+        dpsOutCustomCheckbox = tk.Checkbutton(self.settingsWindow, variable=dpsOutCustomCheckboxValue, 
+                                             command=lambda:self.expandDPSSettings(dpsOutCustomCheckboxValue, dpsOutCustomFrame, self.dpsOutSettings))
+        dpsOutCustomCheckbox.grid(row="11", column="1")
+        
+        tk.Frame(self.settingsWindow, height="20", width="10").grid(row="99", column="1", columnspan="5")
+        
+        buttonFrame = tk.Frame(self.settingsWindow)
+        buttonFrame.grid(row="100", column="0", columnspan="5")
+        okButton = tk.Button(buttonFrame, text="  Apply  ", command=self.doSettings)
+        okButton.grid(row="0", column="0")
+        tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
+        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.settingsWindow.destroy)
+        cancelButton.grid(row="0", column="2")
+        
+    def expandDPSSettings(self, checkboxValue, dpsFrame, settingsList):
+        if not checkboxValue.get():
+            settingsList.clear()
+            for child in dpsFrame.winfo_children():
+                child.destroy()
+            dpsFrame.configure(height="1")
+        else:
+            self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()+50))
+            initialLabel = tk.Label(dpsFrame, text="DPS threshold at which the line changes color:")
+            initialLabel.grid(row="0", column="0")
+            thresholdVar = tk.StringVar()
+            thresholdVar.set("0")
+            initialThreshold = tk.Entry(dpsFrame, textvariable=thresholdVar, width=10, state="disabled")
+            initialThreshold.grid(row="0", column="1")
+            initialLabel = tk.Label(dpsFrame, text="Color:")
+            initialLabel.grid(row="0", column="2")
+            settingsList.append({"transitionValue": thresholdVar.get(), "color": "#FFFFFF"})
+            colorButton = tk.Button(dpsFrame, text="    ", 
+                                    command=lambda:self.colorWindow(settingsList[0], colorButton), 
+                                    bg=settingsList[0]["color"])
+            colorButton.grid(row="0", column="3")
+            addLineButton = tk.Button(dpsFrame, text="Add Another Threshold",
+                                      command=lambda:self.addLine(settingsList, dpsFrame))
+            addLineButton.grid(row="100", column="0")
+            
+    def addLine(self, settingsList, dpsFrame):
+        self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()+25))
+        lineNumber = len(settingsList)
+        thresholdVar = tk.StringVar()
+        thresholdVar.set(str(100*lineNumber))
+        settingsList.append({"transitionValue": thresholdVar.get(), "color": "#FFFFFF"})
+        
+        lineLabel = tk.Label(dpsFrame, text="DPS threshold at which the line changes color:")
+        lineLabel.grid(row=lineNumber, column="0")
+        initialThreshold = tk.Entry(dpsFrame, textvariable=thresholdVar, width=10)
+        initialThreshold.grid(row=lineNumber, column="1")
+        initialLabel = tk.Label(dpsFrame, text="Color:")
+        initialLabel.grid(row=lineNumber, column="2")
+        colorButton = tk.Button(dpsFrame, text="    ", 
+                                command=lambda:self.colorWindow(settingsList[lineNumber], colorButton), 
+                                bg=settingsList[lineNumber]["color"])
+        colorButton.grid(row=lineNumber, column="3")
+        
+    def colorWindow(self, settingsListValue, button):
+        x,settingsListValue["color"] = colorchooser.askcolor()
+        button.configure(bg=settingsListValue["color"])
         
     def doSettings(self):
         try:
@@ -230,8 +322,25 @@ class BorderlessWindow(tk.Tk):
             if not okCancel:
                 return
             
+        for setting in self.dpsInSettings:
+            try:
+                setting["transitionValue"] = int(setting["transitionValue"])
+            except ValueError:
+                tk.messagebox.showerror("Error", "Please enter a number for all line color threshold values")
+                return
+        for setting in self.dpsOutSettings:
+            try:
+                setting["transitionValue"] = int(setting["transitionValue"])
+            except ValueError:
+                tk.messagebox.showerror("Error", "Please enter a number for all line color threshold values")
+                return
         
-        self.graphFrame.changeSettings(secondsSetting, intervalSetting)
+        if not self.dpsInSettings:
+            self.dpsInSettings = [{"color": "red", "transitionValue": 0}]
+        if not self.dpsOutSettings:
+            self.dpsOutSettings = [{"color": "c", "transitionValue": 0}]
+        
+        self.graphFrame.changeSettings(secondsSetting, intervalSetting, self.logiValue.get(), self.dpsInSettings, self.dpsOutSettings)
         
         self.settingsWindow.destroy()
     
