@@ -14,6 +14,7 @@ from tkinter import ttk
 import tkinter.font as tkFont
 import tkinter.colorchooser as colorchooser
 import platform
+import copy
 import graph
 import logreader
 
@@ -167,8 +168,10 @@ class BorderlessWindow(tk.Tk):
         """
         self.settingsWindow = tk.Toplevel()
         self.settingsWindow.wm_attributes("-topmost", True)
-        self.settingsWindow.geometry("390x300")
+        self.settingsWindow.geometry("420x350")
+        self.settingsWindow.update_idletasks()
         
+        self.secondsVar.set(self.graphFrame.getSeconds())
         secondsLabel = tk.Label(self.settingsWindow, text="Number of seconds to average DPS:")
         secondsLabel.grid(row="0", column="0")
         secondsEntry = tk.Entry(self.settingsWindow, textvariable=self.secondsVar, width=10)
@@ -181,13 +184,12 @@ class BorderlessWindow(tk.Tk):
         
         tk.Frame(self.settingsWindow, height="20", width="10").grid(row="2", column="1", columnspan="5")
         
+        self.intervalVar.set(self.graphFrame.getInterval())
         intervalLabel = tk.Label(self.settingsWindow, text="How often to update the graph in milliseconds:")
         intervalLabel.grid(row="3", column="0")
         intervalEntry = tk.Entry(self.settingsWindow, textvariable=self.intervalVar, width=10)
         intervalEntry.grid(row="3", column="1")
         intervalDescriptor = tk.Label(self.settingsWindow, text="The lower you set this value, the higher your CPU usage will be")
-        font = tkFont.Font(font=intervalDescriptor['font'])
-        font.config(slant='italic')
         intervalDescriptor['font'] = font
         intervalDescriptor.grid(row="4", column="0", columnspan="5")
         
@@ -196,35 +198,39 @@ class BorderlessWindow(tk.Tk):
         logiLabel = tk.Label(self.settingsWindow, text="Add logistics tracking?")
         logiLabel.grid(row="6", column="0")
         self.logiValue = tk.BooleanVar()
-        self.logiValue.set(False)
+        self.logiValue.set(self.graphFrame.getShowLogi())
         logiCheckbox = tk.Checkbutton(self.settingsWindow, variable=self.logiValue)
         logiCheckbox.grid(row="6", column="1")
         
         tk.Frame(self.settingsWindow, height="10", width="10").grid(row="7", column="1", columnspan="5")
         
-        dpsInCustomLabel = tk.Label(self.settingsWindow, text="Use custom colors with thresholds for incoming DPS line?")
+        dpsInCustomLabel = tk.Label(self.settingsWindow, text="Color and threshold (when to change colors) for DPS In line:")
         dpsInCustomLabel.grid(row="8", column="0")
-        dpsInCustomCheckboxValue = tk.BooleanVar()
-        dpsInCustomCheckboxValue.set(False)
+        font = tkFont.Font(font=dpsInCustomLabel['font'])
+        font.config(weight='bold')
+        dpsInCustomLabel['font'] = font
         dpsInCustomFrame = tk.Frame(self.settingsWindow)
         dpsInCustomFrame.grid(row="9", column="0", columnspan="5")
-        self.dpsInSettings = []
-        dpsInCustomCheckbox = tk.Checkbutton(self.settingsWindow, variable=dpsInCustomCheckboxValue, 
-                                             command=lambda:self.expandDPSSettings(dpsInCustomCheckboxValue, dpsInCustomFrame, self.dpsInSettings))
-        dpsInCustomCheckbox.grid(row="8", column="1")
+        self.dpsInSettings = self.graphFrame.getInCategories()
+        for setting in self.dpsInSettings:
+            valueHolder = setting["transitionValue"]
+            setting["transitionValue"] = tk.StringVar()
+            setting["transitionValue"].set(valueHolder)
+        self.expandDPSSettings(dpsInCustomFrame, self.dpsInSettings)
         
         tk.Frame(self.settingsWindow, height="20", width="10").grid(row="10", column="1", columnspan="5")
         
-        dpsOutCustomLabel = tk.Label(self.settingsWindow, text="Use custom colors with thresholds for outgoing DPS line?")
+        dpsOutCustomLabel = tk.Label(self.settingsWindow, text="Color and threshold (when to change colors) for DPS Out line:")
         dpsOutCustomLabel.grid(row="11", column="0")
-        dpsOutCustomCheckboxValue = tk.BooleanVar()
-        dpsOutCustomCheckboxValue.set(False)
+        dpsOutCustomLabel['font'] = font
         dpsOutCustomFrame = tk.Frame(self.settingsWindow)
         dpsOutCustomFrame.grid(row="12", column="0", columnspan="5")
-        self.dpsOutSettings = []
-        dpsOutCustomCheckbox = tk.Checkbutton(self.settingsWindow, variable=dpsOutCustomCheckboxValue, 
-                                             command=lambda:self.expandDPSSettings(dpsOutCustomCheckboxValue, dpsOutCustomFrame, self.dpsOutSettings))
-        dpsOutCustomCheckbox.grid(row="11", column="1")
+        self.dpsOutSettings = self.graphFrame.getOutCategories()
+        for setting in self.dpsOutSettings:
+            valueHolder = setting["transitionValue"]
+            setting["transitionValue"] = tk.StringVar()
+            setting["transitionValue"].set(valueHolder)
+        self.expandDPSSettings(dpsOutCustomFrame, self.dpsOutSettings)
         
         tk.Frame(self.settingsWindow, height="20", width="10").grid(row="99", column="1", columnspan="5")
         
@@ -236,48 +242,67 @@ class BorderlessWindow(tk.Tk):
         cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.settingsWindow.destroy)
         cancelButton.grid(row="0", column="2")
         
-    def expandDPSSettings(self, checkboxValue, dpsFrame, settingsList):
-        if not checkboxValue.get():
-            settingsList.clear()
-            for child in dpsFrame.winfo_children():
-                child.destroy()
-            dpsFrame.configure(height="1")
-        else:
-            self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()+50))
+    def expandDPSSettings(self, dpsFrame, settingsList):
+        index = 0
+        for setting in settingsList:
+            self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()+25))
+            self.settingsWindow.update_idletasks()
+            removeButton = tk.Button(dpsFrame, text="X", command=lambda i=index:self.removeLine(i, settingsList, dpsFrame))
+            font = tkFont.Font(font=removeButton['font'])
+            font.config(weight='bold')
+            removeButton['font'] = font
+            removeButton.grid(row=index, column="0")
             initialLabel = tk.Label(dpsFrame, text="DPS threshold at which the line changes color:")
-            initialLabel.grid(row="0", column="0")
-            thresholdVar = tk.StringVar()
-            thresholdVar.set("0")
-            initialThreshold = tk.Entry(dpsFrame, textvariable=thresholdVar, width=10, state="disabled")
-            initialThreshold.grid(row="0", column="1")
+            initialLabel.grid(row=index, column="1")
+            initialThreshold = tk.Entry(dpsFrame, textvariable=settingsList[index]["transitionValue"], width=10)
+            if (index == 0):
+                initialThreshold.configure(state="disabled")
+                removeButton.grid_forget()
+            initialThreshold.grid(row=index, column="2")
             initialLabel = tk.Label(dpsFrame, text="Color:")
-            initialLabel.grid(row="0", column="2")
-            settingsList.append({"transitionValue": thresholdVar.get(), "color": "#FFFFFF"})
+            initialLabel.grid(row=index, column="3")
             colorButton = tk.Button(dpsFrame, text="    ", 
-                                    command=lambda:self.colorWindow(settingsList[0], colorButton), 
-                                    bg=settingsList[0]["color"])
-            colorButton.grid(row="0", column="3")
-            addLineButton = tk.Button(dpsFrame, text="Add Another Threshold",
-                                      command=lambda:self.addLine(settingsList, dpsFrame))
-            addLineButton.grid(row="100", column="0")
+                                    command=lambda i=index:self.colorWindow(settingsList[i], colorButton), 
+                                    bg=settingsList[index]["color"])
+            colorButton.grid(row=index, column="4")
+            index += 1
+        
+        addLineButton = tk.Button(dpsFrame, text="Add Another Threshold",
+                                  command=lambda:self.addLine(settingsList, dpsFrame))
+        addLineButton.grid(row="100", column="1")
             
     def addLine(self, settingsList, dpsFrame):
         self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()+25))
+        self.settingsWindow.update_idletasks()
         lineNumber = len(settingsList)
-        thresholdVar = tk.StringVar()
-        thresholdVar.set(str(100*lineNumber))
-        settingsList.append({"transitionValue": thresholdVar.get(), "color": "#FFFFFF"})
+        settingsList.append({"transitionValue": "", "color": "#FFFFFF"})
+        settingsList[lineNumber]["transitionValue"] = tk.StringVar()
+        settingsList[lineNumber]["transitionValue"].set(str(100*lineNumber))
         
+        
+        removeButton = tk.Button(dpsFrame, text="X", command=lambda:self.removeLine(lineNumber, settingsList, dpsFrame))
+        font = tkFont.Font(font=removeButton['font'])
+        font.config(weight='bold')
+        removeButton['font'] = font
+        removeButton.grid(row=lineNumber, column="0")
         lineLabel = tk.Label(dpsFrame, text="DPS threshold at which the line changes color:")
-        lineLabel.grid(row=lineNumber, column="0")
-        initialThreshold = tk.Entry(dpsFrame, textvariable=thresholdVar, width=10)
-        initialThreshold.grid(row=lineNumber, column="1")
+        lineLabel.grid(row=lineNumber, column="1")
+        initialThreshold = tk.Entry(dpsFrame, textvariable=settingsList[lineNumber]["transitionValue"], width=10)
+        initialThreshold.grid(row=lineNumber, column="2")
         initialLabel = tk.Label(dpsFrame, text="Color:")
-        initialLabel.grid(row=lineNumber, column="2")
+        initialLabel.grid(row=lineNumber, column="3")
         colorButton = tk.Button(dpsFrame, text="    ", 
                                 command=lambda:self.colorWindow(settingsList[lineNumber], colorButton), 
                                 bg=settingsList[lineNumber]["color"])
-        colorButton.grid(row=lineNumber, column="3")
+        colorButton.grid(row=lineNumber, column="4")
+        
+    def removeLine(self, index, settingsList, dpsFrame):
+        self.settingsWindow.geometry("%sx%s" % (self.settingsWindow.winfo_width(), self.settingsWindow.winfo_height()-(25*len(settingsList))))
+        self.settingsWindow.update_idletasks()
+        settingsList.pop(index)
+        for child in dpsFrame.winfo_children():
+            child.destroy()
+        self.expandDPSSettings(dpsFrame, settingsList)
         
     def colorWindow(self, settingsListValue, button):
         x,settingsListValue["color"] = colorchooser.askcolor()
@@ -324,21 +349,24 @@ class BorderlessWindow(tk.Tk):
             
         for setting in self.dpsInSettings:
             try:
-                setting["transitionValue"] = int(setting["transitionValue"])
+                int(setting["transitionValue"].get())
             except ValueError:
                 tk.messagebox.showerror("Error", "Please enter a number for all line color threshold values")
                 return
         for setting in self.dpsOutSettings:
             try:
-                setting["transitionValue"] = int(setting["transitionValue"])
+                int(setting["transitionValue"].get())
             except ValueError:
                 tk.messagebox.showerror("Error", "Please enter a number for all line color threshold values")
                 return
-        
-        if not self.dpsInSettings:
-            self.dpsInSettings = [{"color": "red", "transitionValue": 0}]
-        if not self.dpsOutSettings:
-            self.dpsOutSettings = [{"color": "c", "transitionValue": 0}]
+        for setting in self.dpsInSettings:
+            setting["transitionValue"] = int(setting["transitionValue"].get())
+        for setting in self.dpsOutSettings:
+            setting["transitionValue"] = int(setting["transitionValue"].get())
+            
+        #Isn't python the coolest language? Look how easy this is:
+        self.dpsInSettings = sorted(self.dpsInSettings, key=lambda setting: setting["transitionValue"])
+        self.dpsOutSettings = sorted(self.dpsOutSettings, key=lambda setting: setting["transitionValue"])
         
         self.graphFrame.changeSettings(secondsSetting, intervalSetting, self.logiValue.get(), self.dpsInSettings, self.dpsOutSettings)
         
