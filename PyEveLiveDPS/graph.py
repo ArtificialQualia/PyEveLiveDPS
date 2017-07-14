@@ -26,6 +26,7 @@ import numpy as np
 import tkinter as tk
 import logreader
 import decimal
+import copy
 
 class DPSGraph(tk.Frame):
 
@@ -63,10 +64,10 @@ class DPSGraph(tk.Frame):
         self.subplot.margins(0,0)
         
         self.yInLines = [self.plotLineIn]
-        self.yInLinesCategories = [{"color": "red", "transitionValue": 0}]
+        self.yInLinesCategories = [{"color": "#FF0000", "transitionValue": 0}]
         
         self.yOutLines = [self.plotLineOut]
-        self.yOutLinesCategories = [{"color": "c", "transitionValue": 0}]
+        self.yOutLinesCategories = [{"color": "#00FFFF", "transitionValue": 0}]
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
         self.graphFigure.subplots_adjust(left=(30/self.windowWidth), bottom=(15/self.windowWidth), 
@@ -132,10 +133,10 @@ class DPSGraph(tk.Frame):
         return self.showLogi
     
     def getInCategories(self):
-        return self.yInLinesCategories
+        return copy.deepcopy(self.yInLinesCategories)
     
     def getOutCategories(self):
-        return self.yOutLinesCategories
+        return copy.deepcopy(self.yOutLinesCategories)
         
     def catchup(self):
         """This is just to 'clear' the graph"""
