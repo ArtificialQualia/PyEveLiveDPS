@@ -14,7 +14,7 @@ from tkinter import ttk
 import tkinter.font as tkFont
 import tkinter.colorchooser as colorchooser
 import platform
-import copy
+import sys
 import graph
 import logreader
 
@@ -147,17 +147,22 @@ class BorderlessWindow(tk.Tk):
         self.dpsOutLabel.grid(row="0", column="0")
         self.makeDraggable(self.dpsOutLabel)
         
-        self.logiLabel = tk.Label(self.dpsFrame, text="Logi: 0.0", fg="white", background="black")
-        self.logiLabel.grid(row="0", column="1")
-        self.makeDraggable(self.logiLabel)
-        self.logiLabel.grid_remove()
+        self.logiLabelOut = tk.Label(self.dpsFrame, text="| Logi Out: 0.0", fg="white", background="black")
+        self.logiLabelOut.grid(row="0", column="1", sticky="W")
+        self.makeDraggable(self.logiLabelOut)
+        self.logiLabelOut.grid_remove()
+        
+        self.logiLabelIn = tk.Label(self.dpsFrame, text="Logi In: 0.0 |", fg="white", background="black")
+        self.logiLabelIn.grid(row="0", column="1", sticky="E")
+        self.makeDraggable(self.logiLabelIn)
+        self.logiLabelIn.grid_remove()
         
         self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
         self.dpsInLabel.grid(row="0", column="2", sticky="e")
         self.makeDraggable(self.dpsInLabel)
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabel,
+        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabelOut, self.logiLabelIn,
                                           self.characterDetector, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
@@ -168,7 +173,15 @@ class BorderlessWindow(tk.Tk):
         """
         self.settingsWindow = tk.Toplevel()
         self.settingsWindow.wm_attributes("-topmost", True)
-        self.settingsWindow.geometry("420x350")
+        self.settingsWindow.wm_title("PyEveLiveDPS Settings")
+        try:
+            self.settingsWindow.iconbitmap(sys._MEIPASS + '\\app.ico')
+        except Exception:
+            try:
+                self.settingsWindow.iconbitmap("app.ico")
+            except Exception:
+                pass
+        self.settingsWindow.geometry("420x375")
         self.settingsWindow.update_idletasks()
         
         self.secondsVar.set(self.graphFrame.getSeconds())
@@ -195,12 +208,42 @@ class BorderlessWindow(tk.Tk):
         
         tk.Frame(self.settingsWindow, height="20", width="10").grid(row="5", column="1", columnspan="5")
         
-        logiLabel = tk.Label(self.settingsWindow, text="Add logistics tracking?")
-        logiLabel.grid(row="6", column="0")
-        self.logiValue = tk.BooleanVar()
-        self.logiValue.set(self.graphFrame.getShowLogi())
-        logiCheckbox = tk.Checkbutton(self.settingsWindow, variable=self.logiValue)
-        logiCheckbox.grid(row="6", column="1")
+        logiFrame = tk.Frame(self.settingsWindow)
+        logiFrame.grid(row="6", column="0", columnspan="5")
+        
+        logiOutLabel = tk.Label(logiFrame, text="Add logistics OUT tracking?")
+        logiOutLabel.grid(row="0", column="0")
+        self.logiOutValue = tk.BooleanVar()
+        self.logiOutValue.set(self.graphFrame.getShowLogiOut())
+        self.logiOutColor = self.graphFrame.getLogiOutColor()
+        logiOutCheckbox = tk.Checkbutton(logiFrame, variable=self.logiOutValue, command=self.addLogiColorButton)
+        logiOutCheckbox.grid(row="0", column="1")
+        self.logiOutColorLabel = tk.Label(logiFrame, text="Color:")
+        self.logiOutColorLabel.grid(row="0", column="2")
+        self.logiOutColorButton = tk.Button(logiFrame, text="    ", 
+                                            command=lambda:self.logiColorButton("out", self.logiOutColorButton), 
+                                            bg=self.logiOutColor)
+        self.logiOutColorButton.grid(row="0", column="3")
+        if not self.logiOutValue.get():
+            self.logiOutColorButton.grid_remove()
+            self.logiOutColorLabel.grid_remove()
+            
+        logiInLabel = tk.Label(logiFrame, text="Add logistics IN tracking?")
+        logiInLabel.grid(row="1", column="0")
+        self.logiInValue = tk.BooleanVar()
+        self.logiInValue.set(self.graphFrame.getShowLogiIn())
+        self.logiInColor = self.graphFrame.getLogiInColor()
+        logiInCheckbox = tk.Checkbutton(logiFrame, variable=self.logiInValue, command=self.addLogiColorButton)
+        logiInCheckbox.grid(row="1", column="1")
+        self.logiInColorLabel = tk.Label(logiFrame, text="Color:")
+        self.logiInColorLabel.grid(row="1", column="2")
+        self.logiInColorButton = tk.Button(logiFrame, text="    ", 
+                                            command=lambda:self.logiColorButton("in", self.logiInColorButton), 
+                                            bg=self.logiInColor)
+        self.logiInColorButton.grid(row="1", column="3")
+        if not self.logiInValue.get():
+            self.logiInColorButton.grid_remove()
+            self.logiInColorLabel.grid_remove()
         
         tk.Frame(self.settingsWindow, height="10", width="10").grid(row="7", column="1", columnspan="5")
         
@@ -232,7 +275,7 @@ class BorderlessWindow(tk.Tk):
             setting["transitionValue"].set(valueHolder)
         self.expandDPSSettings(dpsOutCustomFrame, self.dpsOutSettings)
         
-        tk.Frame(self.settingsWindow, height="20", width="10").grid(row="99", column="1", columnspan="5")
+        tk.Frame(self.settingsWindow, height="30", width="10").grid(row="99", column="1", columnspan="5")
         
         buttonFrame = tk.Frame(self.settingsWindow)
         buttonFrame.grid(row="100", column="0", columnspan="5")
@@ -241,6 +284,29 @@ class BorderlessWindow(tk.Tk):
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
         cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.settingsWindow.destroy)
         cancelButton.grid(row="0", column="2")
+        
+    def addLogiColorButton(self):
+        if self.logiOutValue.get():
+            self.logiOutColorButton.grid()
+            self.logiOutColorLabel.grid()
+        else:
+            self.logiOutColorButton.grid_remove()
+            self.logiOutColorLabel.grid_remove()
+            
+        if self.logiInValue.get():
+            self.logiInColorButton.grid()
+            self.logiInColorLabel.grid()
+        else:
+            self.logiInColorButton.grid_remove()
+            self.logiInColorLabel.grid_remove()
+        
+    def logiColorButton(self, type, button):
+        if (type == "out"):
+            x,self.logiOutColor = colorchooser.askcolor()
+            button.configure(bg=self.logiOutColor)
+        elif (type == "in"):
+            x,self.logiInColor = colorchooser.askcolor()
+            button.configure(bg=self.logiInColor)
         
     def expandDPSSettings(self, dpsFrame, settingsList):
         index = 0
@@ -368,7 +434,10 @@ class BorderlessWindow(tk.Tk):
         self.dpsInSettings = sorted(self.dpsInSettings, key=lambda setting: setting["transitionValue"])
         self.dpsOutSettings = sorted(self.dpsOutSettings, key=lambda setting: setting["transitionValue"])
         
-        self.graphFrame.changeSettings(secondsSetting, intervalSetting, self.logiValue.get(), self.dpsInSettings, self.dpsOutSettings)
+        self.graphFrame.changeSettings(secondsSetting, intervalSetting, 
+                                       self.logiOutValue.get(), self.logiOutColor,
+                                       self.logiInValue.get(), self.logiInColor,
+                                       self.dpsInSettings, self.dpsOutSettings)
         
         self.settingsWindow.destroy()
     
