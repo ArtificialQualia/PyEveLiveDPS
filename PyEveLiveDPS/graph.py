@@ -30,11 +30,12 @@ import copy
 
 class DPSGraph(tk.Frame):
 
-    def __init__(self, dpsOutLabel, dpsInLabel, logiLabel, characterDetector, **kwargs):
+    def __init__(self, dpsOutLabel, dpsInLabel, logiLabelOut, logiLabelIn, characterDetector, **kwargs):
         tk.Frame.__init__(self, **kwargs)
         self.dpsOutLabel = dpsOutLabel
         self.dpsInLabel = dpsInLabel
-        self.logiLabel = logiLabel
+        self.logiLabelOut = logiLabelOut
+        self.logiLabelIn = logiLabelIn
         
         self.degree = 5
         self.seconds = 10
@@ -46,7 +47,10 @@ class DPSGraph(tk.Frame):
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
         self.highestAverage = 0
-        self.showLogi = False
+        self.showLogiIn = False
+        self.showLogiOut = False
+        self.logiInColor = "#FFFF00"
+        self.logiOutColor = "#FFFF00"
         
         self.characterDetector = characterDetector
         self.characterDetector.setGraphInstance(self)
@@ -81,29 +85,40 @@ class DPSGraph(tk.Frame):
         
         self.canvas.show()
         
-    def changeSettings(self, seconds, interval, logiSetting, inSettings, outSettings):
+    def changeSettings(self, seconds, interval, logiOutSetting, logiOutColor, logiInSetting, logiInColor, inSettings, outSettings):
         """This function is called when a user changes settings AFTER the settings are verified in window.py"""
         self.ani.event_source.stop()
         self.subplot.clear()
         
         self.seconds = seconds
         self.interval = interval
-        self.showLogi = logiSetting
+        self.showLogiOut = logiOutSetting
+        self.showLogiIn = logiInSetting
+        self.logiInColor = logiInColor
+        self.logiOutColor = logiOutColor
         
         self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
         self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
-        if (self.showLogi):
-            self.historicalLogi = [0] * int((self.seconds*1000)/self.interval)
-            self.yValuesLogi = np.array([0] * int((self.seconds*1000)/self.interval))
-            self.logiLabel.grid()
+        if self.showLogiOut:
+            self.historicalLogiOut = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesLogiOut = np.array([0] * int((self.seconds*1000)/self.interval))
+            self.logiLabelOut.grid()
+            self.ySmoothLogiOut = self.smoothListGaussian(self.yValuesLogiOut, self.degree)
+            self.plotLineLogiOut, = self.subplot.plot(self.ySmoothLogiOut, self.logiOutColor)
         else:
-            self.logiLabel.grid_remove()
+            self.logiLabelOut.grid_remove()
         
-        if self.showLogi:
-            self.ySmoothLogi = self.smoothListGaussian(self.yValuesLogi, self.degree)
-            self.plotLineLogi, = self.subplot.plot(self.ySmoothLogi, 'y')
+        if self.showLogiIn:
+            self.historicalLogiIn = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesLogiIn = np.array([0] * int((self.seconds*1000)/self.interval))
+            self.logiLabelIn.grid()
+            self.ySmoothLogiIn = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
+            self.plotLineLogiIn, = self.subplot.plot(self.ySmoothLogiIn, self.logiInColor)
+        else:
+            self.logiLabelIn.grid_remove()
+            
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
@@ -129,8 +144,17 @@ class DPSGraph(tk.Frame):
     def getInterval(self):
         return self.interval
     
-    def getShowLogi(self):
-        return self.showLogi
+    def getLogiOutColor(self):
+        return self.logiOutColor
+    
+    def getLogiInColor(self):
+        return self.logiInColor
+    
+    def getShowLogiOut(self):
+        return self.showLogiOut
+    
+    def getShowLogiIn(self):
+        return self.showLogiIn
     
     def getInCategories(self):
         return copy.deepcopy(self.yInLinesCategories)
@@ -148,13 +172,13 @@ class DPSGraph(tk.Frame):
         Annoyingly, we have to use a %, not a number of pixels"""
         self.windowWidth = windowWidth
         if (self.highestAverage < 900):
-            self.graphFigure.subplots_adjust(left=(30/self.windowWidth), top=(1-15/self.windowWidth), 
+            self.graphFigure.subplots_adjust(left=(33/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
         elif (self.highestAverage < 9000):
-            self.graphFigure.subplots_adjust(left=(40/self.windowWidth), top=(1-15/self.windowWidth), 
+            self.graphFigure.subplots_adjust(left=(44/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
         else:
-            self.graphFigure.subplots_adjust(left=(50/self.windowWidth), top=(1-15/self.windowWidth), 
+            self.graphFigure.subplots_adjust(left=(55/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
         
     def init_animation(self):
@@ -162,7 +186,7 @@ class DPSGraph(tk.Frame):
         return
     
     def animate(self, i):
-        damageOut,damageIn,logistics = self.characterDetector.readLog()
+        damageOut,damageIn,logiOut,logiIn = self.characterDetector.readLog()
         
         self.historicalDamageOut.pop(0)
         self.historicalDamageOut.insert(len(self.historicalDamageOut), damageOut)
@@ -182,14 +206,23 @@ class DPSGraph(tk.Frame):
         dpsInString = str(decimal.Decimal(damageInAverage).quantize(decimal.Decimal('.01')))
         self.dpsInLabel.configure(text="DPS In: " + dpsInString)
         
-        if self.showLogi:
-            self.historicalLogi.pop(0)
-            self.historicalLogi.insert(len(self.historicalLogi), logistics)
-            self.yValuesLogi = self.yValuesLogi[1:]
-            logiAverage = (np.sum(self.historicalLogi)*(1000/self.interval))/len(self.historicalLogi)
-            self.yValuesLogi = np.append(self.yValuesLogi, logiAverage)
+        if self.showLogiOut:
+            self.historicalLogiOut.pop(0)
+            self.historicalLogiOut.insert(len(self.historicalLogiOut), logiOut)
+            self.yValuesLogiOut = self.yValuesLogiOut[1:]
+            logiAverage = (np.sum(self.historicalLogiOut)*(1000/self.interval))/len(self.historicalLogiOut)
+            self.yValuesLogiOut = np.append(self.yValuesLogiOut, logiAverage)
             logiString = str(decimal.Decimal(logiAverage).quantize(decimal.Decimal('.01')))
-            self.logiLabel.configure(text="Logi: " + logiString)
+            self.logiLabelOut.configure(text="| Logi Out: " + logiString)
+            
+        if self.showLogiIn:
+            self.historicalLogiIn.pop(0)
+            self.historicalLogiIn.insert(len(self.historicalLogiIn), logiIn)
+            self.yValuesLogiIn = self.yValuesLogiIn[1:]
+            logiAverage = (np.sum(self.historicalLogiIn)*(1000/self.interval))/len(self.historicalLogiIn)
+            self.yValuesLogiIn = np.append(self.yValuesLogiIn, logiAverage)
+            logiString = str(decimal.Decimal(logiAverage).quantize(decimal.Decimal('.01')))
+            self.logiLabelIn.configure(text="Logi In: " + logiString + " |")
         
         self.highestAverage = 0
         for i in range(len(self.yValuesOut)):
@@ -197,14 +230,21 @@ class DPSGraph(tk.Frame):
                 self.highestAverage = self.yValuesOut[i]
             if (self.yValuesIn[i] > self.highestAverage):
                 self.highestAverage = self.yValuesIn[i]
-            if self.showLogi:
-                if (self.yValuesLogi[i] > self.highestAverage):
-                    self.highestAverage = self.yValuesLogi[i]
+            if self.showLogiOut:
+                if (self.yValuesLogiOut[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesLogiOut[i]
+            if self.showLogiIn:
+                if (self.yValuesLogiIn[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesLogiIn[i]
         
         
-        if self.showLogi:
-            self.ySmoothLogi = self.smoothListGaussian(self.yValuesLogi, self.degree)
-            self.plotLineLogi.set_data(range(0, len(self.ySmoothLogi)), self.ySmoothLogi)
+        if self.showLogiOut:
+            self.ySmoothLogiOut = self.smoothListGaussian(self.yValuesLogiOut, self.degree)
+            self.plotLineLogiOut.set_data(range(0, len(self.ySmoothLogiOut)), self.ySmoothLogiOut)
+            
+        if self.showLogiIn:
+            self.ySmoothLogiIn = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
+            self.plotLineLogiIn.set_data(range(0, len(self.ySmoothLogiIn)), self.ySmoothLogiIn)
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
