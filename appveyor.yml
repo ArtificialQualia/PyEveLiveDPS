@@ -34,7 +34,7 @@ artifacts:
 deploy:
     - provider: GitHub
       description: ""
-      artifact: PELD*
+      artifact: /PELD.*/
       draft: false
       prerelease: false
       on:
