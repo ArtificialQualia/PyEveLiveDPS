@@ -13,25 +13,31 @@ install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "pip install -r requirements.txt"
     - "pip install pyinstaller"
+    - "choco install -y InnoSetup"
 
 build_script:
-    - "pyinstaller setup.spec"
+    - "pyinstaller setup-standalone.spec"
+    - "pyinstaller setup-for-installer.spec"
+    - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
+    - "iscc /Q InstallerSetup.iss"
 
 after_build:
-    - "cp README.md dist"
-    - "cd dist && 7z a peld_%APPVEYOR_REPO_TAG_NAME%.zip . -tzip -mx=7"
+    - "mv dist\PELD-standalone.exe PELD-standalone-%APPVEYOR_REPO_TAG_NAME%.exe"
+    - "mv dist\PELD-installer.exe PELD-installer-%APPVEYOR_REPO_TAG_NAME%.exe"
 
 artifacts:
-    - path: dist\peld_$(APPVEYOR_REPO_TAG_NAME).zip
-      name: peld
+    - path: PELD-standalone-$(APPVEYOR_REPO_TAG_NAME).exe
+      name: PELD-standalone
+    - path: PELD-installer-$(APPVEYOR_REPO_TAG_NAME).exe
+      name: PELD-installer
 
 deploy:
     - provider: GitHub
       description: ""
-      artifact: peld
+      artifact: PELD*
       draft: false
       prerelease: false
       on:
         appveyor_repo_tag: true
       auth_token:
-        secure: nJm0eDjrcfLhUCTsM7AiTp7GJi40mWXB8LPFRHek/uMqcvX2mdxxZ8cusuns5GAO
+        secure: YiOZJy8/2E9IgFGzFPYkyKjmH4vUBfmam6MDFGyk4bSlS4861xl9cC8owmH9LYnR
