@@ -19,7 +19,7 @@ build_script:
     - "pyinstaller setup-standalone.spec"
     - "pyinstaller setup-for-installer.spec"
     - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-    - "iscc /Q InstallerSetup.iss"
+    - "iscc InstallerSetup.iss"
 
 after_build:
     - "mv dist\\PELD-standalone.exe PELD-standalone-%APPVEYOR_REPO_TAG_NAME%.exe"

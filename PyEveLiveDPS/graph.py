@@ -81,41 +81,48 @@ class DPSGraph(tk.Frame):
         self.canvas.get_tk_widget().configure(bg="black")
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         
+        self.ani = None
+        
+        self.changeSettings(self.seconds, self.interval, [], [], self.yInLinesCategories, self.yOutLinesCategories)
+        
         self.ani = FuncAnimation(self.graphFigure, self.animate, interval=self.interval, blit=False, init_func=self.init_animation)
         
         self.canvas.show()
         
-    def changeSettings(self, seconds, interval, logiOutSetting, logiOutColor, logiInSetting, logiInColor, inSettings, outSettings):
+    def changeSettings(self, seconds, interval, logiOutSettings, logiInSettings, inSettings, outSettings):
         """This function is called when a user changes settings AFTER the settings are verified in window.py"""
-        self.ani.event_source.stop()
+        if self.ani:
+            self.ani.event_source.stop()
         self.subplot.clear()
         
         self.seconds = seconds
         self.interval = interval
-        self.showLogiOut = logiOutSetting
-        self.showLogiIn = logiInSetting
-        self.logiInColor = logiInColor
-        self.logiOutColor = logiOutColor
+        self.logiInLinesCategories = logiInSettings
+        self.logiOutLinesCategories = logiOutSettings
+        self.yInLinesCategories = inSettings
+        self.yOutLinesCategories = outSettings
         
         self.historicalDamageOut = [0] * int((self.seconds*1000)/self.interval)
         self.historicalDamageIn = [0] * int((self.seconds*1000)/self.interval)
         self.yValuesOut = np.array([0] * int((self.seconds*1000)/self.interval))
         self.yValuesIn = np.array([0] * int((self.seconds*1000)/self.interval))
-        if self.showLogiOut:
+        if self.logiOutLinesCategories:
             self.historicalLogiOut = [0] * int((self.seconds*1000)/self.interval)
             self.yValuesLogiOut = np.array([0] * int((self.seconds*1000)/self.interval))
             self.logiLabelOut.grid()
             self.ySmoothLogiOut = self.smoothListGaussian(self.yValuesLogiOut, self.degree)
             self.plotLineLogiOut, = self.subplot.plot(self.ySmoothLogiOut, self.logiOutColor)
+            self.logiOutLines = [self.plotLineLogiOut]
         else:
             self.logiLabelOut.grid_remove()
         
-        if self.showLogiIn:
+        if self.logiInLinesCategories:
             self.historicalLogiIn = [0] * int((self.seconds*1000)/self.interval)
             self.yValuesLogiIn = np.array([0] * int((self.seconds*1000)/self.interval))
             self.logiLabelIn.grid()
             self.ySmoothLogiIn = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
             self.plotLineLogiIn, = self.subplot.plot(self.ySmoothLogiIn, self.logiInColor)
+            self.logiInLines = [self.plotLineLogiIn]
         else:
             self.logiLabelIn.grid_remove()
             
@@ -129,14 +136,11 @@ class DPSGraph(tk.Frame):
         self.subplot.margins(0,0)
         
         self.yInLines = [self.plotLineIn]
-        self.yInLinesCategories = inSettings
-        
         self.yOutLines = [self.plotLineOut]
-        self.yOutLinesCategories = outSettings
         
-        self.ani.event_source.interval = interval
-        
-        self.ani.event_source.start()
+        if self.ani:
+            self.ani.event_source.interval = interval
+            self.ani.event_source.start()
         
     def getSeconds(self):
         return self.seconds
@@ -144,22 +148,16 @@ class DPSGraph(tk.Frame):
     def getInterval(self):
         return self.interval
     
-    def getLogiOutColor(self):
-        return self.logiOutColor
+    def getLogiOutCategories(self):
+        return copy.deepcopy(self.logiOutLinesCategories)
     
-    def getLogiInColor(self):
-        return self.logiInColor
+    def getLogiInCategories(self):
+        return copy.deepcopy(self.logiInLinesCategories)
     
-    def getShowLogiOut(self):
-        return self.showLogiOut
-    
-    def getShowLogiIn(self):
-        return self.showLogiIn
-    
-    def getInCategories(self):
+    def getDpsInCategories(self):
         return copy.deepcopy(self.yInLinesCategories)
     
-    def getOutCategories(self):
+    def getDpsOutCategories(self):
         return copy.deepcopy(self.yOutLinesCategories)
         
     def catchup(self):
@@ -206,7 +204,7 @@ class DPSGraph(tk.Frame):
         dpsInString = str(decimal.Decimal(damageInAverage).quantize(decimal.Decimal('.01')))
         self.dpsInLabel.configure(text="DPS In: " + dpsInString)
         
-        if self.showLogiOut:
+        if self.logiOutLinesCategories:
             self.historicalLogiOut.pop(0)
             self.historicalLogiOut.insert(len(self.historicalLogiOut), logiOut)
             self.yValuesLogiOut = self.yValuesLogiOut[1:]
@@ -214,8 +212,10 @@ class DPSGraph(tk.Frame):
             self.yValuesLogiOut = np.append(self.yValuesLogiOut, logiAverage)
             logiString = str(decimal.Decimal(logiAverage).quantize(decimal.Decimal('.01')))
             self.logiLabelOut.configure(text="| Logi Out: " + logiString)
+            self.ySmoothLogiOut = self.smoothListGaussian(self.yValuesLogiOut, self.degree)
+            self.animateLine(self.ySmoothLogiOut, self.logiOutLinesCategories, self.logiOutLines)
             
-        if self.showLogiIn:
+        if self.logiInLinesCategories:
             self.historicalLogiIn.pop(0)
             self.historicalLogiIn.insert(len(self.historicalLogiIn), logiIn)
             self.yValuesLogiIn = self.yValuesLogiIn[1:]
@@ -223,33 +223,28 @@ class DPSGraph(tk.Frame):
             self.yValuesLogiIn = np.append(self.yValuesLogiIn, logiAverage)
             logiString = str(decimal.Decimal(logiAverage).quantize(decimal.Decimal('.01')))
             self.logiLabelIn.configure(text="Logi In: " + logiString + " |")
+            self.ySmoothLogiIn = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
+            self.animateLine(self.ySmoothLogiIn, self.logiInLinesCategories, self.logiInLines)
         
+        #Find highest average for the y-axis scaling
         self.highestAverage = 0
         for i in range(len(self.yValuesOut)):
             if (self.yValuesOut[i] > self.highestAverage):
                 self.highestAverage = self.yValuesOut[i]
             if (self.yValuesIn[i] > self.highestAverage):
                 self.highestAverage = self.yValuesIn[i]
-            if self.showLogiOut:
+            if self.logiOutLinesCategories:
                 if (self.yValuesLogiOut[i] > self.highestAverage):
                     self.highestAverage = self.yValuesLogiOut[i]
-            if self.showLogiIn:
+            if self.logiInLinesCategories:
                 if (self.yValuesLogiIn[i] > self.highestAverage):
                     self.highestAverage = self.yValuesLogiIn[i]
-        
-        
-        if self.showLogiOut:
-            self.ySmoothLogiOut = self.smoothListGaussian(self.yValuesLogiOut, self.degree)
-            self.plotLineLogiOut.set_data(range(0, len(self.ySmoothLogiOut)), self.ySmoothLogiOut)
-            
-        if self.showLogiIn:
-            self.ySmoothLogiIn = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
-            self.plotLineLogiIn.set_data(range(0, len(self.ySmoothLogiIn)), self.ySmoothLogiIn)
         
         self.ySmoothIn = self.smoothListGaussian(self.yValuesIn, self.degree)
         self.ySmoothOut = self.smoothListGaussian(self.yValuesOut, self.degree)
         
-        self.animateLines()
+        self.animateLine(self.ySmoothIn, self.yInLinesCategories, self.yInLines)
+        self.animateLine(self.ySmoothOut, self.yOutLinesCategories, self.yOutLines)
         
         if (self.highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
@@ -258,7 +253,7 @@ class DPSGraph(tk.Frame):
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
         self.readjust(self.windowWidth)
         
-    def animateLines(self):
+    def animateLine(self, smoothed, categories, lines):
         """
         Magic to make many lines with colors work.
         
@@ -267,118 +262,60 @@ class DPSGraph(tk.Frame):
          
         Yes this mess is more efficient.
         It could be split up into some functions for greater readability.
-        """      
-        
-        ###In graph section
+        """
         
         lineCategoryTracker = 0
-        lastValue = self.ySmoothIn[0]
+        lastValue = smoothed[0]
         currentLine = []
         lineNumber = 0
-        for index, value in enumerate(self.ySmoothIn):
-            for categoryIndex, lineCategory in enumerate(self.yInLinesCategories):
-                if categoryIndex == (len(self.yInLinesCategories)-1):
+        for index, value in enumerate(smoothed):
+            for categoryIndex, lineCategory in enumerate(categories):
+                if categoryIndex == (len(categories)-1):
                     if value >= lineCategory["transitionValue"]:
                         if lineCategoryTracker == categoryIndex:
                             currentLine.append(value)
                         else:
-                            if (lineNumber < len(self.yInLines)):
-                                self.yInLines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
-                                self.yInLines[lineNumber].set_color(self.yInLinesCategories[lineCategoryTracker]["color"])
+                            if (lineNumber < len(lines)):
+                                lines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
+                                lines[lineNumber].set_color(categories[lineCategoryTracker]["color"])
                             else:
                                 newLine, = self.subplot.plot(range(index-len(currentLine), index), currentLine, 
-                                                            self.yInLinesCategories[lineCategoryTracker]["color"])
-                                self.yInLines.append(newLine)
+                                                            categories[lineCategoryTracker]["color"])
+                                lines.append(newLine)
                             lineNumber += 1
                             lineCategoryTracker = categoryIndex
                             currentLine = []
                             currentLine.append(lastValue)
                             currentLine.append(value)
-                elif value >= lineCategory["transitionValue"] and value < self.yInLinesCategories[categoryIndex+1]["transitionValue"]:
+                elif value >= lineCategory["transitionValue"] and value < categories[categoryIndex+1]["transitionValue"]:
                     if lineCategoryTracker == categoryIndex:
                         currentLine.append(value)
                     else:
-                        if (lineNumber < len(self.yInLines)):
-                            self.yInLines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
-                            self.yInLines[lineNumber].set_color(self.yInLinesCategories[lineCategoryTracker]["color"])
+                        if (lineNumber < len(lines)):
+                            lines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
+                            lines[lineNumber].set_color(categories[lineCategoryTracker]["color"])
                         else:
                             newLine, = self.subplot.plot(range(index-len(currentLine), index), currentLine, 
-                                                        self.yInLinesCategories[lineCategoryTracker]["color"])
-                            self.yInLines.append(newLine)
+                                                        categories[lineCategoryTracker]["color"])
+                            lines.append(newLine)
                         lineNumber += 1
                         lineCategoryTracker = categoryIndex
                         currentLine = []
                         currentLine.append(lastValue)
                         currentLine.append(value)
             lastValue = value
-        if (lineNumber < len(self.yInLines)):
-            self.yInLines[lineNumber].set_data(range(len(self.ySmoothIn)-len(currentLine), len(self.ySmoothIn)), currentLine)
-            self.yInLines[lineNumber].set_color(self.yInLinesCategories[lineCategoryTracker]["color"])
+        if (lineNumber < len(lines)):
+            lines[lineNumber].set_data(range(len(smoothed)-len(currentLine), len(smoothed)), currentLine)
+            lines[lineNumber].set_color(categories[lineCategoryTracker]["color"])
         else:
-            newLine, = self.subplot.plot(range(len(self.ySmoothIn)-len(currentLine), len(self.ySmoothIn)), currentLine, 
-                                         self.yInLinesCategories[lineCategoryTracker]["color"])
-            self.yInLines.append(newLine)
+            newLine, = self.subplot.plot(range(len(smoothed)-len(currentLine), len(smoothed)), currentLine, 
+                                         categories[lineCategoryTracker]["color"])
+            lines.append(newLine)
             
         lineNumber += 1
-        while lineNumber < len(self.yInLines):
-            self.subplot.lines.remove(self.yInLines[lineNumber])
-            self.yInLines.pop(lineNumber)
-            lineNumber += 1
-            
-        ###Out graph section
-        
-        lineCategoryTracker = 0
-        lastValue = self.ySmoothOut[0]
-        currentLine = []
-        lineNumber = 0
-        for index, value in enumerate(self.ySmoothOut):
-            for categoryIndex, lineCategory in enumerate(self.yOutLinesCategories):
-                if categoryIndex == (len(self.yOutLinesCategories)-1):
-                    if value >= lineCategory["transitionValue"]:
-                        if lineCategoryTracker == categoryIndex:
-                            currentLine.append(value)
-                        else:
-                            if (lineNumber < len(self.yOutLines)):
-                                self.yOutLines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
-                                self.yOutLines[lineNumber].set_color(self.yOutLinesCategories[lineCategoryTracker]["color"])
-                            else:
-                                newLine, = self.subplot.plot(range(index-len(currentLine), index), currentLine, 
-                                                            self.yOutLinesCategories[lineCategoryTracker]["color"])
-                                self.yOutLines.append(newLine)
-                            lineNumber += 1
-                            lineCategoryTracker = categoryIndex
-                            currentLine = []
-                            currentLine.append(lastValue)
-                            currentLine.append(value)
-                elif value >= lineCategory["transitionValue"] and value < self.yOutLinesCategories[categoryIndex+1]["transitionValue"]:
-                    if lineCategoryTracker == categoryIndex:
-                        currentLine.append(value)
-                    else:
-                        if (lineNumber < len(self.yOutLines)):
-                            self.yOutLines[lineNumber].set_data(range(index-len(currentLine), index), currentLine)
-                            self.yOutLines[lineNumber].set_color(self.yOutLinesCategories[lineCategoryTracker]["color"])
-                        else:
-                            newLine, = self.subplot.plot(range(index-len(currentLine), index), currentLine, 
-                                                        self.yOutLinesCategories[lineCategoryTracker]["color"])
-                            self.yOutLines.append(newLine)
-                        lineNumber += 1
-                        lineCategoryTracker = categoryIndex
-                        currentLine = []
-                        currentLine.append(lastValue)
-                        currentLine.append(value)
-            lastValue = value
-        if (lineNumber < len(self.yOutLines)):
-            self.yOutLines[lineNumber].set_data(range(len(self.ySmoothOut)-len(currentLine), len(self.ySmoothOut)), currentLine)
-            self.yOutLines[lineNumber].set_color(self.yOutLinesCategories[lineCategoryTracker]["color"])
-        else:
-            newLine, = self.subplot.plot(range(len(self.ySmoothOut)-len(currentLine), len(self.ySmoothOut)), currentLine, 
-                                         self.yOutLinesCategories[lineCategoryTracker]["color"])
-            self.yOutLines.append(newLine)
-            
-        lineNumber += 1
-        while lineNumber < len(self.yOutLines):
-            self.subplot.lines.remove(self.yOutLines[lineNumber])
-            self.yOutLines.pop(lineNumber)
+        while lineNumber < len(lines):
+            self.subplot.lines.remove(lines[lineNumber])
+            lines.pop(lineNumber)
             lineNumber += 1
         
     def smoothListGaussian(self, list, degree=5):

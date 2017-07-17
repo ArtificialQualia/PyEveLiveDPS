@@ -25,8 +25,7 @@ OutputBaseFilename=PELD-installer
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "dist\PELD\PELD.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\PELD\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: "dist\PELD\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "README.md"; DestDir: "{app}"; Flags: isreadme
 Source: "LICENSE"; DestDir: "{app}"
 
@@ -34,3 +33,6 @@ Source: "LICENSE"; DestDir: "{app}"
 Name: "{group}\PELD"; Filename: "{app}\PELD.exe"; WorkingDir: "{app}"
 Name: "{group}\Uninstall PELD"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\PELD"; Filename: "{app}\PELD.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\PELD.exe"; Description: "Run PELD"; WorkingDir: "{app}"; Flags: postinstall
