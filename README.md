@@ -5,10 +5,8 @@ PyEveLiveDPS (PELD) is a live DPS calculator and grapher for EVE Online
 Download the latest version from here:  
 https://github.com/ArtificialQualia/PyEveLiveDPS/releases
 
-You have two options for how you would like to run PELD, there is a standalone version and a traditional installed version.
-
-PELD-standalone requires no installation, but takes a few seconds to start up.
-
+You have two download options:  
+PELD-standalone requires no installation, but takes a few seconds to start up.  
 PELD-installer will install PELD to your computer like a traditional application, and is much faster to start up.
 
 If you plan on using PELD long term, it is recommended to use the PELD-installer version.
