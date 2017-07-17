@@ -134,13 +134,27 @@ class LogReader():
         self.log.read()
         
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
+        
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
+        
         self.armorRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <")
         self.hullRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <")
         self.shieldBoostedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <")
+        
         self.armorRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <")
         self.hullRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <")
         self.shieldBoostedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <")
+        
+        self.capTransferedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <")
+        
+        self.capNeutralizedOutRegex = re.compile("\(combat\) <.*?ff7fffff><b>([0-9]+).*> energy neutralized <")
+        self.nosRecievedRegex = re.compile("\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <")
+        
+        self.capTransferedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <")
+        #add nos recieved to this group
+        
+        self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <")
+        self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <")
             
     def readLog(self):
         logData = self.log.read()
@@ -184,8 +198,44 @@ class LogReader():
         if shieldBoostGroup:
             for match in shieldBoostGroup:
                 logisticsIn += int(match)
+        
+        capTransfered = 0
+        group = self.capTransferedOutRegex.findall(logData)
+        if group:
+            for match in group:
+                capTransfered += int(match)
                 
-        return damageOut, damageIn, logisticsOut, logisticsIn
+        capRecieved = 0
+        group = self.capTransferedInRegex.findall(logData)
+        if group:
+            for match in group:
+                capRecieved += int(match)
+        group = self.nosRecievedRegex.findall(logData)
+        if group:
+            for match in group:
+                capRecieved += int(match)
+                
+        capDamageDone = 0
+        group = self.capNeutralizedOutRegex.findall(logData)
+        if group:
+            for match in group:
+                capDamageDone += int(match)
+        group = self.nosRecievedRegex.findall(logData)
+        if group:
+            for match in group:
+                capDamageDone += int(match)
+                
+        capDamageRecieved = 0
+        group = self.capNeutralizedInRegex.findall(logData)
+        if group:
+            for match in group:
+                capDamageRecieved += int(match)
+        group = self.nosTakenRegex.findall(logData)
+        if group:
+            for match in group:
+                capDamageRecieved += int(match)
+                
+        return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
     
     def catchup(self):
         self.log.read()

@@ -27,15 +27,18 @@ import tkinter as tk
 import logreader
 import decimal
 import copy
+import settings
 
 class DPSGraph(tk.Frame):
 
-    def __init__(self, dpsOutLabel, dpsInLabel, logiLabelOut, logiLabelIn, characterDetector, **kwargs):
+    def __init__(self, dpsOutLabel, dpsInLabel, logiLabelOut, logiLabelIn, characterDetector, settings, **kwargs):
         tk.Frame.__init__(self, **kwargs)
         self.dpsOutLabel = dpsOutLabel
         self.dpsInLabel = dpsInLabel
         self.logiLabelOut = logiLabelOut
         self.logiLabelIn = logiLabelIn
+        
+        self.settings = settings
         
         self.degree = 5
         self.seconds = 10
@@ -180,7 +183,7 @@ class DPSGraph(tk.Frame):
         return
     
     def animate(self, i):
-        damageOut,damageIn,logiOut,logiIn = self.characterDetector.readLog()
+        damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageDone,capDamageRecieved = self.characterDetector.readLog()
         
         #This section could be split up into helper functions, but we'd have to pass so much back and forth
         # it hardly seems worth it.

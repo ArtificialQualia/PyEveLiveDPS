@@ -17,6 +17,7 @@ import sys
 import graph
 import logreader
 import settingsWindow
+import settings
 
 
 class BorderlessWindow(tk.Tk):
@@ -101,11 +102,19 @@ class BorderlessWindow(tk.Tk):
         self.dpsInLabel.grid(row="0", column="2", sticky="e")
         self.makeDraggable(self.dpsInLabel)
         
+        #Grab settings from our settings handler
+        self.settings = settings.Settings()
+        self.geometry("%sx%s+%s+%s" % (self.settings.getWindowWidth(), self.settings.getWindowHeight(), 
+                                       self.settings.getWindowX(), self.settings.getWindowY()))
+        self.update_idletasks()
+        
         #The hero of our app
         self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabelOut, self.logiLabelIn,
-                                          self.characterDetector, background="black", borderwidth="0")
+                                          self.characterDetector, settings, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
+        
+        self.graphFrame.readjust(self.winfo_width())
         
     def addMenus(self):
         #Set up menu options
@@ -116,7 +125,7 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.menu = tk.Menu(self.mainMenu, tearoff=False)
         self.mainMenu["menu"] = self.mainMenu.menu
         self.mainMenu.menu.add_command(label="Settings", command=lambda: settingsWindow.SettingsWindow(self))
-        self.mainMenu.menu.add_command(label="Quit", command=self.quit)
+        self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
         
         #character menu options are added dynamically by CharacterDetector, so we pass this into that
         self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
@@ -251,8 +260,14 @@ class BorderlessWindow(tk.Tk):
     def buttonBlack(self, event):
         event.widget.configure(background="black")
         
-    def quitEvent(self, event):
-        if (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
+    def quitEvent(self, event=None):
+        if not event:
+            self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
+                                      windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
+            self.quit()
+        if event and (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
+            self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
+                                      windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
             self.quit()

@@ -25,63 +25,103 @@ class SettingsWindow(tk.Toplevel):
                 self.iconbitmap("app.ico")
             except Exception:
                 pass
-        self.geometry("395x350")
+        self.geometry("410x600")
         self.update_idletasks()
         
         
         self.secondsVar = tk.StringVar()
         self.secondsVar.set(self.graph.getSeconds())
-        secondsLabel = tk.Label(self, text="Number of seconds to average DPS:")
-        secondsLabel.grid(row="0", column="0", sticky="e")
+        secondsLabel = tk.Label(self, text="Number of seconds to average values:")
+        secondsLabel.grid(row="0", column="1", sticky="e")
         secondsEntry = tk.Entry(self, textvariable=self.secondsVar, width=10)
-        secondsEntry.grid(row="0", column="1")
+        secondsEntry.grid(row="0", column="2")
         secondsDescriptor = tk.Label(self, text="Recommended to set this value higher than your weapon cycle time")
         font = tkFont.Font(font=secondsDescriptor['font'])
         font.config(slant='italic')
         secondsDescriptor['font'] = font
-        secondsDescriptor.grid(row="1", column="0", columnspan="5")
+        secondsDescriptor.grid(row="1", column="1", columnspan="5")
         
         tk.Frame(self, height="20", width="395").grid(row="2", column="0", columnspan="5")
         
         self.intervalVar = tk.StringVar()
         self.intervalVar.set(self.graph.getInterval())
         intervalLabel = tk.Label(self, text="How often to update the graph in milliseconds:")
-        intervalLabel.grid(row="3", column="0", sticky="e")
+        intervalLabel.grid(row="3", column="1", sticky="e")
         intervalEntry = tk.Entry(self, textvariable=self.intervalVar, width=10)
-        intervalEntry.grid(row="3", column="1")
+        intervalEntry.grid(row="3", column="2")
         intervalDescriptor = tk.Label(self, text="The lower you set this value, the higher your CPU usage will be")
         intervalDescriptor['font'] = font
-        intervalDescriptor.grid(row="4", column="0", columnspan="5")
+        intervalDescriptor.grid(row="4", column="1", columnspan="5")
         
         tk.Frame(self, height="20", width="10").grid(row="5", column="1", columnspan="5")
+        tk.Frame(self, height="1", width="5").grid(row="6", column="0")
         
-        dpsOutFrame = tk.Frame(self)
+        linesFrame = tk.Frame(self, relief="groove", borderwidth=1)
+        linesFrame.grid(row="6", column="1", columnspan="3")
+        self.scrollableCanvas = tk.Canvas(linesFrame, borderwidth=0, height="400")
+        canvasFrame = tk.Frame(self.scrollableCanvas)
+        scrollbar = tk.Scrollbar(linesFrame, orient="vertical", command=self.scrollableCanvas.yview)
+        self.scrollableCanvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        self.scrollableCanvas.pack(side="left", fill="both", expand=True)
+        self.scrollableCanvas.create_window((0,0), window=canvasFrame, anchor="nw")
+        canvasFrame.bind("<Configure>", self.onLineFrameConfigure)
+        
+        dpsOutFrame = tk.Frame(canvasFrame)
         dpsOutFrame.grid(row="6", column="0", columnspan="5", padx="5")
         self.dpsOutSettings = self.graph.getDpsOutCategories()
         self.addLineSection(dpsOutFrame, "DPS OUT", self.dpsOutSettings)
         
-        tk.Frame(self, height="20", width="10").grid(row="7", column="1", columnspan="5")
+        tk.Frame(canvasFrame, height="20", width="380").grid(row="7", column="0", columnspan="5")
         
-        dpsInFrame = tk.Frame(self)
+        dpsInFrame = tk.Frame(canvasFrame)
         dpsInFrame.grid(row="8", column="0", columnspan="5", padx="5")
         self.dpsInSettings = self.graph.getDpsInCategories()
         self.addLineSection(dpsInFrame, "DPS IN", self.dpsInSettings)
         
-        tk.Frame(self, height="20", width="10").grid(row="9", column="1", columnspan="5")
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="9", column="1", columnspan="5")
         
-        logiOutFrame = tk.Frame(self)
+        logiOutFrame = tk.Frame(canvasFrame)
         logiOutFrame.grid(row="10", column="0", columnspan="5", padx="5")
         self.logiOutSettings = self.graph.getLogiOutCategories()
         self.addLineSection(logiOutFrame, "logistics OUT", self.logiOutSettings)
         
-        tk.Frame(self, height="20", width="10").grid(row="11", column="1", columnspan="5")
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="11", column="1", columnspan="5")
         
-        logiInFrame = tk.Frame(self)
+        logiInFrame = tk.Frame(canvasFrame)
         logiInFrame.grid(row="12", column="0", columnspan="5", padx="5")
         self.logiInSettings = self.graph.getLogiInCategories()
         self.addLineSection(logiInFrame, "logistics IN", self.logiInSettings)
         
-        tk.Frame(self, height="30", width="10").grid(row="99", column="1", columnspan="5")
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="13", column="1", columnspan="5")
+        
+        capTransferedFrame = tk.Frame(canvasFrame)
+        capTransferedFrame.grid(row="14", column="0", columnspan="5", padx="5")
+        self.capTransferedSettings = []
+        self.addLineSection(capTransferedFrame, "capacitor xfer OUT", self.capTransferedSettings)
+        
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="15", column="1", columnspan="5")
+        
+        capRecievedFrame = tk.Frame(canvasFrame)
+        capRecievedFrame.grid(row="16", column="0", columnspan="5", padx="5")
+        self.capRecievedSettings = []
+        self.addLineSection(capRecievedFrame, "capacitor xfer (including +nos) IN", self.capRecievedSettings)
+        
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="17", column="1", columnspan="5")
+        
+        capDamageOutFrame = tk.Frame(canvasFrame)
+        capDamageOutFrame.grid(row="18", column="0", columnspan="5", padx="5")
+        self.capDamageOutSettings = []
+        self.addLineSection(capDamageOutFrame, "capacitor drain OUT", self.capDamageOutSettings)
+        
+        tk.Frame(canvasFrame, height="20", width="10").grid(row="19", column="1", columnspan="5")
+        
+        capDamageInFrame = tk.Frame(canvasFrame)
+        capDamageInFrame.grid(row="20", column="0", columnspan="5", padx="5")
+        self.capDamageInSettings = []
+        self.addLineSection(capDamageInFrame, "capacitor drain IN", self.capDamageInSettings)
+        
+        tk.Frame(self, height="20", width="10").grid(row="99", column="1", columnspan="5")
         
         buttonFrame = tk.Frame(self)
         buttonFrame.grid(row="100", column="0", columnspan="5")
@@ -90,6 +130,9 @@ class SettingsWindow(tk.Toplevel):
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
         cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.destroy)
         cancelButton.grid(row="0", column="2")
+        
+    def onLineFrameConfigure(self, event):
+        self.scrollableCanvas.configure(scrollregion=self.scrollableCanvas.bbox("all"))
         
     def addLineSection(self, frame, text, settingsList):
         sectionLabel = tk.Label(frame, text="Enable " + text + " tracking?")
@@ -114,8 +157,6 @@ class SettingsWindow(tk.Toplevel):
             frame.grid()
             innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for " + text + " line:")
             innerLabel.grid(row="0", column="0")
-            self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()+50))
-            self.update_idletasks()
             font = tkFont.Font(font=innerLabel['font'])
             font.config(slant='italic')
             innerLabel['font'] = font
@@ -132,49 +173,22 @@ class SettingsWindow(tk.Toplevel):
             for child in frame.winfo_children():
                 child.destroy()
             frame.grid_remove()
-            self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()-(26*len(settingsList)+50)))
-            self.update_idletasks()
             settingsList.clear()
-        
-    def addLogiColorButton(self):
-        if self.logiOutValue.get():
-            self.logiOutColorButton.grid()
-            self.logiOutColorLabel.grid()
-        else:
-            self.logiOutColorButton.grid_remove()
-            self.logiOutColorLabel.grid_remove()
-            
-        if self.logiInValue.get():
-            self.logiInColorButton.grid()
-            self.logiInColorLabel.grid()
-        else:
-            self.logiInColorButton.grid_remove()
-            self.logiInColorLabel.grid_remove()
-        
-    def logiColorButton(self, type, button):
-        if (type == "out"):
-            x,self.logiOutColor = colorchooser.askcolor()
-            button.configure(bg=self.logiOutColor)
-        elif (type == "in"):
-            x,self.logiInColor = colorchooser.askcolor()
-            button.configure(bg=self.logiInColor)
         
     def expandCustomizationSettings(self, frame, settingsList):
         index = 0
         for setting in settingsList:
-            self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()+26))
-            self.update_idletasks()
             removeButton = tk.Button(frame, text="X", command=lambda i=index:self.removeLine(i, settingsList, frame))
             font = tkFont.Font(font=removeButton['font'])
             font.config(weight='bold')
             removeButton['font'] = font
             removeButton.grid(row=index, column="0")
-            initialLabel = tk.Label(frame, text="Threshold at which the line changes color:")
+            initialLabel = tk.Label(frame, text="Threshold when the line changes color:")
             initialLabel.grid(row=index, column="1")
             initialThreshold = tk.Entry(frame, textvariable=settingsList[index]["transitionValue"], width=10)
             if (index == 0):
                 initialThreshold.configure(state="disabled")
-                removeButton.configure(state="disabled", borderwidth="0")
+                removeButton.configure(state="disabled", borderwidth="0", text=" X ")
             initialThreshold.grid(row=index, column="2")
             initialLabel = tk.Label(frame, text="Color:")
             initialLabel.grid(row=index, column="3")
@@ -189,8 +203,6 @@ class SettingsWindow(tk.Toplevel):
         addLineButton.grid(row="100", column="1")
             
     def addLine(self, settingsList, dpsFrame):
-        self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()+26))
-        self.update_idletasks()
         lineNumber = len(settingsList)
         settingsList.append({"transitionValue": "", "color": "#FFFFFF"})
         settingsList[lineNumber]["transitionValue"] = tk.StringVar()
@@ -202,7 +214,7 @@ class SettingsWindow(tk.Toplevel):
         font.config(weight='bold')
         removeButton['font'] = font
         removeButton.grid(row=lineNumber, column="0")
-        lineLabel = tk.Label(dpsFrame, text="Threshold at which the line changes color:")
+        lineLabel = tk.Label(dpsFrame, text="Threshold when the line changes color:")
         lineLabel.grid(row=lineNumber, column="1")
         initialThreshold = tk.Entry(dpsFrame, textvariable=settingsList[lineNumber]["transitionValue"], width=10)
         initialThreshold.grid(row=lineNumber, column="2")
@@ -214,8 +226,6 @@ class SettingsWindow(tk.Toplevel):
         colorButton.grid(row=lineNumber, column="4")
         
     def removeLine(self, index, settingsList, dpsFrame):
-        self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()-(26*len(settingsList))))
-        self.update_idletasks()
         settingsList.pop(index)
         for child in dpsFrame.winfo_children():
             child.destroy()
@@ -272,6 +282,8 @@ class SettingsWindow(tk.Toplevel):
         #Isn't python the coolest language? Look how easy this is:
         self.dpsInSettings = sorted(self.dpsInSettings, key=lambda setting: setting["transitionValue"])
         self.dpsOutSettings = sorted(self.dpsOutSettings, key=lambda setting: setting["transitionValue"])
+        self.logiInSettings = sorted(self.logiInSettings, key=lambda setting: setting["transitionValue"])
+        self.logiOutSettings = sorted(self.logiOutSettings, key=lambda setting: setting["transitionValue"])
         
         self.graph.changeSettings(secondsSetting, intervalSetting, 
                                      self.logiInSettings, self.logiOutSettings,
