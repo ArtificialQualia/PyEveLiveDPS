@@ -30,7 +30,7 @@ class SettingsWindow(tk.Toplevel):
         
         
         self.secondsVar = tk.StringVar()
-        self.secondsVar.set(self.graph.getSeconds())
+        self.secondsVar.set(self.mainWindow.settings.getSeconds())
         secondsLabel = tk.Label(self, text="Number of seconds to average values:")
         secondsLabel.grid(row="0", column="1", sticky="e")
         secondsEntry = tk.Entry(self, textvariable=self.secondsVar, width=10)
@@ -44,7 +44,7 @@ class SettingsWindow(tk.Toplevel):
         tk.Frame(self, height="20", width="395").grid(row="2", column="0", columnspan="5")
         
         self.intervalVar = tk.StringVar()
-        self.intervalVar.set(self.graph.getInterval())
+        self.intervalVar.set(self.mainWindow.settings.getInterval())
         intervalLabel = tk.Label(self, text="How often to update the graph in milliseconds:")
         intervalLabel.grid(row="3", column="1", sticky="e")
         intervalEntry = tk.Entry(self, textvariable=self.intervalVar, width=10)
@@ -69,56 +69,56 @@ class SettingsWindow(tk.Toplevel):
         
         dpsOutFrame = tk.Frame(canvasFrame)
         dpsOutFrame.grid(row="6", column="0", columnspan="5", padx="5")
-        self.dpsOutSettings = self.graph.getDpsOutCategories()
+        self.dpsOutSettings = self.mainWindow.settings.getDpsOutSettings()
         self.addLineSection(dpsOutFrame, "DPS OUT", self.dpsOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="380").grid(row="7", column="0", columnspan="5")
         
         dpsInFrame = tk.Frame(canvasFrame)
         dpsInFrame.grid(row="8", column="0", columnspan="5", padx="5")
-        self.dpsInSettings = self.graph.getDpsInCategories()
+        self.dpsInSettings = self.mainWindow.settings.getDpsInSettings()
         self.addLineSection(dpsInFrame, "DPS IN", self.dpsInSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="9", column="1", columnspan="5")
         
         logiOutFrame = tk.Frame(canvasFrame)
         logiOutFrame.grid(row="10", column="0", columnspan="5", padx="5")
-        self.logiOutSettings = self.graph.getLogiOutCategories()
+        self.logiOutSettings = self.mainWindow.settings.getLogiOutSettings()
         self.addLineSection(logiOutFrame, "logistics OUT", self.logiOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="11", column="1", columnspan="5")
         
         logiInFrame = tk.Frame(canvasFrame)
         logiInFrame.grid(row="12", column="0", columnspan="5", padx="5")
-        self.logiInSettings = self.graph.getLogiInCategories()
+        self.logiInSettings = self.mainWindow.settings.getLogiInSettings()
         self.addLineSection(logiInFrame, "logistics IN", self.logiInSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="13", column="1", columnspan="5")
         
         capTransferedFrame = tk.Frame(canvasFrame)
         capTransferedFrame.grid(row="14", column="0", columnspan="5", padx="5")
-        self.capTransferedSettings = []
+        self.capTransferedSettings = self.mainWindow.settings.getCapTransferedSettings()
         self.addLineSection(capTransferedFrame, "capacitor xfer OUT", self.capTransferedSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="15", column="1", columnspan="5")
         
         capRecievedFrame = tk.Frame(canvasFrame)
         capRecievedFrame.grid(row="16", column="0", columnspan="5", padx="5")
-        self.capRecievedSettings = []
+        self.capRecievedSettings = self.mainWindow.settings.getCapRecievedSettings()
         self.addLineSection(capRecievedFrame, "capacitor xfer (including +nos) IN", self.capRecievedSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="17", column="1", columnspan="5")
         
         capDamageOutFrame = tk.Frame(canvasFrame)
         capDamageOutFrame.grid(row="18", column="0", columnspan="5", padx="5")
-        self.capDamageOutSettings = []
+        self.capDamageOutSettings = self.mainWindow.settings.getCapDamageOutSettings()
         self.addLineSection(capDamageOutFrame, "capacitor drain OUT", self.capDamageOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="19", column="1", columnspan="5")
         
         capDamageInFrame = tk.Frame(canvasFrame)
         capDamageInFrame.grid(row="20", column="0", columnspan="5", padx="5")
-        self.capDamageInSettings = []
+        self.capDamageInSettings = self.mainWindow.settings.getCapDamageInSettings()
         self.addLineSection(capDamageInFrame, "capacitor drain IN", self.capDamageInSettings)
         
         tk.Frame(self, height="20", width="10").grid(row="99", column="1", columnspan="5")
@@ -155,7 +155,7 @@ class SettingsWindow(tk.Toplevel):
     def addLineCustomizationSection(self, frame, text, checkboxValue, settingsList):
         if checkboxValue.get():
             frame.grid()
-            innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for " + text + " line:")
+            innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for this line:")
             innerLabel.grid(row="0", column="0")
             font = tkFont.Font(font=innerLabel['font'])
             font.config(slant='italic')
@@ -278,16 +278,32 @@ class SettingsWindow(tk.Toplevel):
         self.convertBackValues(self.dpsOutSettings)
         self.convertBackValues(self.logiInSettings)
         self.convertBackValues(self.logiOutSettings)
+        self.convertBackValues(self.capTransferedSettings)
+        self.convertBackValues(self.capRecievedSettings)
+        self.convertBackValues(self.capDamageOutSettings)
+        self.convertBackValues(self.capDamageInSettings)
             
         #Isn't python the coolest language? Look how easy this is:
         self.dpsInSettings = sorted(self.dpsInSettings, key=lambda setting: setting["transitionValue"])
         self.dpsOutSettings = sorted(self.dpsOutSettings, key=lambda setting: setting["transitionValue"])
         self.logiInSettings = sorted(self.logiInSettings, key=lambda setting: setting["transitionValue"])
         self.logiOutSettings = sorted(self.logiOutSettings, key=lambda setting: setting["transitionValue"])
+        self.capTransferedSettings = sorted(self.capTransferedSettings, key=lambda setting: setting["transitionValue"])
+        self.capRecievedSettings = sorted(self.capRecievedSettings, key=lambda setting: setting["transitionValue"])
+        self.capDamageOutSettings = sorted(self.capDamageOutSettings, key=lambda setting: setting["transitionValue"])
+        self.capDamageInSettings = sorted(self.capDamageInSettings, key=lambda setting: setting["transitionValue"])
+        
+        self.mainWindow.settings.setSettings(seconds=secondsSetting, interval=intervalSetting, 
+                                     logiIn=self.logiInSettings, logiOut=self.logiOutSettings,
+                                     dpsIn=self.dpsInSettings, dpsOut=self.dpsOutSettings, 
+                                     capDamageIn=self.capDamageInSettings, capDamageOut=self.capDamageOutSettings, 
+                                     capRecieved=self.capRecievedSettings, capTransfered=self.capTransferedSettings)
         
         self.graph.changeSettings(secondsSetting, intervalSetting, 
                                      self.logiInSettings, self.logiOutSettings,
-                                     self.dpsInSettings, self.dpsOutSettings)
+                                     self.dpsInSettings, self.dpsOutSettings, 
+                                     capDamageIn=self.capDamageInSettings, capDamageOut=self.capDamageOutSettings, 
+                                     capRecieved=self.capRecievedSettings, capTransfered=self.capTransferedSettings)
         
         self.destroy()
         

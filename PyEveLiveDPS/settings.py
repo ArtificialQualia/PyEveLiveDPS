@@ -1,6 +1,7 @@
 import platform
 import os
 import json
+import copy
 
 class Settings():
     defaultProfile = [ { "profile": "Default", "profileSettings": 
@@ -37,28 +38,28 @@ class Settings():
         self.currentProfile = self.allSettings[0]["profileSettings"]
     
     def getCapDamageInSettings(self):
-        return self.currentProfile["capDamageIn"]
+        return copy.deepcopy(self.currentProfile["capDamageIn"])
     
     def getCapDamageOutSettings(self):
-        return self.currentProfile["capDamageOut"]
+        return copy.deepcopy(self.currentProfile["capDamageOut"])
     
     def getCapRecievedSettings(self):
-        return self.currentProfile["capRecieved"]
+        return copy.deepcopy(self.currentProfile["capRecieved"])
     
     def getCapTransferedSettings(self):
-        return self.currentProfile["capTransfered"]
+        return copy.deepcopy(self.currentProfile["capTransfered"])
     
     def getDpsInSettings(self):
-        return self.currentProfile["dpsIn"]
+        return copy.deepcopy(self.currentProfile["dpsIn"])
     
     def getDpsOutSettings(self):
-        return self.currentProfile["dpsOut"]
+        return copy.deepcopy(self.currentProfile["dpsOut"])
     
     def getLogiInSettings(self):
-        return self.currentProfile["logiIn"]
+        return copy.deepcopy(self.currentProfile["logiIn"])
     
     def getLogiOutSettings(self):
-        return self.currentProfile["logiOut"]
+        return copy.deepcopy(self.currentProfile["logiOut"])
     
     def getInterval(self):
         return self.currentProfile["interval"]
@@ -82,33 +83,33 @@ class Settings():
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None):
-        if capDamageIn:
+        if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
-        if capDamageOut:
+        if not capDamageOut == None:
             self.currentProfile["capDamageOut"] = capDamageOut
-        if capRecieved:
+        if not capRecieved == None:
             self.currentProfile["capRecieved"] = capRecieved
-        if capTransfered:
+        if not capTransfered == None:
             self.currentProfile["capTransfered"] = capTransfered
-        if dpsIn:
+        if not dpsIn == None:
             self.currentProfile["dpsIn"] = dpsIn
-        if dpsOut:
+        if not dpsOut == None:
             self.currentProfile["dpsOut"] = dpsOut
-        if logiIn:
+        if not logiIn == None:
             self.currentProfile["logiIn"] = logiIn
-        if logiOut:
+        if not logiOut == None:
             self.currentProfile["logiOut"] = logiOut
-        if interval:
+        if not interval == None:
             self.currentProfile["interval"] = interval
-        if seconds:
+        if not seconds == None:
             self.currentProfile["seconds"] = seconds
-        if windowHeight:
+        if not windowHeight == None:
             self.currentProfile["windowHeight"] = windowHeight
-        if windowWidth:
+        if not windowWidth == None:
             self.currentProfile["windowWidth"] = windowWidth
-        if windowX:
+        if not windowX == None:
             self.currentProfile["windowX"] = windowX
-        if windowY:
+        if not windowY == None:
             self.currentProfile["windowY"] = windowY
         self.writeSettings()
     

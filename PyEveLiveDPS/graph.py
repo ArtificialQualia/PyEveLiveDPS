@@ -14,6 +14,12 @@ DPSGraph:
     Blitting the graph (only rewriting parts that changed) has almost no
     effect on performance in my testing (and the ticks don't redraw, so we have
     to redraw that every frame anyways).
+    
+    This class does NOT follow the principle of 'don't repeat yourself'
+    It doesn't really work well with how many class variables we are using.
+    It would probably be a good idea to switch all our different trackers to a
+    dict, and iterate on that list for all of these.  But that is a lot of
+    refactoring for little benefit (readability)
 """
 
 import matplotlib
@@ -26,24 +32,28 @@ import numpy as np
 import tkinter as tk
 import logreader
 import decimal
-import copy
 import settings
 
 class DPSGraph(tk.Frame):
 
-    def __init__(self, dpsOutLabel, dpsInLabel, logiLabelOut, logiLabelIn, characterDetector, settings, **kwargs):
+    def __init__(self, dpsOutLabel, dpsInLabel, logiLabelOut, logiLabelIn,
+                 capTransferedLabel, capRecievedLabel, capDamageOutLabel, capDamageInLabel,
+                 characterDetector, settings, **kwargs):
         tk.Frame.__init__(self, **kwargs)
         self.dpsOutLabel = dpsOutLabel
         self.dpsInLabel = dpsInLabel
         self.logiLabelOut = logiLabelOut
         self.logiLabelIn = logiLabelIn
+        self.capTransferedLabel = capTransferedLabel
+        self.capRecievedLabel = capRecievedLabel
+        self.capDamageOutLabel = capDamageOutLabel
+        self.capDamageInLabel = capDamageInLabel
         
         self.settings = settings
         
         self.degree = 5
-        self.seconds = 10
-        self.interval = 100
-        self.windowWidth = 410
+        #We should be able to remove this, along with the initial adjust, but since animate would need to be moved
+        self.windowWidth = self.settings.getWindowWidth()
 
         self.highestAverage = 0
         
@@ -56,12 +66,13 @@ class DPSGraph(tk.Frame):
         self.subplot.tick_params(axis="y", colors="grey", direction="in")
         self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
         
-        self.damageInLinesCategories = [{"color": "#FF0000", "transitionValue": 0}]
-        self.damageOutLinesCategories = [{"color": "#00FFFF", "transitionValue": 0}]
-        
         self.ani = None
         
-        self.changeSettings(self.seconds, self.interval, [], [], self.damageInLinesCategories, self.damageOutLinesCategories)
+        self.changeSettings(self.settings.getSeconds(), self.settings.getInterval(), 
+                            self.settings.getLogiInSettings(), self.settings.getLogiInSettings(),
+                            self.settings.getDpsInSettings(), self.settings.getDpsOutSettings(),
+                            self.settings.getCapDamageInSettings(), self.settings.getCapDamageOutSettings(),
+                            self.settings.getCapRecievedSettings(), self.settings.getCapTransferedSettings())
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
         self.graphFigure.subplots_adjust(left=(30/self.windowWidth), bottom=(15/self.windowWidth), 
@@ -75,7 +86,9 @@ class DPSGraph(tk.Frame):
         
         self.canvas.show()
         
-    def changeSettings(self, seconds, interval, logiInSettings, logiOutSettings, inSettings, outSettings):
+    def changeSettings(self, seconds=None, interval=None,
+                       logiInSettings=None, logiOutSettings=None, inSettings=None, outSettings=None,
+                       capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None):
         """This function is called when a user changes settings AFTER the settings are verified in window.py"""
         if self.ani:
             self.ani.event_source.stop()
@@ -83,10 +96,54 @@ class DPSGraph(tk.Frame):
         
         self.seconds = seconds
         self.interval = interval
+        self.capDamageInCategories = capDamageIn
+        self.capDamageOutCategories = capDamageOut
+        self.capRecievedCategories = capRecieved
+        self.capTransferedCategories = capTransfered
         self.logiInLinesCategories = logiInSettings
         self.logiOutLinesCategories = logiOutSettings
         self.damageInLinesCategories = inSettings
         self.damageOutLinesCategories = outSettings
+        
+        if self.capDamageOutCategories:
+            self.capDamageOutLabel.grid()
+            self.historicalCapDamageOut = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesCapDamageOut = np.array([0] * int((self.seconds*1000)/self.interval))
+            ySmooth = self.smoothListGaussian(self.yValuesCapDamageOut, self.degree)
+            plotLine, = self.subplot.plot(ySmooth, zorder=30)
+            self.capDamageOutLines = [plotLine]
+        else:
+            self.capDamageOutLabel.grid_remove()
+        
+        if self.capDamageInCategories:
+            self.capDamageInLabel.grid()
+            self.historicalCapDamageIn = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesCapDamageIn = np.array([0] * int((self.seconds*1000)/self.interval))
+            ySmooth = self.smoothListGaussian(self.yValuesCapDamageIn, self.degree)
+            plotLine, = self.subplot.plot(ySmooth, zorder=40)
+            self.capDamageInLines = [plotLine]
+        else:
+            self.capDamageInLabel.grid_remove()
+            
+        if self.capTransferedCategories:
+            self.capTransferedLabel.grid()
+            self.historicalCapTransfered = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesCapTransfered = np.array([0] * int((self.seconds*1000)/self.interval))
+            ySmooth = self.smoothListGaussian(self.yValuesCapTransfered, self.degree)
+            plotLine, = self.subplot.plot(ySmooth, zorder=50)
+            self.capTransferedLines = [plotLine]
+        else:
+            self.capTransferedLabel.grid_remove()
+            
+        if self.capRecievedCategories:
+            self.capRecievedLabel.grid()
+            self.historicalCapRecieved = [0] * int((self.seconds*1000)/self.interval)
+            self.yValuesCapRecieved = np.array([0] * int((self.seconds*1000)/self.interval))
+            ySmooth = self.smoothListGaussian(self.yValuesCapRecieved, self.degree)
+            plotLine, = self.subplot.plot(ySmooth, zorder=60)
+            self.capRecievedLines = [plotLine]
+        else:
+            self.capRecievedLabel.grid_remove()
         
         if self.logiOutLinesCategories:
             self.logiLabelOut.grid()
@@ -134,28 +191,11 @@ class DPSGraph(tk.Frame):
             self.ani.event_source.interval = interval
             self.ani.event_source.start()
         
-    def getSeconds(self):
-        return self.seconds
-    
-    def getInterval(self):
-        return self.interval
-    
-    def getLogiOutCategories(self):
-        return copy.deepcopy(self.logiOutLinesCategories)
-    
-    def getLogiInCategories(self):
-        return copy.deepcopy(self.logiInLinesCategories)
-    
-    def getDpsInCategories(self):
-        return copy.deepcopy(self.damageInLinesCategories)
-    
-    def getDpsOutCategories(self):
-        return copy.deepcopy(self.damageOutLinesCategories)
-        
     def catchup(self):
         """This is just to 'clear' the graph"""
         self.changeSettings(self.seconds, self.interval, self.logiInLinesCategories, self.logiOutLinesCategories,
-                            self.damageInLinesCategories, self.damageOutLinesCategories)
+                            self.damageInLinesCategories, self.damageOutLinesCategories,
+                            self.capDamageIn, self.capDamageOut, self.capRecieved, self.capTransfered)
         
     def readjust(self, windowWidth):
         """
@@ -183,10 +223,9 @@ class DPSGraph(tk.Frame):
         return
     
     def animate(self, i):
-        damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageDone,capDamageRecieved = self.characterDetector.readLog()
+        damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.characterDetector.readLog()
         
-        #This section could be split up into helper functions, but we'd have to pass so much back and forth
-        # it hardly seems worth it.
+        #This section should really be split up into helper functions
         firstOutSection = True
         firstInSection = True
         if self.damageOutLinesCategories:
@@ -244,11 +283,70 @@ class DPSGraph(tk.Frame):
                 self.logiLabelIn.configure(text="Logi In: " + logiString + " |")
             ySmooth = self.smoothListGaussian(self.yValuesLogiIn, self.degree)
             self.animateLine(ySmooth, self.logiInLinesCategories, self.logiInLines, zorder=70)
-        
+            
+        if self.capRecievedCategories:
+            self.historicalCapRecieved.pop(0)
+            self.historicalCapRecieved.insert(len(self.historicalCapRecieved), capRecieved)
+            self.yValuesCapRecieved = self.yValuesCapRecieved[1:]
+            average = (np.sum(self.historicalCapRecieved)*(1000/self.interval))/len(self.historicalCapRecieved)
+            self.yValuesCapRecieved = np.append(self.yValuesCapRecieved, average)
+            labelString = str(decimal.Decimal(average).quantize(decimal.Decimal('.01')))
+            if firstInSection:
+                self.capRecievedLabel.configure(text="Cap In: " + labelString)
+                firstInSection = False
+            else:
+                self.capRecievedLabel.configure(text="Cap In: " + labelString + " |")
+            ySmooth = self.smoothListGaussian(self.yValuesCapRecieved, self.degree)
+            self.animateLine(ySmooth, self.capRecievedCategories, self.capRecievedLines, zorder=60)
+            
+        if self.capTransferedCategories:
+            self.historicalCapTransfered.pop(0)
+            self.historicalCapTransfered.insert(len(self.historicalCapTransfered), capTransfered)
+            self.yValuesCapTransfered = self.yValuesCapTransfered[1:]
+            average = (np.sum(self.historicalCapTransfered)*(1000/self.interval))/len(self.historicalCapTransfered)
+            self.yValuesCapTransfered = np.append(self.yValuesCapTransfered, average)
+            labelString = str(decimal.Decimal(average).quantize(decimal.Decimal('.01')))
+            if firstOutSection:
+                self.capTransferedLabel.configure(text="Cap Out: " + labelString)
+                firstOutSection = False
+            else:
+                self.capTransferedLabel.configure(text="| Cap Out: " + labelString)
+            ySmooth = self.smoothListGaussian(self.yValuesCapTransfered, self.degree)
+            self.animateLine(ySmooth, self.capTransferedCategories, self.capTransferedLines, zorder=50)
+            
+        if self.capDamageInCategories:
+            self.historicalCapDamageIn.pop(0)
+            self.historicalCapDamageIn.insert(len(self.historicalCapDamageIn), capDamageIn)
+            self.yValuesCapDamageIn = self.yValuesCapDamageIn[1:]
+            average = (np.sum(self.historicalCapDamageIn)*(1000/self.interval))/len(self.historicalCapDamageIn)
+            self.yValuesCapDamageIn = np.append(self.yValuesCapDamageIn, average)
+            labelString = str(decimal.Decimal(average).quantize(decimal.Decimal('.01')))
+            if firstInSection:
+                self.capDamageInLabel.configure(text="Cap Dmg In: " + labelString)
+                firstInSection = False
+            else:
+                self.capDamageInLabel.configure(text="Cap Dmg In: " + labelString + " |")
+            ySmooth = self.smoothListGaussian(self.yValuesCapDamageIn, self.degree)
+            self.animateLine(ySmooth, self.capDamageInCategories, self.capDamageInLines, zorder=40)
+            
+        if self.capDamageOutCategories:
+            self.historicalCapDamageOut.pop(0)
+            self.historicalCapDamageOut.insert(len(self.historicalCapDamageOut), capDamageOut)
+            self.yValuesCapDamageOut = self.yValuesCapDamageOut[1:]
+            average = (np.sum(self.historicalCapDamageOut)*(1000/self.interval))/len(self.historicalCapDamageOut)
+            self.yValuesCapDamageOut = np.append(self.yValuesCapDamageOut, average)
+            labelString = str(decimal.Decimal(average).quantize(decimal.Decimal('.01')))
+            if firstOutSection:
+                self.capDamageOutLabel.configure(text="Cap Dmg Out: " + labelString)
+                firstOutSection = False
+            else:
+                self.capDamageOutLabel.configure(text="| Cap Dmg Out: " + labelString)
+            ySmooth = self.smoothListGaussian(self.yValuesCapDamageOut, self.degree)
+            self.animateLine(ySmooth, self.capDamageOutCategories, self.capDamageOutLines, zorder=30)
         
         #Find highest average for the y-axis scaling
         self.highestAverage = 0
-        for i in range(len(self.yValuesDamageOut)):
+        for i in range(int((self.seconds*1000)/self.interval)):
             if self.damageOutLinesCategories:
                 if (self.yValuesDamageOut[i] > self.highestAverage):
                     self.highestAverage = self.yValuesDamageOut[i]
@@ -261,6 +359,18 @@ class DPSGraph(tk.Frame):
             if self.logiInLinesCategories:
                 if (self.yValuesLogiIn[i] > self.highestAverage):
                     self.highestAverage = self.yValuesLogiIn[i]
+            if self.capRecievedCategories:
+                if (self.yValuesCapRecieved[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesCapRecieved[i]
+            if self.capTransferedCategories:
+                if (self.yValuesCapTransfered[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesCapTransfered[i]
+            if self.capDamageInCategories:
+                if (self.yValuesCapDamageIn[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesCapDamageIn[i]
+            if self.capDamageOutCategories:
+                if (self.yValuesCapDamageOut[i] > self.highestAverage):
+                    self.highestAverage = self.yValuesCapDamageOut[i]
         
         if (self.highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)

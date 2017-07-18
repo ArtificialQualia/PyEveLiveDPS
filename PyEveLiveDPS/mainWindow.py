@@ -82,25 +82,47 @@ class BorderlessWindow(tk.Tk):
         self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
         self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
         self.makeDraggable(self.dpsFrame)
-        self.dpsFrame.grid_columnconfigure(1, weight="1")
+        self.dpsFrame.grid_columnconfigure(3, weight="1")
         
         self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 0.0", fg="white", background="black")
-        self.dpsOutLabel.grid(row="0", column="0")
+        self.dpsOutLabel.grid(row="0", column="0", sticky="W")
         self.makeDraggable(self.dpsOutLabel)
+        self.dpsOutLabel.grid_remove()
         
-        self.logiLabelOut = tk.Label(self.dpsFrame, text="| Logi Out: 0.0", fg="white", background="black")
+        self.logiLabelOut = tk.Label(self.dpsFrame, text="Logi Out: 0.0", fg="white", background="black")
         self.logiLabelOut.grid(row="0", column="1", sticky="W")
         self.makeDraggable(self.logiLabelOut)
         self.logiLabelOut.grid_remove()
         
-        self.logiLabelIn = tk.Label(self.dpsFrame, text="Logi In: 0.0 |", fg="white", background="black")
-        self.logiLabelIn.grid(row="0", column="1", sticky="E")
+        self.capTransferedLabel = tk.Label(self.dpsFrame, text="Cap Out: 0.0", fg="white", background="black")
+        self.capTransferedLabel.grid(row="0", column="2", sticky="W")
+        self.makeDraggable(self.capTransferedLabel)
+        self.capTransferedLabel.grid_remove()
+        
+        self.capDamageOutLabel = tk.Label(self.dpsFrame, text="Cap Dmg Out: 0.0", fg="white", background="black")
+        self.capDamageOutLabel.grid(row="0", column="3", sticky="W")
+        self.makeDraggable(self.capDamageOutLabel)
+        self.capDamageOutLabel.grid_remove()
+        
+        self.capDamageInLabel = tk.Label(self.dpsFrame, text="Cap Dmg In: 0.0", fg="white", background="black")
+        self.capDamageInLabel.grid(row="0", column="3", sticky="E")
+        self.makeDraggable(self.capDamageInLabel)
+        self.capDamageInLabel.grid_remove()
+        
+        self.capRecievedLabel = tk.Label(self.dpsFrame, text="Cap In: 0.0", fg="white", background="black")
+        self.capRecievedLabel.grid(row="0", column="4", sticky="E")
+        self.makeDraggable(self.capRecievedLabel)
+        self.capRecievedLabel.grid_remove()
+        
+        self.logiLabelIn = tk.Label(self.dpsFrame, text="Logi In: 0.0", fg="white", background="black")
+        self.logiLabelIn.grid(row="0", column="5", sticky="E")
         self.makeDraggable(self.logiLabelIn)
         self.logiLabelIn.grid_remove()
         
         self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
-        self.dpsInLabel.grid(row="0", column="2", sticky="e")
+        self.dpsInLabel.grid(row="0", column="6", sticky="E")
         self.makeDraggable(self.dpsInLabel)
+        self.dpsInLabel.grid_remove()
         
         #Grab settings from our settings handler
         self.settings = settings.Settings()
@@ -110,7 +132,9 @@ class BorderlessWindow(tk.Tk):
         
         #The hero of our app
         self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabelOut, self.logiLabelIn,
-                                          self.characterDetector, settings, background="black", borderwidth="0")
+                                         self.capTransferedLabel, self.capRecievedLabel,
+                                         self.capDamageOutLabel, self.capDamageInLabel,
+                                         self.characterDetector, self.settings, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
