@@ -102,7 +102,7 @@ class CharacterDetector(FileSystemEventHandler):
         if (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
-            return 0,0
+            return 0,0,0,0,0,0,0,0
     
     def catchupLog(self):
         self.graphInstance.catchup()
