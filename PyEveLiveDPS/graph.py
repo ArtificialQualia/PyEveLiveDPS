@@ -69,7 +69,7 @@ class DPSGraph(tk.Frame):
         self.ani = None
         
         self.changeSettings(self.settings.getSeconds(), self.settings.getInterval(), 
-                            self.settings.getLogiInSettings(), self.settings.getLogiInSettings(),
+                            self.settings.getLogiInSettings(), self.settings.getLogiOutSettings(),
                             self.settings.getDpsInSettings(), self.settings.getDpsOutSettings(),
                             self.settings.getCapDamageInSettings(), self.settings.getCapDamageOutSettings(),
                             self.settings.getCapRecievedSettings(), self.settings.getCapTransferedSettings())
