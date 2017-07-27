@@ -26,9 +26,9 @@ after_build:
     - "mv dist\\PELD-installer.exe PELD-installer-%APPVEYOR_REPO_TAG_NAME%.exe"
 
 artifacts:
-    - path: PELD-standalone-$(APPVEYOR_REPO_TAG_NAME).exe
+    - path: PELD-standalone*.exe
       name: PELD-standalone
-    - path: PELD-installer-$(APPVEYOR_REPO_TAG_NAME).exe
+    - path: PELD-installer*.exe
       name: PELD-installer
 
 deploy:
