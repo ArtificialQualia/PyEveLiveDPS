@@ -65,7 +65,7 @@ class BorderlessWindow(tk.Tk):
             try:
                 res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
             except AttributeError:
-                res = windll.user32.SetWindowPtrW(hwnd, GWL_EXSTYLE, style)
+                res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
             # re-assert the new window style
             self.wm_withdraw()
             self.wm_deiconify()
