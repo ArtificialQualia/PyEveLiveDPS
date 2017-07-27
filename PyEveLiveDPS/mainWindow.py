@@ -150,12 +150,10 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.menu = tk.Menu(self.mainMenu, tearoff=False)
         self.mainMenu["menu"] = self.mainMenu.menu
         self.mainMenu.menu.add_command(label="Edit Settings", command=lambda: settingsWindow.SettingsWindow(self))
+        
         self.profileMenu = tk.Menu(self.mainMenu, tearoff=False)
         self.settings.initializeMenu(self)
-        self.profileMenu.add_separator()
-        self.profileMenu.add_command(label="New Profile", command=self.settings.addProfileWindow)
-        self.profileMenu.add_separator()
-        self.profileMenu.add_command(label="Delete Current Profile", command=self.settings.deleteProfileWindow)
+        
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)

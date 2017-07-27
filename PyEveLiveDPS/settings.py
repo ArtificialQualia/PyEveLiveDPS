@@ -3,8 +3,10 @@ import os
 import json
 import copy
 import tkinter as tk
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
-class Settings():
+class Settings(FileSystemEventHandler):
     defaultProfile = [ { "profile": "Default", "profileSettings": 
                         { "windowX": 0, "windowY": 0,
                          "windowHeight": 225, "windowWidth": 350,
@@ -16,27 +18,60 @@ class Settings():
                          "capDamageOut": [], "capDamageIn": []  } 
                         } ]
     def __init__(self):
+        self.observer = Observer()
+        
         if (platform.system() == "Windows"):
-            path = os.environ['APPDATA'] + "\\PELD"
+            self.path = os.environ['APPDATA'] + "\\PELD"
             filename = "PELD.json"
         else:
-            path = os.environ['HOME']
+            self.path = os.environ['HOME']
             filename = ".peld"
             
-        if not os.path.exists(path):
+        if not os.path.exists(self.path):
             os.mkdir(path)
             
-        self.fullPath = os.path.join(path, filename)
+        self.fullPath = os.path.join(self.path, filename)
             
         if not os.path.exists(self.fullPath):
             settingsFile = open(self.fullPath, 'w')
             json.dump(self.defaultProfile, settingsFile, indent=4)
             settingsFile.close()
             
+        self.observer.schedule(self, self.path, recursive=False)
+        self.observer.start()
+            
         settingsFile = open(self.fullPath, 'r')
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
         self.currentProfile = self.allSettings[0]["profileSettings"]
+        
+    def on_moved(self, event):
+        currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
+        settingsFile = open(self.fullPath, 'r')
+        self.allSettings = json.load(settingsFile)
+        settingsFile.close()
+        self.mainWindow.profileMenu.delete(0,tk.END) 
+        self.initializeMenu(self.mainWindow)
+        
+        i = 0
+        for profile in self.allSettings:
+            if (profile["profile"] == currentProfileName):
+                self.currentProfile = profile["profileSettings"]
+                self.selectedIndex.set(i)
+                self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
+                                     self.getLogiInSettings(), self.getLogiOutSettings(),
+                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
+                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
+                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
+                return
+            i += 1
+        self.currentProfile = self.allSettings[0]["profileSettings"]
+        self.selectedIndex.set(0)
+        self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
+                                     self.getLogiInSettings(), self.getLogiOutSettings(),
+                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
+                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
+                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
         
     def initializeMenu(self, mainWindow):
         self.mainWindow = mainWindow
@@ -47,6 +82,11 @@ class Settings():
                                  value=i, command=self.switchProfile)
             i += 1
         self.selectedIndex.set(0)
+        
+        self.mainWindow.profileMenu.add_separator()
+        self.mainWindow.profileMenu.add_command(label="New Profile", command=self.addProfileWindow)
+        self.mainWindow.profileMenu.add_separator()
+        self.mainWindow.profileMenu.add_command(label="Delete Current Profile", command=self.deleteProfileWindow)
         
     def addProfileWindow(self):
         self.newProfileWindow = tk.Toplevel()
@@ -85,15 +125,26 @@ class Settings():
         if (self.profileString.get() == "Default"):
             tk.messagebox.showerror("Error", "There can only be one profile named 'Default'")
             return
-        newProfile = copy.deepcopy(self.defaultProfile)
+        newProfile = copy.deepcopy(self.defaultProfile[0])
         newProfile["profile"] = self.profileString.get()
         self.allSettings.insert(0, newProfile)
-        #self.switchProfile()
-        #self.writeSettings()
+        self.mainWindow.profileMenu.delete(0,tk.END) 
+        self.initializeMenu(self.mainWindow)
+        self.switchProfile()
         self.newProfileWindow.destroy()
     
     def deleteProfileWindow(self):
-        pass
+        if (self.allSettings[self.selectedIndex.get()]["profile"] == "Default"):
+            tk.messagebox.showerror("Error", "You can't delete the Default profile.")
+            return
+        okCancel = tk.messagebox.askokcancel("Continue?", "Are you sure you want to delete the current profile?")
+        if not okCancel:
+            return
+        self.allSettings.pop(self.selectedIndex.get())
+        self.mainWindow.profileMenu.delete(0,tk.END) 
+        self.initializeMenu(self.mainWindow)
+        self.switchProfile()
+        self.currentProfile = self.allSettings[0]["profileSettings"]
     
     def getCapDamageInSettings(self):
         return copy.deepcopy(self.currentProfile["capDamageIn"])
@@ -169,13 +220,35 @@ class Settings():
             self.currentProfile["windowX"] = windowX
         if not windowY == None:
             self.currentProfile["windowY"] = windowY
+        
         self.writeSettings()
     
     def switchProfile(self):
-        pass
+        self.mainWindow.saveWindowGeometry()
+        self.allSettings.insert(0, self.allSettings.pop(self.selectedIndex.get()))
+        self.currentProfile = self.allSettings[0]["profileSettings"]
+        self.mainWindow.profileMenu.delete(0,tk.END) 
+        self.initializeMenu(self.mainWindow)
+        self.mainWindow.geometry("%sx%s+%s+%s" % (self.getWindowWidth(), self.getWindowHeight(), 
+                                       self.getWindowX(), self.getWindowY()))
+        self.mainWindow.update_idletasks()
+        self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width())
+        self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
+                                     self.getLogiInSettings(), self.getLogiOutSettings(),
+                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
+                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
+                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
+        self.writeSettings()
     
     def writeSettings(self):
-        settingsFile = open(self.fullPath, 'w')
+        tempFile = os.path.join(self.path, "PELD_temp.json")
+        settingsFile = open(tempFile, 'w')
         json.dump(self.allSettings, settingsFile, indent=4)
         settingsFile.close()
+        os.remove(self.fullPath)
+        self.observer.stop()
+        os.rename(tempFile, self.fullPath)
+        self.observer = Observer()
+        self.observer.schedule(self, self.path, recursive=False)
+        self.observer.start()
     
