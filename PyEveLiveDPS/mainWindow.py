@@ -33,6 +33,9 @@ class BorderlessWindow(tk.Tk):
         self.configure(background="black")
         self.minsize(220,100)
         
+        #Grab settings from our settings handler
+        self.settings = settings.Settings()
+        
         #We need to get the user's system type (Windows or non-windows) for some windows specific cursor types
         self.platform = platform.system()
         
@@ -124,8 +127,6 @@ class BorderlessWindow(tk.Tk):
         self.makeDraggable(self.dpsInLabel)
         self.dpsInLabel.grid_remove()
         
-        #Grab settings from our settings handler
-        self.settings = settings.Settings()
         self.geometry("%sx%s+%s+%s" % (self.settings.getWindowWidth(), self.settings.getWindowHeight(), 
                                        self.settings.getWindowX(), self.settings.getWindowY()))
         self.update_idletasks()
@@ -148,7 +149,15 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.grid(row="5", column="1")
         self.mainMenu.menu = tk.Menu(self.mainMenu, tearoff=False)
         self.mainMenu["menu"] = self.mainMenu.menu
-        self.mainMenu.menu.add_command(label="Settings", command=lambda: settingsWindow.SettingsWindow(self))
+        self.mainMenu.menu.add_command(label="Edit Settings", command=lambda: settingsWindow.SettingsWindow(self))
+        self.profileMenu = tk.Menu(self.mainMenu, tearoff=False)
+        self.settings.initializeMenu(self)
+        self.profileMenu.add_separator()
+        self.profileMenu.add_command(label="New Profile", command=self.settings.addProfileWindow)
+        self.profileMenu.add_separator()
+        self.profileMenu.add_command(label="Delete Current Profile", command=self.settings.deleteProfileWindow)
+        self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
+        self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
         
         #character menu options are added dynamically by CharacterDetector, so we pass this into that
@@ -286,15 +295,17 @@ class BorderlessWindow(tk.Tk):
         
     def quitEvent(self, event=None):
         if not event:
-            self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
-                                      windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
+            self.saveWindowGeometry()
             self.quit()
         if event and (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
-            self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
-                                      windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
+            self.saveWindowGeometry()
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
             self.quit()
+            
+    def saveWindowGeometry(self):
+        self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
+                                   windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
     
     def StartMove(self, event):
         self.x = event.x

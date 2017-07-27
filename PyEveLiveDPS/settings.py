@@ -2,6 +2,7 @@ import platform
 import os
 import json
 import copy
+import tkinter as tk
 
 class Settings():
     defaultProfile = [ { "profile": "Default", "profileSettings": 
@@ -36,6 +37,63 @@ class Settings():
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
         self.currentProfile = self.allSettings[0]["profileSettings"]
+        
+    def initializeMenu(self, mainWindow):
+        self.mainWindow = mainWindow
+        self.selectedIndex = tk.IntVar()
+        i = 0
+        for profile in self.allSettings:
+            self.mainWindow.profileMenu.add_radiobutton(label=profile["profile"], variable=self.selectedIndex, 
+                                 value=i, command=self.switchProfile)
+            i += 1
+        self.selectedIndex.set(0)
+        
+    def addProfileWindow(self):
+        self.newProfileWindow = tk.Toplevel()
+        self.newProfileWindow.wm_attributes("-topmost", True)
+        self.newProfileWindow.wm_title("New Profile")
+        try:
+            self.newProfileWindow.iconbitmap(sys._MEIPASS + '\\app.ico')
+        except Exception:
+            try:
+                self.newProfileWindow.iconbitmap("app.ico")
+            except Exception:
+                pass
+        self.newProfileWindow.geometry("320x80")
+        self.newProfileWindow.update_idletasks()
+        
+        tk.Frame(self.newProfileWindow, height="10", width="1").grid(row="0", column="0")
+        
+        profileLabel = tk.Label(self.newProfileWindow, text="    New Profile Name:")
+        profileLabel.grid(row="1", column="0")
+        self.profileString = tk.StringVar()
+        profileInput = tk.Entry(self.newProfileWindow, textvariable=self.profileString, width=30)
+        profileInput.grid(row="1", column="1")
+        
+        tk.Frame(self.newProfileWindow, height="10", width="1").grid(row="2", column="0")
+        
+        buttonFrame = tk.Frame(self.newProfileWindow)
+        buttonFrame.grid(row="100", column="0", columnspan="5")
+        tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="0")
+        okButton = tk.Button(buttonFrame, text="  Add  ", command=self.addProfile)
+        okButton.grid(row="0", column="1")
+        tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="2")
+        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.newProfileWindow.destroy)
+        cancelButton.grid(row="0", column="3")
+        
+    def addProfile(self):
+        if (self.profileString.get() == "Default"):
+            tk.messagebox.showerror("Error", "There can only be one profile named 'Default'")
+            return
+        newProfile = copy.deepcopy(self.defaultProfile)
+        newProfile["profile"] = self.profileString.get()
+        self.allSettings.insert(0, newProfile)
+        #self.switchProfile()
+        #self.writeSettings()
+        self.newProfileWindow.destroy()
+    
+    def deleteProfileWindow(self):
+        pass
     
     def getCapDamageInSettings(self):
         return copy.deepcopy(self.currentProfile["capDamageIn"])
