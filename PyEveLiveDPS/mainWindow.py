@@ -56,10 +56,16 @@ class BorderlessWindow(tk.Tk):
             WS_EX_APPWINDOW=0x00040000
             WS_EX_TOOLWINDOW=0x00000080
             hwnd = windll.user32.GetParent(self.winfo_id())
-            style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+            try:
+                style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+            except AttributeError:
+                style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
             style = style & ~WS_EX_TOOLWINDOW
             style = style | WS_EX_APPWINDOW
-            res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+            try:
+                res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+            except AttributeError:
+                res = windll.user32.SetWindowPtrW(hwnd, GWL_EXSTYLE, style)
             # re-assert the new window style
             self.wm_withdraw()
             self.wm_deiconify()
