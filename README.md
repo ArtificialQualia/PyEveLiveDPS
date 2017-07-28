@@ -26,12 +26,6 @@ You can run multiple copies to track different characters at the same time.  You
 
 The packaged release is for Windows.  To run on Linux, run from source.  See below about how to run from source.  Other OSes are untested but may be addressed at a later date.
 
-## What is it?
-
-PyEveLiveDPS (PELD) is a utility you can use to visualize both the incoming and outgoing DPS you are doing in real time.  
-
-PELD runs in a window that sits on top of EVE, providing instant feedback in combat scenarios.  Is that target painter really helping you?  Is your angular velocity too high?  Are you shooting into the wrong resist?  PELD can help you find out what is helping and hurting your DPS.
-
 ## Why another DPS grapher?
 
 There are a number of utilities already that analyze your combat logs.  However, almost all of these utilities analyze your logs after the fact, which isn't as useful in some scenarios as getting that data in real time.
