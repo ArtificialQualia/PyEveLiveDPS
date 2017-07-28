@@ -28,7 +28,7 @@ class Settings(FileSystemEventHandler):
             filename = ".peld"
             
         if not os.path.exists(self.path):
-            os.mkdir(path)
+            os.mkdir(self.path)
             
         self.fullPath = os.path.join(self.path, filename)
             
