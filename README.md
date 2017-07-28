@@ -1,6 +1,15 @@
 # PyEveLiveDPS
 PyEveLiveDPS (PELD) is a live DPS calculator and grapher for EVE Online
 
+It currently has the ability to track the following:  
+- Outgoing and Incoming DPS
+- Outgoing and Incoming Shield/Armor/Hull Logistics
+- Outgoing and Incoming Cap transfers
+- Outgoing and Incoming Neut/Nos
+
+Here is an example of what it looks like tracking just DPS:  
+![PELD in action](http://i.imgur.com/qz5p3so.png)
+
 ## Download and Running
 Download the latest version from here:  
 https://github.com/ArtificialQualia/PyEveLiveDPS/releases
@@ -13,7 +22,7 @@ If you plan on using PELD long term, it is recommended to use the PELD-installer
 
 If you want PELD to overlay on top of your eve client, make sure you are running eve in borderless windowed mode.
 
-You can run multiple copies to track different characters at the same time.
+You can run multiple copies to track different characters at the same time.  You can also set up profiles to save different graph settings and window position/size.
 
 The packaged release is for Windows.  To run on Linux, run from source.  See below about how to run from source.  Other OSes are untested but may be addressed at a later date.
 
