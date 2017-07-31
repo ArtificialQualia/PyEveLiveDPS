@@ -195,7 +195,8 @@ class DPSGraph(tk.Frame):
         """This is just to 'clear' the graph"""
         self.changeSettings(self.seconds, self.interval, self.logiInLinesCategories, self.logiOutLinesCategories,
                             self.damageInLinesCategories, self.damageOutLinesCategories,
-                            self.capDamageIn, self.capDamageOut, self.capRecieved, self.capTransfered)
+                            self.capDamageInCategories, self.capDamageOutCategories, 
+                            self.capRecievedCategories, self.capTransferedCategories)
         
     def readjust(self, windowWidth):
         """
