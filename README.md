@@ -7,8 +7,8 @@ It currently has the ability to track the following:
 - Outgoing and Incoming Cap transfers
 - Outgoing and Incoming Neut/Nos
 
-Here is an example of what it looks like tracking just DPS:  
-![PELD in action](http://i.imgur.com/qz5p3so.png)
+Here is an example of what it looks like in regular mode and compact mode:  
+![PELD regular](http://i.imgur.com/lCzJGx1.png) ![PELD compact](http://i.imgur.com/XckztDX.png)
 
 ## Download and Running
 Download the latest version from here:  
