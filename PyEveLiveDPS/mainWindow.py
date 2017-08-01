@@ -258,6 +258,10 @@ class BorderlessWindow(tk.Tk):
         self.collapseButton.create_line(11,11,11,5,fill="white")
         self.collapseButton.create_line(11,11,5,11,fill="white")
         
+        self.rightSpacerFrame = tk.Frame(width=5, height=5, background="black")
+        self.rightSpacerFrame.grid(row="0", column="100", rowspan="50")
+        self.rightSpacerFrame.grid_remove()
+        
         self.collapseButton.grid(row="5", column="17", sticky="n")
         self.collapseButton.bind("<ButtonPress-1>", self.buttonDimGray)
         self.collapseButton.bind("<ButtonRelease-1>", self.collapseEvent)
@@ -266,6 +270,27 @@ class BorderlessWindow(tk.Tk):
     
     def collapseEvent(self, event):
         if self.collapsed:
+            self.wm_attributes("-alpha", 1.0)
+            self.rightSpacerFrame.grid_remove()
+            self.topResizeFrame.grid()
+            self.bottomResizeFrame.grid()
+            self.leftResizeFrame.grid()
+            self.rightResizeFrame.grid()
+            self.topLeftResizeFrame.grid()
+            self.topRightResizeFrame.grid()
+            self.bottomLeftResizeFrame.grid()
+            self.bottomRightResizeFrame.grid()
+            self.makeDraggable(self.mainFrame)
+            self.makeDraggable(self.dpsFrame)
+            self.makeDraggable(self.dpsOutLabel)
+            self.makeDraggable(self.logiLabelOut)
+            self.makeDraggable(self.capTransferedLabel)
+            self.makeDraggable(self.capDamageOutLabel)
+            self.makeDraggable(self.capDamageInLabel)
+            self.makeDraggable(self.capRecievedLabel)
+            self.makeDraggable(self.logiLabelIn)
+            self.makeDraggable(self.dpsInLabel)
+            self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid()
             self.characterMenu.grid()
             self.quitButton.grid()
@@ -273,6 +298,27 @@ class BorderlessWindow(tk.Tk):
             self.collapseButton.grid(row="5", column="17", sticky="n")
             self.collapsed = False
         else:
+            self.wm_attributes("-alpha", self.settings.getCompactTransparency()/100)
+            self.topResizeFrame.grid_remove()
+            self.bottomResizeFrame.grid_remove()
+            self.leftResizeFrame.grid_remove()
+            self.rightResizeFrame.grid_remove()
+            self.topLeftResizeFrame.grid_remove()
+            self.topRightResizeFrame.grid_remove()
+            self.bottomLeftResizeFrame.grid_remove()
+            self.bottomRightResizeFrame.grid_remove()
+            self.rightSpacerFrame.grid()
+            self.unmakeDraggable(self.mainFrame)
+            self.unmakeDraggable(self.dpsFrame)
+            self.unmakeDraggable(self.dpsOutLabel)
+            self.unmakeDraggable(self.logiLabelOut)
+            self.unmakeDraggable(self.capTransferedLabel)
+            self.unmakeDraggable(self.capDamageOutLabel)
+            self.unmakeDraggable(self.capDamageInLabel)
+            self.unmakeDraggable(self.capRecievedLabel)
+            self.unmakeDraggable(self.logiLabelIn)
+            self.unmakeDraggable(self.dpsInLabel)
+            self.unmakeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid_remove()
             self.characterMenu.grid_remove()
             self.quitButton.grid_remove()
@@ -287,6 +333,11 @@ class BorderlessWindow(tk.Tk):
         widget.bind("<ButtonPress-1>", self.StartMove)
         widget.bind("<ButtonRelease-1>", self.StopMove)
         widget.bind("<B1-Motion>", self.OnMotionMove)
+        
+    def unmakeDraggable(self, widget):
+        widget.bind("<ButtonPress-1>", lambda e: False)
+        widget.bind("<ButtonRelease-1>", lambda e: False)
+        widget.bind("<B1-Motion>", lambda e: False)
 
     def buttonGray25(self, event):
         event.widget.configure(background="gray25")

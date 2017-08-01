@@ -54,11 +54,23 @@ class SettingsWindow(tk.Toplevel):
         intervalDescriptor.grid(row="4", column="1", columnspan="5")
         
         tk.Frame(self, height="20", width="10").grid(row="5", column="1", columnspan="5")
-        tk.Frame(self, height="1", width="5").grid(row="6", column="0")
+        
+        self.transparencyVar = tk.StringVar()
+        self.transparencyVar.set(self.mainWindow.settings.getCompactTransparency())
+        transparencyLabel = tk.Label(self, text="Window transparency percentage in compact mode:")
+        transparencyLabel.grid(row="6", column="1", sticky="e")
+        transparencyEntry = tk.Entry(self, textvariable=self.transparencyVar, width=10)
+        transparencyEntry.grid(row="6", column="2")
+        transparencyDescriptor = tk.Label(self, text="100 is fully visible, 0 is invisible")
+        transparencyDescriptor['font'] = font
+        transparencyDescriptor.grid(row="7", column="1", columnspan="5")
+        
+        tk.Frame(self, height="20", width="10").grid(row="8", column="1", columnspan="5")
+        tk.Frame(self, height="1", width="5").grid(row="9", column="0")
         
         linesFrame = tk.Frame(self, relief="groove", borderwidth=1)
-        linesFrame.grid(row="6", column="1", columnspan="3")
-        self.scrollableCanvas = tk.Canvas(linesFrame, borderwidth=0, height="400")
+        linesFrame.grid(row="9", column="1", columnspan="3")
+        self.scrollableCanvas = tk.Canvas(linesFrame, borderwidth=0, height="350")
         canvasFrame = tk.Frame(self.scrollableCanvas)
         scrollbar = tk.Scrollbar(linesFrame, orient="vertical", command=self.scrollableCanvas.yview)
         self.scrollableCanvas.configure(yscrollcommand=scrollbar.set)
@@ -274,6 +286,16 @@ class SettingsWindow(tk.Toplevel):
             if not okCancel:
                 return
             
+        try:
+            compactTransparencySetting = int(self.transparencyVar.get())
+        except ValueError:
+            tk.messagebox.showerror("Error", "Please enter a number for compact transparency percentage")
+            return
+        if (compactTransparencySetting < 1 or compactTransparencySetting > 100):
+            tk.messagebox.showerror("Error", "Please enter a value between 1-100 for compact transparency percentage")
+            return  
+        
+            
         self.convertBackValues(self.dpsInSettings)
         self.convertBackValues(self.dpsOutSettings)
         self.convertBackValues(self.logiInSettings)
@@ -297,7 +319,8 @@ class SettingsWindow(tk.Toplevel):
                                      logiIn=self.logiInSettings, logiOut=self.logiOutSettings,
                                      dpsIn=self.dpsInSettings, dpsOut=self.dpsOutSettings, 
                                      capDamageIn=self.capDamageInSettings, capDamageOut=self.capDamageOutSettings, 
-                                     capRecieved=self.capRecievedSettings, capTransfered=self.capTransferedSettings)
+                                     capRecieved=self.capRecievedSettings, capTransfered=self.capTransferedSettings,
+                                     compactTransparency=compactTransparencySetting)
         
         self.graph.changeSettings(secondsSetting, intervalSetting, 
                                      self.logiInSettings, self.logiOutSettings,

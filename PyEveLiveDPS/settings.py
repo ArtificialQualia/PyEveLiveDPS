@@ -10,6 +10,7 @@ class Settings(FileSystemEventHandler):
     defaultProfile = [ { "profile": "Default", "profileSettings": 
                         { "windowX": 0, "windowY": 0,
                          "windowHeight": 225, "windowWidth": 350,
+                         "compactTransparency": 65,
                          "seconds": 10, "interval": 100,
                          "dpsIn": [{"color": "#FF0000", "transitionValue": 0}],
                          "dpsOut": [{"color": "#00FFFF", "transitionValue": 0}],
@@ -188,10 +189,17 @@ class Settings(FileSystemEventHandler):
     def getWindowY(self):
         return self.currentProfile["windowY"]
     
+    def getCompactTransparency(self):
+        try:
+            return self.currentProfile["compactTransparency"]
+        except KeyError:
+            self.setSettings(compactTransparency=65)
+            return self.currentProfile["compactTransparency"]
+    
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
                     interval=None, seconds=None,
-                    windowHeight=None, windowWidth=None, windowX=None, windowY=None):
+                    windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -220,6 +228,8 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["windowX"] = windowX
         if not windowY == None:
             self.currentProfile["windowY"] = windowY
+        if not compactTransparency == None:
+            self.currentProfile["compactTransparency"] = compactTransparency
         
         self.writeSettings()
     
