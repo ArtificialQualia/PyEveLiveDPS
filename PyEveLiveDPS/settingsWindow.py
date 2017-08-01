@@ -273,15 +273,13 @@ class SettingsWindow(tk.Toplevel):
         
         if ((secondsSetting*1000)/intervalSetting < 20):
             okCancel = tk.messagebox.askokcancel("Continue?", "(Seconds to average DPS*1000)/(Graph update interval)\n is < 20\n" +
-                                   "This is ok, but it is recommended to increase your (Seconds to average DPS) or \n" +
-                                   "decrease your (Graph update interval) to improve your graphing experience.\n"
+                                   "This is ok, but it is recommended to increase your (Seconds to average DPS) or decrease your (Graph update interval) to improve your graphing experience.\n"
                                    "Would you like to keep these settings?")
             if not okCancel:
                 return
             
         if (intervalSetting < 50):
-            okCancel = tk.messagebox.askokcancel("Continue?", "Setting the graph update interval to less than 50ms\n" +
-                                                 "Is generally a bad idea.  Your CPU won't like it."
+            okCancel = tk.messagebox.askokcancel("Continue?", "Setting the graph update interval to less than 50ms is generally a bad idea.  Your CPU won't like it."
                                                  "Would you like to keep these settings?")
             if not okCancel:
                 return

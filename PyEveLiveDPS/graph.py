@@ -56,6 +56,7 @@ class DPSGraph(tk.Frame):
         self.windowWidth = self.settings.getWindowWidth()
 
         self.highestAverage = 0
+        self.slowDown = False
         
         self.characterDetector = characterDetector
         self.characterDetector.setGraphInstance(self)
@@ -188,8 +189,9 @@ class DPSGraph(tk.Frame):
         self.subplot.margins(0,0)
         
         if self.ani:
-            self.ani.event_source.interval = interval
-            self.ani.event_source.start()
+            self.slowDown = False
+            #self.ani.event_source.interval = interval
+            self.ani.event_source.start(interval)
         
     def catchup(self):
         """This is just to 'clear' the graph"""
@@ -379,6 +381,15 @@ class DPSGraph(tk.Frame):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
         self.readjust(self.windowWidth)
+        
+        if (self.highestAverage == 0):
+            if not self.slowDown:
+                self.slowDown = True
+                self.ani.event_source._set_interval(500)
+        else:
+            if self.slowDown:
+                self.slowDown = False
+                self.ani.event_source._set_interval(self.interval)
         
     def animateLine(self, smoothed, categories, lines, zorder):
         """
