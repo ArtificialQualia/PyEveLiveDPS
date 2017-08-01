@@ -85,14 +85,26 @@ class Settings(FileSystemEventHandler):
         self.selectedIndex.set(0)
         
         self.mainWindow.profileMenu.add_separator()
-        self.mainWindow.profileMenu.add_command(label="New Profile", command=self.addProfileWindow)
-        self.mainWindow.profileMenu.add_separator()
+        self.mainWindow.profileMenu.add_command(label="Add New Profile", command=lambda: self.addProfileWindow(add=True))
+        self.mainWindow.profileMenu.add_command(label="Duplicate Current Profile", command=lambda: self.addProfileWindow(duplicate=True))
+        self.mainWindow.profileMenu.add_command(label="Rename Current Profile", command=lambda: self.addProfileWindow(rename=True))
         self.mainWindow.profileMenu.add_command(label="Delete Current Profile", command=self.deleteProfileWindow)
         
-    def addProfileWindow(self):
+    def addProfileWindow(self, add=False, duplicate=False, rename=False):
+        if rename and (self.allSettings[self.selectedIndex.get()]["profile"] == "Default"):
+            tk.messagebox.showerror("Error", "You can't rename the Default profile.")
+            return
+        
         self.newProfileWindow = tk.Toplevel()
         self.newProfileWindow.wm_attributes("-topmost", True)
-        self.newProfileWindow.wm_title("New Profile")
+        
+        if add:
+            self.newProfileWindow.wm_title("New Profile")
+        elif duplicate:
+            self.newProfileWindow.wm_title("Duplicate Profile")
+        elif rename:
+            self.newProfileWindow.wm_title("Rename Profile")
+            
         try:
             self.newProfileWindow.iconbitmap(sys._MEIPASS + '\\app.ico')
         except Exception:
@@ -108,27 +120,53 @@ class Settings(FileSystemEventHandler):
         profileLabel = tk.Label(self.newProfileWindow, text="    New Profile Name:")
         profileLabel.grid(row="1", column="0")
         self.profileString = tk.StringVar()
+        if duplicate:
+            self.profileString.set(self.allSettings[self.selectedIndex.get()]["profile"])
+        if rename:
+            self.profileString.set(self.allSettings[self.selectedIndex.get()]["profile"])
         profileInput = tk.Entry(self.newProfileWindow, textvariable=self.profileString, width=30)
         profileInput.grid(row="1", column="1")
+        profileInput.focus_set()
+        profileInput.icursor(tk.END)
         
         tk.Frame(self.newProfileWindow, height="10", width="1").grid(row="2", column="0")
         
         buttonFrame = tk.Frame(self.newProfileWindow)
         buttonFrame.grid(row="100", column="0", columnspan="5")
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="0")
-        okButton = tk.Button(buttonFrame, text="  Add  ", command=self.addProfile)
+        if add:
+            okButton = tk.Button(buttonFrame, text="  Add  ", command=lambda: self.addProfile(add=True))
+            profileInput.bind("<Return>", lambda e: self.addProfile(add=True))
+        elif duplicate:
+            okButton = tk.Button(buttonFrame, text="  Add  ", command=lambda: self.addProfile(duplicate=True))
+            profileInput.bind("<Return>", lambda e: self.addProfile(duplicate=True))
+        elif rename:
+            okButton = tk.Button(buttonFrame, text="  Rename  ", command=lambda: self.addProfile(rename=True))
+            profileInput.bind("<Return>", lambda e: self.addProfile(rename=True))
         okButton.grid(row="0", column="1")
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="2")
         cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.newProfileWindow.destroy)
         cancelButton.grid(row="0", column="3")
         
-    def addProfile(self):
+    def addProfile(self, add=False, duplicate=False, rename=False):
         if (self.profileString.get() == "Default"):
             tk.messagebox.showerror("Error", "There can only be one profile named 'Default'")
             return
-        newProfile = copy.deepcopy(self.defaultProfile[0])
-        newProfile["profile"] = self.profileString.get()
-        self.allSettings.insert(0, newProfile)
+        for profile in self.allSettings:
+            if self.profileString.get() == profile["profile"]:
+                tk.messagebox.showerror("Error", "There is already a profile named '" + self.profileString.get() + "'")
+                return
+        if add:
+            newProfile = copy.deepcopy(self.defaultProfile[0])
+            newProfile["profile"] = self.profileString.get()
+            self.allSettings.insert(0, newProfile)
+        elif duplicate:
+            newProfile = copy.deepcopy(self.allSettings[self.selectedIndex.get()])
+            newProfile["profile"] = self.profileString.get()
+            self.allSettings.insert(0, newProfile)
+        elif rename:
+            self.allSettings[self.selectedIndex.get()]["profile"] = self.profileString.get()
+            self.allSettings.insert(0, self.allSettings.pop(self.selectedIndex.get()))
         self.mainWindow.profileMenu.delete(0,tk.END) 
         self.initializeMenu(self.mainWindow)
         self.switchProfile()

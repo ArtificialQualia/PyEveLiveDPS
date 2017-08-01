@@ -31,7 +31,7 @@ class BorderlessWindow(tk.Tk):
         self.columnconfigure(10, weight=1)
         self.rowconfigure(10, weight=1)
         self.configure(background="black")
-        self.minsize(220,100)
+        self.minsize(175,100)
         
         #Grab settings from our settings handler
         self.settings = settings.Settings()
