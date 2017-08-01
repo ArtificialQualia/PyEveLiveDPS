@@ -82,56 +82,56 @@ class SettingsWindow(tk.Toplevel):
         dpsOutFrame = tk.Frame(canvasFrame)
         dpsOutFrame.grid(row="6", column="0", columnspan="5", padx="5")
         self.dpsOutSettings = self.mainWindow.settings.getDpsOutSettings()
-        self.addLineSection(dpsOutFrame, "DPS OUT", self.dpsOutSettings)
+        self.addLineSection(dpsOutFrame, "Outgoing: DPS", self.dpsOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="380").grid(row="7", column="0", columnspan="5")
         
         dpsInFrame = tk.Frame(canvasFrame)
-        dpsInFrame.grid(row="8", column="0", columnspan="5", padx="5")
+        dpsInFrame.grid(row="14", column="0", columnspan="5", padx="5")
         self.dpsInSettings = self.mainWindow.settings.getDpsInSettings()
-        self.addLineSection(dpsInFrame, "DPS IN", self.dpsInSettings)
+        self.addLineSection(dpsInFrame, "Incoming: DPS", self.dpsInSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="9", column="1", columnspan="5")
         
         logiOutFrame = tk.Frame(canvasFrame)
-        logiOutFrame.grid(row="10", column="0", columnspan="5", padx="5")
+        logiOutFrame.grid(row="8", column="0", columnspan="5", padx="5")
         self.logiOutSettings = self.mainWindow.settings.getLogiOutSettings()
-        self.addLineSection(logiOutFrame, "logistics OUT", self.logiOutSettings)
+        self.addLineSection(logiOutFrame, "Outgoing: logistics", self.logiOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="11", column="1", columnspan="5")
         
         logiInFrame = tk.Frame(canvasFrame)
-        logiInFrame.grid(row="12", column="0", columnspan="5", padx="5")
+        logiInFrame.grid(row="16", column="0", columnspan="5", padx="5")
         self.logiInSettings = self.mainWindow.settings.getLogiInSettings()
-        self.addLineSection(logiInFrame, "logistics IN", self.logiInSettings)
+        self.addLineSection(logiInFrame, "Incoming: logistics", self.logiInSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="13", column="1", columnspan="5")
         
         capTransferedFrame = tk.Frame(canvasFrame)
-        capTransferedFrame.grid(row="14", column="0", columnspan="5", padx="5")
+        capTransferedFrame.grid(row="10", column="0", columnspan="5", padx="5")
         self.capTransferedSettings = self.mainWindow.settings.getCapTransferedSettings()
-        self.addLineSection(capTransferedFrame, "capacitor xfer OUT", self.capTransferedSettings)
+        self.addLineSection(capTransferedFrame, "Outgoing: capacitor transfer", self.capTransferedSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="15", column="1", columnspan="5")
         
         capRecievedFrame = tk.Frame(canvasFrame)
-        capRecievedFrame.grid(row="16", column="0", columnspan="5", padx="5")
+        capRecievedFrame.grid(row="18", column="0", columnspan="5", padx="5")
         self.capRecievedSettings = self.mainWindow.settings.getCapRecievedSettings()
-        self.addLineSection(capRecievedFrame, "capacitor xfer (including +nos) IN", self.capRecievedSettings)
+        self.addLineSection(capRecievedFrame, "Incoming: capacitor transfer (including +nos)", self.capRecievedSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="17", column="1", columnspan="5")
         
         capDamageOutFrame = tk.Frame(canvasFrame)
-        capDamageOutFrame.grid(row="18", column="0", columnspan="5", padx="5")
+        capDamageOutFrame.grid(row="12", column="0", columnspan="5", padx="5")
         self.capDamageOutSettings = self.mainWindow.settings.getCapDamageOutSettings()
-        self.addLineSection(capDamageOutFrame, "capacitor drain OUT", self.capDamageOutSettings)
+        self.addLineSection(capDamageOutFrame, "Outgoing: capacitor drain", self.capDamageOutSettings)
         
         tk.Frame(canvasFrame, height="20", width="10").grid(row="19", column="1", columnspan="5")
         
         capDamageInFrame = tk.Frame(canvasFrame)
         capDamageInFrame.grid(row="20", column="0", columnspan="5", padx="5")
         self.capDamageInSettings = self.mainWindow.settings.getCapDamageInSettings()
-        self.addLineSection(capDamageInFrame, "capacitor drain IN", self.capDamageInSettings)
+        self.addLineSection(capDamageInFrame, "Incoming: capacitor drain", self.capDamageInSettings)
         
         tk.Frame(self, height="20", width="10").grid(row="99", column="1", columnspan="5")
         
@@ -147,7 +147,7 @@ class SettingsWindow(tk.Toplevel):
         self.scrollableCanvas.configure(scrollregion=self.scrollableCanvas.bbox("all"))
         
     def addLineSection(self, frame, text, settingsList):
-        sectionLabel = tk.Label(frame, text="Enable " + text + " tracking?")
+        sectionLabel = tk.Label(frame, text=text + " tracking")
         sectionLabel.grid(row="0", column="0", sticky="e")
         font = tkFont.Font(font=sectionLabel['font'])
         font.config(weight='bold')

@@ -50,26 +50,30 @@ class BorderlessWindow(tk.Tk):
                 pass
         
         #Magic to make the window appear on the windows taskbar
-        if (self.platform == "Windows"):
-            self.update_idletasks()
-            GWL_EXSTYLE=-20
-            WS_EX_APPWINDOW=0x00040000
-            WS_EX_TOOLWINDOW=0x00000080
-            hwnd = windll.user32.GetParent(self.winfo_id())
-            try:
-                style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-            except AttributeError:
-                style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-            style = style & ~WS_EX_TOOLWINDOW
-            style = style | WS_EX_APPWINDOW
-            try:
-                res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
-            except AttributeError:
-                res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
-            # re-assert the new window style
-            self.wm_withdraw()
-            self.wm_deiconify()
-            self.update_idletasks()
+        try:
+            if (self.platform == "Windows"):
+                self.update_idletasks()
+                GWL_EXSTYLE=-20
+                WS_EX_APPWINDOW=0x00040000
+                WS_EX_TOOLWINDOW=0x00000080
+                hwnd = windll.user32.GetParent(self.winfo_id())
+                try:
+                    style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+                except AttributeError:
+                    style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                style = style & ~WS_EX_TOOLWINDOW
+                style = style | WS_EX_APPWINDOW
+                try:
+                    res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+                except AttributeError:
+                    res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+                # re-assert the new window style
+                self.wm_withdraw()
+                self.wm_deiconify()
+                self.update_idletasks()
+        except Exception as e:
+            tk.messagebox.showerror("Error", "Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.\n" +
+                                    "Internal Error: " + e)
          
         #This frame takes up all the extra nooks and crannies in the window, so we can drag them like a user would expect
         self.mainFrame = tk.Frame(background="black")
