@@ -43,20 +43,25 @@ class CharacterDetector(FileSystemEventHandler):
         self.logReaders = []
         self.selectedIndex = IntVar()
         
-        oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
-        for filename in os.listdir(self.path):
-            timeString = filename.strip(".txt")
-            try:
-                fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
-            except ValueError:
-                continue
-            if (fileTime >= oneDayAgo):
-                self.addLog(self.path + filename)
+        try:
+            oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+            for filename in os.listdir(self.path):
+                timeString = filename.strip(".txt")
+                try:
+                    fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
+                except ValueError:
+                    continue
+                if (fileTime >= oneDayAgo):
+                    self.addLog(self.path + filename)
         
-        self.selectedIndex.set(0)
-        
-        self.observer.schedule(self, self.path, recursive=False)
-        self.observer.start()
+            self.selectedIndex.set(0)
+            
+            self.observer.schedule(self, self.path, recursive=False)
+            self.observer.start()
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
+                                 "Path checked: " + self.path + "\n\n" +
+                                 "PELD will continue to run, but will not track EVE data.")
         
     def on_created(self, event):
         self.addLog(event.src_path)
