@@ -10,21 +10,18 @@ By detatching it from the window manager with overrideredirect(true), one
 """
 
 import tkinter as tk
-import idlelib.ToolTip
 from ctypes import windll
 import platform
 import sys
 import graph
 import logreader
 import settingsWindow
+import simulationWindow
 import settings
 
 
 class BorderlessWindow(tk.Tk):
     def __init__(self):
-        """This function probably does too much.
-        It certainly could be separated out into multiple functions,
-        but I could see no real benefit of doing so"""
         tk.Tk.__init__(self)
         self.overrideredirect(True)
         self.wm_attributes("-topmost", True)
@@ -165,6 +162,8 @@ class BorderlessWindow(tk.Tk):
         self.settings.initializeMenu(self)
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
+        self.mainMenu.menu.add_separator()
+        self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
         

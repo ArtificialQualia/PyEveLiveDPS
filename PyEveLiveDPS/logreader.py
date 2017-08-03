@@ -164,83 +164,31 @@ class LogReader():
     def readLog(self):
         logData = self.log.read()
         
-        damageOut = 0
-        damageOutGroup = self.damageOutRegex.findall(logData)
-        if damageOutGroup:
-            for match in damageOutGroup:
-                damageOut += int(match)
-                
-        damageIn = 0
-        damageInGroup = self.damageInRegex.findall(logData)
-        if damageInGroup:
-            for match in damageInGroup:
-                damageIn += int(match)
-                
-        logisticsOut = 0
-        armorRepGroup = self.armorRepairedOutRegex.findall(logData)
-        if armorRepGroup:
-            for match in armorRepGroup:
-                logisticsOut += int(match)
-        hullRepGroup = self.hullRepairedOutRegex.findall(logData)
-        if hullRepGroup:
-            for match in hullRepGroup:
-                logisticsOut += int(match)
-        shieldBoostGroup = self.shieldBoostedOutRegex.findall(logData)
-        if shieldBoostGroup:
-            for match in shieldBoostGroup:
-                logisticsOut += int(match)
-                
-        logisticsIn = 0
-        armorRepGroup = self.armorRepairedInRegex.findall(logData)
-        if armorRepGroup:
-            for match in armorRepGroup:
-                logisticsIn += int(match)
-        hullRepGroup = self.hullRepairedInRegex.findall(logData)
-        if hullRepGroup:
-            for match in hullRepGroup:
-                logisticsIn += int(match)
-        shieldBoostGroup = self.shieldBoostedInRegex.findall(logData)
-        if shieldBoostGroup:
-            for match in shieldBoostGroup:
-                logisticsIn += int(match)
-        
-        capTransfered = 0
-        group = self.capTransferedOutRegex.findall(logData)
-        if group:
-            for match in group:
-                capTransfered += int(match)
-                
-        capRecieved = 0
-        group = self.capTransferedInRegex.findall(logData)
-        if group:
-            for match in group:
-                capRecieved += int(match)
-        group = self.nosRecievedRegex.findall(logData)
-        if group:
-            for match in group:
-                capRecieved += int(match)
-                
-        capDamageDone = 0
-        group = self.capNeutralizedOutRegex.findall(logData)
-        if group:
-            for match in group:
-                capDamageDone += int(match)
-        group = self.nosRecievedRegex.findall(logData)
-        if group:
-            for match in group:
-                capDamageDone += int(match)
-                
-        capDamageRecieved = 0
-        group = self.capNeutralizedInRegex.findall(logData)
-        if group:
-            for match in group:
-                capDamageRecieved += int(match)
-        group = self.nosTakenRegex.findall(logData)
-        if group:
-            for match in group:
-                capDamageRecieved += int(match)
+        damageOut = self.extractValues(self.damageOutRegex, logData)
+        damageIn = self.extractValues(self.damageInRegex, logData)
+        logisticsOut = self.extractValues(self.armorRepairedOutRegex, logData)
+        logisticsOut += self.extractValues(self.hullRepairedOutRegex, logData)
+        logisticsOut += self.extractValues(self.shieldBoostedOutRegex, logData)
+        logisticsIn = self.extractValues(self.armorRepairedInRegex, logData)
+        logisticsIn += self.extractValues(self.hullRepairedInRegex, logData)
+        logisticsIn += self.extractValues(self.shieldBoostedInRegex, logData)
+        capTransfered = self.extractValues(self.capTransferedOutRegex, logData)
+        capRecieved = self.extractValues(self.capTransferedInRegex, logData)
+        capRecieved += self.extractValues(self.nosRecievedRegex, logData)
+        capDamageDone = self.extractValues(self.capNeutralizedOutRegex, logData)
+        capDamageDone += self.extractValues(self.nosRecievedRegex, logData)
+        capDamageRecieved = self.extractValues(self.capNeutralizedInRegex, logData)
+        capDamageRecieved += self.extractValues(self.nosTakenRegex, logData)
                 
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
+    
+    def extractValues(self, regex, logData):
+        returnValue = 0
+        group = regex.findall(logData)
+        if group:
+            for match in group:
+                returnValue += int(match)
+        return returnValue
     
     def catchup(self):
         self.log.read()

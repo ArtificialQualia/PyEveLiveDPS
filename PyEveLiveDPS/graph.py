@@ -33,6 +33,7 @@ import tkinter as tk
 import logreader
 import decimal
 import settings
+import simulator
 
 class DPSGraph(tk.Frame):
 
@@ -50,6 +51,7 @@ class DPSGraph(tk.Frame):
         self.capDamageInLabel = capDamageInLabel
         
         self.settings = settings
+        self.simulationEnabled = False
         
         self.degree = 5
         #We should be able to remove this, along with the initial adjust, but since animate would need to be moved
@@ -193,6 +195,14 @@ class DPSGraph(tk.Frame):
             #self.ani.event_source.interval = interval
             self.ani.event_source.start(interval)
         
+    def simulationSettings(self, enable=False, values=None):
+        if enable:
+            self.simulationEnabled = True
+            self.simulator = simulator.Simulator(values, self.interval)
+        if not enable:
+            self.simulator = None
+            self.simulationEnabled = False
+                
     def catchup(self):
         """This is just to 'clear' the graph"""
         self.changeSettings(self.seconds, self.interval, self.logiInLinesCategories, self.logiOutLinesCategories,
@@ -226,7 +236,10 @@ class DPSGraph(tk.Frame):
         return
     
     def animate(self, i):
-        damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.characterDetector.readLog()
+        if self.simulationEnabled:
+            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.simulator.simulate()
+        else:
+            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.characterDetector.readLog()
         
         #This section should really be split up into helper functions
         firstOutSection = True
