@@ -10,7 +10,6 @@ By detatching it from the window manager with overrideredirect(true), one
 """
 
 import tkinter as tk
-from ctypes import windll
 import platform
 import sys
 import graph
@@ -18,6 +17,8 @@ import logreader
 import settingsWindow
 import simulationWindow
 import settings
+if (platform.system() == "Windows"):
+    from ctypes import windll
 
 
 class BorderlessWindow(tk.Tk):

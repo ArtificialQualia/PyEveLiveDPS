@@ -23,7 +23,8 @@ import datetime
 import time
 import platform
 from tkinter import messagebox, IntVar
-import win32com.client
+if (platform.system() == "Windows"):
+    import win32com.client
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
