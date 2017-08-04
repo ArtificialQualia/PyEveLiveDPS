@@ -14,9 +14,9 @@ import platform
 import sys
 import graph
 import logreader
-import settingsWindow
+import settings.settingsWindow as settingsWindow
 import simulationWindow
-import settings
+import settings.settings as settings
 if (platform.system() == "Windows"):
     from ctypes import windll
 
@@ -157,7 +157,7 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.grid(row="5", column="1")
         self.mainMenu.menu = tk.Menu(self.mainMenu, tearoff=False)
         self.mainMenu["menu"] = self.mainMenu.menu
-        self.mainMenu.menu.add_command(label="Edit Settings", command=lambda: settingsWindow.SettingsWindow(self))
+        self.mainMenu.menu.add_command(label="Edit Profile Settings", command=lambda: settingsWindow.SettingsWindow(self))
         
         self.profileMenu = tk.Menu(self.mainMenu, tearoff=False)
         self.settings.initializeMenu(self)

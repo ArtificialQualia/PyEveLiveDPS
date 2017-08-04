@@ -90,8 +90,9 @@ class DPSGraph(tk.Frame):
         self.canvas.show()
         
     def changeSettings(self, seconds=None, interval=None,
-                       logiInSettings=None, logiOutSettings=None, inSettings=None, outSettings=None,
-                       capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None):
+                       logiIn=None, logiOut=None, dpsIn=None, dpsOut=None,
+                       capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None, 
+                       **kwargs):
         """This function is called when a user changes settings AFTER the settings are verified in window.py"""
         if self.ani:
             self.ani.event_source.stop()
@@ -103,10 +104,10 @@ class DPSGraph(tk.Frame):
         self.capDamageOutCategories = capDamageOut
         self.capRecievedCategories = capRecieved
         self.capTransferedCategories = capTransfered
-        self.logiInLinesCategories = logiInSettings
-        self.logiOutLinesCategories = logiOutSettings
-        self.damageInLinesCategories = inSettings
-        self.damageOutLinesCategories = outSettings
+        self.logiInLinesCategories = logiIn
+        self.logiOutLinesCategories = logiOut
+        self.damageInLinesCategories = dpsIn
+        self.damageOutLinesCategories = dpsOut
         
         if self.capDamageOutCategories:
             self.capDamageOutLabel.grid()

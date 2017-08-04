@@ -26,34 +26,37 @@ class SimulationWindow(tk.Toplevel):
         
         tk.Label(self, text="For each item, a random number will be chosen\n in the range you specify every cycle.").grid(row="0", column="0", columnspan="10")
         
-        tk.Frame(self, height="20", width="10").grid(row="1", column="1", columnspan="5")
+        tk.Frame(self, height="20", width="1").grid(row="1", column="1", columnspan="5")
+        
+        self.innerFrame = tk.Frame(self)
+        self.innerFrame.grid(row="2", column="0")
         
         if self.mainWindow.settings.getDpsOutSettings():
-            tk.Label(self, text="DPS Out:").grid(row="2", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="DPS Out:").grid(row="2", column="0", sticky="e")
             self.addRow("dpsOut", "2")
         if self.mainWindow.settings.getLogiOutSettings():
-            tk.Label(self, text="Logistics Out:").grid(row="3", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Logistics Out:").grid(row="3", column="0", sticky="e")
             self.addRow("logiOut", "3")
         if self.mainWindow.settings.getCapTransferedSettings():
-            tk.Label(self, text="Cap Transfer Out:").grid(row="4", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Cap Transfer Out:").grid(row="4", column="0", sticky="e")
             self.addRow("capOut", "4")
         if self.mainWindow.settings.getCapDamageOutSettings():
-            tk.Label(self, text="Cap Warfare Out:").grid(row="5", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Cap Warfare Out:").grid(row="5", column="0", sticky="e")
             self.addRow("neutOut", "5")
         if self.mainWindow.settings.getDpsInSettings():
-            tk.Label(self, text="DPS In:").grid(row="6", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="DPS In:").grid(row="6", column="0", sticky="e")
             self.addRow("dpsIn", "6")
         if self.mainWindow.settings.getLogiInSettings():
-            tk.Label(self, text="Logistics In:").grid(row="7", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Logistics In:").grid(row="7", column="0", sticky="e")
             self.addRow("logiIn", "7")
         if self.mainWindow.settings.getCapRecievedSettings():
-            tk.Label(self, text="Cap Transfer In:").grid(row="8", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Cap Transfer In:").grid(row="8", column="0", sticky="e")
             self.addRow("capIn", "8")
         if self.mainWindow.settings.getCapDamageInSettings():
-            tk.Label(self, text="Cap Warfare In:").grid(row="9", column="0", sticky="e")
+            tk.Label(self.innerFrame, text="Cap Warfare In:").grid(row="9", column="0", sticky="e")
             self.addRow("neutIn", "9")
         
-        tk.Frame(self, height="20", width="10").grid(row="99", column="1", columnspan="5")
+        tk.Frame(self, height="20", width="1").grid(row="99", column="1", columnspan="5")
         
         buttonFrame = tk.Frame(self)
         buttonFrame.grid(row="100", column="0", columnspan="10")
@@ -65,18 +68,18 @@ class SimulationWindow(tk.Toplevel):
         
     def addRow(self, prefix, row):
         self.values[prefix] = {}
-        self.values[prefix]["floor"] = tk.Entry(self, width=7)
+        self.values[prefix]["floor"] = tk.Entry(self.innerFrame, width=7)
         self.values[prefix]["floor"].grid(row=row, column="1")
         self.values[prefix]["floor"].insert(0, "0")
-        tk.Label(self, text="-").grid(row=row, column="2")
-        self.values[prefix]["ceiling"] = tk.Entry(self, width=7)
+        tk.Label(self.innerFrame, text="-").grid(row=row, column="2")
+        self.values[prefix]["ceiling"] = tk.Entry(self.innerFrame, width=7)
         self.values[prefix]["ceiling"].grid(row=row, column="3")
         self.values[prefix]["ceiling"].insert(0, "100")
-        tk.Label(self, text="  every").grid(row=row, column="4")
-        self.values[prefix]["cycle"] = tk.Entry(self, width=4)
+        tk.Label(self.innerFrame, text="  every").grid(row=row, column="4")
+        self.values[prefix]["cycle"] = tk.Entry(self.innerFrame, width=4)
         self.values[prefix]["cycle"].grid(row=row, column="5")
         self.values[prefix]["cycle"].insert(0, "3")
-        tk.Label(self, text="s    ").grid(row=row, column="6")
+        tk.Label(self.innerFrame, text="s  ").grid(row=row, column="6")
         self.geometry("%sx%s" % (self.winfo_width(), self.winfo_height()+20))
         self.update_idletasks()
         
