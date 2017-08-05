@@ -71,7 +71,7 @@ class SettingsWindow(tk.Toplevel):
                 self.iconbitmap("app.ico")
             except Exception:
                 pass
-        self.geometry("750x600")
+        self.geometry("550x600")
         self.update_idletasks()
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
@@ -110,8 +110,14 @@ class SettingsWindow(tk.Toplevel):
         for option, frame in self.options:
             if option == title:
                 frame.grid()
+                if option == "Labels":
+                    self.geometry("1200x600")
+                else:
+                    self.geometry("550x600")
             else:
                 frame.grid_remove()
+            
+            
         
     def doSettings(self):
         settings = {}
