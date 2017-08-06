@@ -111,7 +111,7 @@ class SettingsWindow(tk.Toplevel):
             if option == title:
                 frame.grid()
                 if option == "Labels":
-                    self.geometry("1200x600")
+                    self.geometry("1100x600")
                 else:
                     self.geometry("550x600")
             else:

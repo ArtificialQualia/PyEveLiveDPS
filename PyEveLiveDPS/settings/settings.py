@@ -16,7 +16,19 @@ class Settings(FileSystemEventHandler):
                          "dpsOut": [{"color": "#00FFFF", "transitionValue": 0}],
                          "logiOut": [], "logiIn": [],
                          "capTransfered": [], "capRecieved": [],
-                         "capDamageOut": [], "capDamageIn": []  } 
+                         "capDamageOut": [], "capDamageIn": [],
+                         "labels": {
+                             "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 2},
+                             "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 2},
+                             "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 2},
+                             "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 2},
+                             "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 2},
+                             "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 2},
+                             "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 2},
+                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 2}
+                             },
+                         "labelColumns": [4,4]
+                         } 
                         } ]
     def __init__(self):
         self.observer = Observer()
@@ -233,11 +245,26 @@ class Settings(FileSystemEventHandler):
         except KeyError:
             self.setSettings(compactTransparency=65)
             return self.currentProfile["compactTransparency"]
+        
+    def getLabels(self):
+        try:
+            return copy.deepcopy(self.currentProfile["labels"])
+        except KeyError:
+            self.setSettings(labels=copy.deepcopy(self.defaultProfile[0]["profileSettings"]["labels"]))
+            return copy.deepcopy(self.currentProfile["labels"])
+    
+    def getLabelColumns(self):
+        try:
+            return copy.deepcopy(self.currentProfile["labelColumns"])
+        except KeyError:
+            self.setSettings(labelColumns=[4,4])
+            return copy.deepcopy(self.currentProfile["labelColumns"])
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
                     interval=None, seconds=None,
-                    windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None):
+                    windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
+                    labels=None, labelColumns=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -268,6 +295,10 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["windowY"] = windowY
         if not compactTransparency == None:
             self.currentProfile["compactTransparency"] = compactTransparency
+        if not labels == None:
+            self.currentProfile["labels"] = labels
+        if not labelColumns == None:
+            self.currentProfile["labelColumns"] = labelColumns
         
         self.writeSettings()
     

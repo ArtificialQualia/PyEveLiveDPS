@@ -251,6 +251,7 @@ class DPSGraph(tk.Frame):
             self.yValuesDamageOut = self.yValuesDamageOut[1:]
             damageOutAverage = (np.sum(self.historicalDamageOut)*(1000/self.interval))/len(self.historicalDamageOut)
             self.yValuesDamageOut = np.append(self.yValuesDamageOut, damageOutAverage)
+            #dpsOutString = str(round(decimal.Decimal(damageOutAverage),2))
             dpsOutString = str(decimal.Decimal(damageOutAverage).quantize(decimal.Decimal('.01')))
             if firstOutSection:
                 self.dpsOutLabel.configure(text="DPS Out: " + dpsOutString)
