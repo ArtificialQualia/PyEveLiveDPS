@@ -112,7 +112,10 @@ class CharacterDetector(FileSystemEventHandler):
     
     def catchupLog(self):
         self.graphInstance.catchup()
-        self.logReaders[self.selectedIndex.get()].catchup()
+        try:
+            self.logReaders[self.selectedIndex.get()].catchup()
+        except IndexError:
+            pass
         
 class LogReader():
     def __init__(self, logPath):

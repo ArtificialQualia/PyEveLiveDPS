@@ -18,16 +18,17 @@ class Settings(FileSystemEventHandler):
                          "capTransfered": [], "capRecieved": [],
                          "capDamageOut": [], "capDamageIn": [],
                          "labels": {
-                             "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 2},
-                             "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 2},
-                             "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 2},
-                             "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 2},
-                             "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 2},
-                             "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 2},
-                             "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 2},
-                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 2}
+                             "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
+                             "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
+                             "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                             "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                             "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
+                             "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
+                             "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
+                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1}
                              },
-                         "labelColumns": [4,4]
+                         "labelColumns": [4,4],
+                         "labelColors": 0
                          } 
                         } ]
     def __init__(self):
@@ -71,20 +72,12 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == currentProfileName):
                 self.currentProfile = profile["profileSettings"]
                 self.selectedIndex.set(i)
-                self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
-                                     self.getLogiInSettings(), self.getLogiOutSettings(),
-                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
-                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
-                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
+                self.mainWindow.graphFrame.changeSettings()
                 return
             i += 1
         self.currentProfile = self.allSettings[0]["profileSettings"]
         self.selectedIndex.set(0)
-        self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
-                                     self.getLogiInSettings(), self.getLogiOutSettings(),
-                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
-                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
-                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
+        self.mainWindow.graphFrame.changeSettings()
         
     def initializeMenu(self, mainWindow):
         self.mainWindow = mainWindow
@@ -259,12 +252,19 @@ class Settings(FileSystemEventHandler):
         except KeyError:
             self.setSettings(labelColumns=[4,4])
             return copy.deepcopy(self.currentProfile["labelColumns"])
+        
+    def getLabelColors(self):
+        try:
+            return self.currentProfile["labelColors"]
+        except KeyError:
+            self.setSettings(labelColors=0)
+            return self.currentProfile["labelColors"]
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
-                    labels=None, labelColumns=None):
+                    labels=None, labelColumns=None, labelColors=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -299,6 +299,8 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["labels"] = labels
         if not labelColumns == None:
             self.currentProfile["labelColumns"] = labelColumns
+        if not labelColors == None:
+            self.currentProfile["labelColors"] = labelColors
         
         self.writeSettings()
     
@@ -312,11 +314,7 @@ class Settings(FileSystemEventHandler):
                                        self.getWindowX(), self.getWindowY()))
         self.mainWindow.update_idletasks()
         self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width())
-        self.mainWindow.graphFrame.changeSettings(self.getSeconds(), self.getInterval(), 
-                                     self.getLogiInSettings(), self.getLogiOutSettings(),
-                                     self.getDpsInSettings(), self.getDpsOutSettings(), 
-                                     capDamageIn=self.getCapDamageInSettings(), capDamageOut=self.getCapDamageOutSettings(), 
-                                     capRecieved=self.getCapRecievedSettings(), capTransfered=self.getCapTransferedSettings())
+        self.mainWindow.graphFrame.changeSettings()
         self.writeSettings()
     
     def writeSettings(self):

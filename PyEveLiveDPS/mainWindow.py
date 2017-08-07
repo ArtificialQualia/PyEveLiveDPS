@@ -10,6 +10,7 @@ By detatching it from the window manager with overrideredirect(true), one
 """
 
 import tkinter as tk
+import tkinter.font as tkFont
 import platform
 import sys
 import graph
@@ -17,6 +18,7 @@ import logreader
 import settings.settingsWindow as settingsWindow
 import simulationWindow
 import settings.settings as settings
+import labelHandler
 if (platform.system() == "Windows"):
     from ctypes import windll
 
@@ -78,6 +80,13 @@ class BorderlessWindow(tk.Tk):
         self.mainFrame.grid(row="1", column="1", rowspan="19", columnspan="19", sticky="nesw")
         self.makeDraggable(self.mainFrame)
         
+        self.simulationLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
+        font = tkFont.Font(font=self.simulationLabel['font'])
+        font.config(slant='italic')
+        self.simulationLabel['font'] = font
+        self.simulationLabel.grid(row="5", column="5", columnspan="10")
+        self.simulationLabel.grid_remove()
+        
         #Other items for setting up the window have been moved to separate functions
         self.addDraggableEdges()
         
@@ -90,60 +99,17 @@ class BorderlessWindow(tk.Tk):
         self.addMenus()
         
         #Container for our "dps labels"
-        self.dpsFrame = tk.Frame(height="10", borderwidth="0", background="black")
-        self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
-        self.makeDraggable(self.dpsFrame)
-        self.dpsFrame.grid_columnconfigure(3, weight="1")
-        
-        self.dpsOutLabel = tk.Label(self.dpsFrame, text="DPS Out: 0.0", fg="white", background="black")
-        self.dpsOutLabel.grid(row="0", column="0", sticky="W")
-        self.makeDraggable(self.dpsOutLabel)
-        self.dpsOutLabel.grid_remove()
-        
-        self.logiLabelOut = tk.Label(self.dpsFrame, text="Logi Out: 0.0", fg="white", background="black")
-        self.logiLabelOut.grid(row="0", column="1", sticky="W")
-        self.makeDraggable(self.logiLabelOut)
-        self.logiLabelOut.grid_remove()
-        
-        self.capTransferedLabel = tk.Label(self.dpsFrame, text="Cap Out: 0.0", fg="white", background="black")
-        self.capTransferedLabel.grid(row="0", column="2", sticky="W")
-        self.makeDraggable(self.capTransferedLabel)
-        self.capTransferedLabel.grid_remove()
-        
-        self.capDamageOutLabel = tk.Label(self.dpsFrame, text="Cap Dmg Out: 0.0", fg="white", background="black")
-        self.capDamageOutLabel.grid(row="0", column="3", sticky="W")
-        self.makeDraggable(self.capDamageOutLabel)
-        self.capDamageOutLabel.grid_remove()
-        
-        self.capDamageInLabel = tk.Label(self.dpsFrame, text="Cap Dmg In: 0.0", fg="white", background="black")
-        self.capDamageInLabel.grid(row="0", column="3", sticky="E")
-        self.makeDraggable(self.capDamageInLabel)
-        self.capDamageInLabel.grid_remove()
-        
-        self.capRecievedLabel = tk.Label(self.dpsFrame, text="Cap In: 0.0", fg="white", background="black")
-        self.capRecievedLabel.grid(row="0", column="4", sticky="E")
-        self.makeDraggable(self.capRecievedLabel)
-        self.capRecievedLabel.grid_remove()
-        
-        self.logiLabelIn = tk.Label(self.dpsFrame, text="Logi In: 0.0", fg="white", background="black")
-        self.logiLabelIn.grid(row="0", column="5", sticky="E")
-        self.makeDraggable(self.logiLabelIn)
-        self.logiLabelIn.grid_remove()
-        
-        self.dpsInLabel = tk.Label(self.dpsFrame, text="DPS In: 0.0", fg="white", background="black")
-        self.dpsInLabel.grid(row="0", column="6", sticky="E")
-        self.makeDraggable(self.dpsInLabel)
-        self.dpsInLabel.grid_remove()
+        self.labelHandler = labelHandler.LabelHandler(self, self.settings, lambda c:self.makeAllChildrenDraggable(c),
+                                                       height="10", borderwidth="0", background="black")
+        self.labelHandler.grid(row="6", column="1", columnspan="19", sticky="ew")
+        self.makeDraggable(self.labelHandler)
         
         self.geometry("%sx%s+%s+%s" % (self.settings.getWindowWidth(), self.settings.getWindowHeight(), 
                                        self.settings.getWindowX(), self.settings.getWindowY()))
         self.update_idletasks()
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.dpsOutLabel, self.dpsInLabel, self.logiLabelOut, self.logiLabelIn,
-                                         self.capTransferedLabel, self.capRecievedLabel,
-                                         self.capDamageOutLabel, self.capDamageInLabel,
-                                         self.characterDetector, self.settings, background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.characterDetector, self.settings, self.labelHandler, background="black", borderwidth="0")
         self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
@@ -285,20 +251,13 @@ class BorderlessWindow(tk.Tk):
             self.bottomLeftResizeFrame.grid()
             self.bottomRightResizeFrame.grid()
             self.makeDraggable(self.mainFrame)
-            self.makeDraggable(self.dpsFrame)
-            self.makeDraggable(self.dpsOutLabel)
-            self.makeDraggable(self.logiLabelOut)
-            self.makeDraggable(self.capTransferedLabel)
-            self.makeDraggable(self.capDamageOutLabel)
-            self.makeDraggable(self.capDamageInLabel)
-            self.makeDraggable(self.capRecievedLabel)
-            self.makeDraggable(self.logiLabelIn)
-            self.makeDraggable(self.dpsInLabel)
+            self.makeDraggable(self.labelHandler)
+            self.makeAllChildrenDraggable(self.labelHandler)
             self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid()
             self.characterMenu.grid()
             self.quitButton.grid()
-            self.dpsFrame.grid(row="6", column="1", columnspan="19", sticky="ew")
+            self.labelHandler.grid(row="6", column="1", columnspan="19", sticky="ew")
             self.collapseButton.grid(row="5", column="17", sticky="n")
             self.collapsed = False
         else:
@@ -313,25 +272,36 @@ class BorderlessWindow(tk.Tk):
             self.bottomRightResizeFrame.grid_remove()
             self.rightSpacerFrame.grid()
             self.unmakeDraggable(self.mainFrame)
-            self.unmakeDraggable(self.dpsFrame)
-            self.unmakeDraggable(self.dpsOutLabel)
-            self.unmakeDraggable(self.logiLabelOut)
-            self.unmakeDraggable(self.capTransferedLabel)
-            self.unmakeDraggable(self.capDamageOutLabel)
-            self.unmakeDraggable(self.capDamageInLabel)
-            self.unmakeDraggable(self.capRecievedLabel)
-            self.unmakeDraggable(self.logiLabelIn)
-            self.unmakeDraggable(self.dpsInLabel)
+            self.unmakeDraggable(self.labelHandler)
+            self.unmakeAllChildrenDraggable(self.labelHandler)
             self.unmakeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid_remove()
             self.characterMenu.grid_remove()
             self.quitButton.grid_remove()
-            self.dpsFrame.grid(row="6", column="1", columnspan="18", sticky="ew")
-            self.collapseButton.grid(row="6", column="19", sticky="e")
+            self.labelHandler.grid(row="6", column="1", columnspan="18", sticky="ew")
+            self.collapseButton.grid(row="6", column="19", sticky="ne")
             self.collapsed = True
     
     def getGraph(self):
         return self.graphFrame
+    
+    def makeAllChildrenDraggable(self, widget):
+        children = widget.winfo_children()
+        if len(children) > 0:
+            for child in children:
+                child.bind("<ButtonPress-1>", self.StartMove)
+                child.bind("<ButtonRelease-1>", self.StopMove)
+                child.bind("<B1-Motion>", self.OnMotionMove)
+                self.makeAllChildrenDraggable(child)
+                
+    def unmakeAllChildrenDraggable(self, widget):
+        children = widget.winfo_children()
+        if len(children) > 0:
+            for child in children:
+                child.bind("<ButtonPress-1>", lambda e: False)
+                child.bind("<ButtonRelease-1>", lambda e: False)
+                child.bind("<B1-Motion>", lambda e: False)
+                self.unmakeAllChildrenDraggable(child)
     
     def makeDraggable(self, widget):
         widget.bind("<ButtonPress-1>", self.StartMove)
