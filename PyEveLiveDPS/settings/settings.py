@@ -12,8 +12,9 @@ class Settings(FileSystemEventHandler):
                          "windowHeight": 225, "windowWidth": 350,
                          "compactTransparency": 65,
                          "seconds": 10, "interval": 100,
-                         "dpsIn": [{"color": "#FF0000", "transitionValue": 0}],
-                         "dpsOut": [{"color": "#00FFFF", "transitionValue": 0}],
+                         "graphDisabled": 0,
+                         "dpsIn": [{"color": "#FF0000", "transitionValue": 0, "labelOnly": 0}],
+                         "dpsOut": [{"color": "#00FFFF", "transitionValue": 0, "labelOnly": 0}],
                          "logiOut": [], "logiIn": [],
                          "capTransfered": [], "capRecieved": [],
                          "capDamageOut": [], "capDamageIn": [],
@@ -239,6 +240,13 @@ class Settings(FileSystemEventHandler):
             self.setSettings(compactTransparency=65)
             return self.currentProfile["compactTransparency"]
         
+    def getGraphDisabled(self):
+        try:
+            return self.currentProfile["graphDisabled"]
+        except KeyError:
+            self.setSettings(graphDisabled=0)
+            return self.currentProfile["graphDisabled"]
+        
     def getLabels(self):
         try:
             return copy.deepcopy(self.currentProfile["labels"])
@@ -264,7 +272,7 @@ class Settings(FileSystemEventHandler):
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
-                    labels=None, labelColumns=None, labelColors=None):
+                    labels=None, labelColumns=None, labelColors=None, graphDisabled=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -301,6 +309,8 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["labelColumns"] = labelColumns
         if not labelColors == None:
             self.currentProfile["labelColors"] = labelColors
+        if not graphDisabled == None:
+            self.currentProfile["graphDisabled"] = graphDisabled
         
         self.writeSettings()
     

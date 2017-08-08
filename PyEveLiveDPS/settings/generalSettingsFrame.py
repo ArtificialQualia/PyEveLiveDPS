@@ -13,6 +13,19 @@ class GeneralSettingsFrame(tk.Frame):
         tk.Frame(self, height="0", width="1").grid(row="0", column="4")
         self.counter = 0
         
+        checkboxValue = tk.BooleanVar()
+        checkboxValue.set(self.mainWindow.settings.getGraphDisabled())
+        self.graphDisabled = tk.Checkbutton(self, text="Disable graph entirely", variable=checkboxValue)
+        self.graphDisabled.var = checkboxValue
+        self.graphDisabled.grid(row=self.counter, column="1", columnspan="2")
+        descriptor = tk.Label(self, text="Labels will still be shown")
+        font = tkFont.Font(font=descriptor['font'])
+        font.config(slant='italic')
+        descriptor['font'] = font
+        descriptor.grid(row=self.counter+1, column="1", columnspan="2")
+        tk.Frame(self, height="20", width="10").grid(row=self.counter+2, column="1", columnspan="5")
+        self.counter += 3
+        
         self.secondsVar = tk.StringVar()
         self.secondsVar.set(self.mainWindow.settings.getSeconds())
         self.addSetting(self.secondsVar, "Number of seconds to average values:", 
@@ -20,13 +33,14 @@ class GeneralSettingsFrame(tk.Frame):
         
         self.intervalVar = tk.StringVar()
         self.intervalVar.set(self.mainWindow.settings.getInterval())
-        self.addSetting(self.intervalVar, "How often to update the graph in milliseconds:", 
+        self.addSetting(self.intervalVar, "How often to update graph/labels in milliseconds:", 
                         "The lower you set this value, the higher your CPU usage will be")
         
         self.transparencyVar = tk.StringVar()
         self.transparencyVar.set(self.mainWindow.settings.getCompactTransparency())
         self.addSetting(self.transparencyVar, "Window transparency percentage in compact mode:", 
                         "100 is fully visible, 0 is invisible")
+        
         
     def addSetting(self, var, labelText, descriptorText):
         centerFrame = tk.Frame(self)
@@ -89,4 +103,5 @@ class GeneralSettingsFrame(tk.Frame):
             tk.messagebox.showerror("Error", "Please enter a value between 1-100 for compact transparency percentage")
             return  
         
-        return {"seconds": secondsSetting, "interval": intervalSetting, "compactTransparency": compactTransparencySetting}
+        return {"seconds": secondsSetting, "interval": intervalSetting, 
+                "compactTransparency": compactTransparencySetting, "graphDisabled": self.graphDisabled.var.get()}

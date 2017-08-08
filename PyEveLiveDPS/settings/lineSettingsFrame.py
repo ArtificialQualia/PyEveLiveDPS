@@ -87,28 +87,34 @@ class LineSettingsFrame(tk.Frame):
         self.scrollableCanvas.configure(scrollregion=self.scrollableCanvas.bbox("all"))
         
     def addLineSection(self, frame, text, settingsList):
-        frame.columnconfigure(0, weight=1)
+        #frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
-        sectionLabel = tk.Label(frame, text=text + " tracking")
-        sectionLabel.grid(row="0", column="0", sticky="e")
-        font = tkFont.Font(font=sectionLabel['font'])
-        font.config(weight='bold')
-        sectionLabel['font'] = font
         innerFrame = tk.Frame(frame, borderwidth=1, relief="sunken", padx="5")
         innerFrame.columnconfigure(0, weight=1)
         innerFrame.grid(row="1", column="0", columnspan="2", sticky="we")
+        lineCheckboxValue = tk.BooleanVar()
+        lineCheckbox = tk.Checkbutton(frame, variable=lineCheckboxValue, text="Only show label", state="disabled")
+        lineCheckbox.grid(row="0", column="1", sticky="e")
+        lineCheckbox.var = lineCheckboxValue
         checkboxValue = tk.BooleanVar()
         if len(settingsList) == 0:
             checkboxValue.set(False)
         else:
             checkboxValue.set(True)
-            self.addLineCustomizationSection(innerFrame, text, checkboxValue, settingsList)
-        sectionCheckbox = tk.Checkbutton(frame, variable=checkboxValue, 
-                                         command=lambda:self.addLineCustomizationSection(innerFrame, text, checkboxValue, settingsList))
-        sectionCheckbox.grid(row="0", column="1", sticky="w")
+            try:
+                lineCheckboxValue.set(settingsList[0]["labelOnly"])
+            except KeyError:
+                pass
+            self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, settingsList)
+        sectionCheckbox = tk.Checkbutton(frame, variable=checkboxValue, text=text + " tracking",
+                                         command=lambda:self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, settingsList))
+        font = tkFont.Font(font=sectionCheckbox['font'])
+        font.config(weight='bold')
+        sectionCheckbox['font'] = font
+        sectionCheckbox.grid(row="0", column="0")
         tk.Frame(frame, height="20", width="10").grid(row="1000", column="1", columnspan="5")
     
-    def addLineCustomizationSection(self, frame, text, checkboxValue, settingsList):
+    def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, settingsList):
         if checkboxValue.get():
             frame.grid()
             innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for this line:")
@@ -125,11 +131,15 @@ class LineSettingsFrame(tk.Frame):
             innerFrame = tk.Frame(frame)
             innerFrame.grid(row="1", column="0", columnspan="5")
             self.expandCustomizationSettings(innerFrame, settingsList)
+            lineCheckbox.configure(state="normal")
+            settingsList[0].update({ "labelOnly": lineCheckbox.var })
         else:
             for child in frame.winfo_children():
                 child.destroy()
             frame.grid_remove()
             settingsList.clear()
+            lineCheckbox.var.set(0)
+            lineCheckbox.configure(state="disabled")
         
     def expandCustomizationSettings(self, frame, settingsList):
         index = 0
@@ -199,6 +209,10 @@ class LineSettingsFrame(tk.Frame):
                              "capRecieved": copy.copy(self.capRecievedSettings),
                              "capDamageOut": copy.copy(self.capDamageOutSettings),
                              "capDamageIn": copy.copy(self.capDamageInSettings)}
+        
+        for name, settings in self.settingsCopy.items():
+            if len(settings) > 0:
+                settings[0]["labelOnly"] = settings[0]["labelOnly"].get()
         
         for name, settings in self.settingsCopy.items():
             for setting in settings:

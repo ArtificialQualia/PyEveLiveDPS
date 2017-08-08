@@ -13,7 +13,7 @@ from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
 
 class SideBar(tk.Frame):
-    images = {"Lines": "lines.png",
+    images = {"Tracking": "lines.png",
               "Labels": "labels.png"}
     
     def __init__(self, parent, mainWindow, **kwargs):
@@ -87,7 +87,7 @@ class SettingsWindow(tk.Toplevel):
         labelsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
         labelsFrame.grid_remove()
         
-        self.options = [["General", generalFrame], ["Lines", linesFrame], ["Labels", labelsFrame]]
+        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame]]
         
         self.sideBar = SideBar(self, self.mainWindow, bg="white", width="125", relief="groove", borderwidth=1)
         self.sideBar.grid(row="0", column="0", rowspan="90", sticky="nsew", padx="1", pady="1")
@@ -112,6 +112,8 @@ class SettingsWindow(tk.Toplevel):
                 frame.grid()
                 if option == "Labels":
                     self.geometry("1100x600")
+                elif option == "Tracking":
+                    self.geometry("600x600")
                 else:
                     self.geometry("550x600")
             else:

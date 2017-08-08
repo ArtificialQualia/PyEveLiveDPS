@@ -31,7 +31,7 @@ class BorderlessWindow(tk.Tk):
         self.columnconfigure(10, weight=1)
         self.rowconfigure(10, weight=1)
         self.configure(background="black")
-        self.minsize(175,100)
+        self.minsize(175,50)
         
         #Grab settings from our settings handler
         self.settings = settings.Settings()
@@ -94,14 +94,20 @@ class BorderlessWindow(tk.Tk):
         
         self.addQuitButton()
         
-        self.addCollapseButton()
+        self.addCollapseButton(self, row="5", column="17")
         
         self.addMenus()
         
-        #Container for our "dps labels"
-        self.labelHandler = labelHandler.LabelHandler(self, self.settings, lambda c:self.makeAllChildrenDraggable(c),
+        #Container for our "dps labels" and graph
+        self.middleFrame = tk.Frame(self, background="black")
+        self.middleFrame.columnconfigure(0, weight=1)
+        self.middleFrame.rowconfigure(1, weight=1)
+        self.middleFrame.grid(row="10", column="1", columnspan="19", sticky="news")
+        self.makeDraggable(self.middleFrame)
+        
+        self.labelHandler = labelHandler.LabelHandler(self.middleFrame, self.settings, lambda c:self.makeAllChildrenDraggable(c),
                                                        height="10", borderwidth="0", background="black")
-        self.labelHandler.grid(row="6", column="1", columnspan="19", sticky="ew")
+        self.labelHandler.grid(row="0", column="0", sticky="news")
         self.makeDraggable(self.labelHandler)
         
         self.geometry("%sx%s+%s+%s" % (self.settings.getWindowWidth(), self.settings.getWindowHeight(), 
@@ -109,11 +115,17 @@ class BorderlessWindow(tk.Tk):
         self.update_idletasks()
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.characterDetector, self.settings, self.labelHandler, background="black", borderwidth="0")
-        self.graphFrame.grid(row="7", column="1", rowspan="13", columnspan="19", sticky="nesw")
+        self.graphFrame = graph.DPSGraph(self.middleFrame, self.characterDetector, self.settings, self.labelHandler, background="black", borderwidth="0")
+        self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
         self.graphFrame.readjust(self.winfo_width())
+        if self.settings.getGraphDisabled():
+            self.graphFrame.grid_remove()
+        else:
+            self.graphFrame.grid()
+            
+        self.labelHandler.lift(self.graphFrame)
         
     def addMenus(self):
         #Set up menu options
@@ -216,11 +228,15 @@ class BorderlessWindow(tk.Tk):
         self.quitButton.bind("<Enter>", self.buttonGray25)
         self.quitButton.bind("<Leave>", self.buttonBlack)
         
-    def addCollapseButton(self):
         tk.Frame(self, height=1, width=5, background="black").grid(row="5", column="18")
         
+        self.rightSpacerFrame = tk.Frame(width=5, height=5, background="black")
+        self.rightSpacerFrame.grid(row="0", column="100", rowspan="50")
+        self.rightSpacerFrame.grid_remove()
+        
+    def addCollapseButton(self, parent, row, column):
         self.collapsed = False
-        self.collapseButton = tk.Canvas(width=15, height=15, background="black",
+        self.collapseButton = tk.Canvas(parent, width=15, height=15, background="black",
                                     highlightbackground="white", highlightthickness="1")
         #Boxception
         self.collapseButton.create_line(5,5,12,5,fill="white")
@@ -228,11 +244,7 @@ class BorderlessWindow(tk.Tk):
         self.collapseButton.create_line(11,11,11,5,fill="white")
         self.collapseButton.create_line(11,11,5,11,fill="white")
         
-        self.rightSpacerFrame = tk.Frame(width=5, height=5, background="black")
-        self.rightSpacerFrame.grid(row="0", column="100", rowspan="50")
-        self.rightSpacerFrame.grid_remove()
-        
-        self.collapseButton.grid(row="5", column="17", sticky="n")
+        self.collapseButton.grid(row=row, column=column, sticky="n")
         self.collapseButton.bind("<ButtonPress-1>", self.buttonDimGray)
         self.collapseButton.bind("<ButtonRelease-1>", self.collapseEvent)
         self.collapseButton.bind("<Enter>", self.buttonGray25)
@@ -251,14 +263,15 @@ class BorderlessWindow(tk.Tk):
             self.bottomLeftResizeFrame.grid()
             self.bottomRightResizeFrame.grid()
             self.makeDraggable(self.mainFrame)
+            self.makeDraggable(self.middleFrame)
             self.makeDraggable(self.labelHandler)
             self.makeAllChildrenDraggable(self.labelHandler)
             self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid()
             self.characterMenu.grid()
             self.quitButton.grid()
-            self.labelHandler.grid(row="6", column="1", columnspan="19", sticky="ew")
-            self.collapseButton.grid(row="5", column="17", sticky="n")
+            self.collapseButton.destroy()
+            self.addCollapseButton(self, row="5", column="17")
             self.collapsed = False
         else:
             self.wm_attributes("-alpha", self.settings.getCompactTransparency()/100)
@@ -272,14 +285,15 @@ class BorderlessWindow(tk.Tk):
             self.bottomRightResizeFrame.grid_remove()
             self.rightSpacerFrame.grid()
             self.unmakeDraggable(self.mainFrame)
+            self.unmakeDraggable(self.middleFrame)
             self.unmakeDraggable(self.labelHandler)
             self.unmakeAllChildrenDraggable(self.labelHandler)
             self.unmakeDraggable(self.graphFrame.canvas.get_tk_widget())
             self.mainMenu.grid_remove()
             self.characterMenu.grid_remove()
             self.quitButton.grid_remove()
-            self.labelHandler.grid(row="6", column="1", columnspan="18", sticky="ew")
-            self.collapseButton.grid(row="6", column="19", sticky="ne")
+            self.collapseButton.destroy()
+            self.addCollapseButton(self.middleFrame, row="0", column="1")
             self.collapsed = True
     
     def getGraph(self):

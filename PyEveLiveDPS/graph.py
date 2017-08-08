@@ -46,8 +46,8 @@ class DPSGraph(tk.Frame):
         "capDamageOut": { "zorder": 40 }, 
         "capDamageIn": { "zorder": 30 }
         }
-    def __init__(self, characterDetector, settings, labelHandler, **kwargs):
-        tk.Frame.__init__(self, **kwargs)
+    def __init__(self, parent, characterDetector, settings, labelHandler, **kwargs):
+        tk.Frame.__init__(self, parent, **kwargs)
         
         self.labelHandler = labelHandler
         self.settings = settings
@@ -102,6 +102,11 @@ class DPSGraph(tk.Frame):
         self.categories["capDamageOut"]["settings"] = self.settings.getCapDamageOutSettings()
         self.categories["capDamageIn"]["settings"] = self.settings.getCapDamageInSettings()
         
+        if self.settings.getGraphDisabled():
+            self.grid_remove()
+        else:
+            self.grid()
+        
         self.labelHandler.redoLabels()
         
         for category, items in self.categories.items():
@@ -110,8 +115,14 @@ class DPSGraph(tk.Frame):
                 items["historical"] = [0] * int((self.seconds*1000)/self.interval)
                 items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
                 ySmooth = self.smoothListGaussian(items["yValues"], self.degree)
-                plotLine, = self.subplot.plot(ySmooth, zorder=items["zorder"])
-                items["lines"] = [plotLine]
+                try:
+                    items["labelOnly"] = items["settings"][0]["labelOnly"]
+                except KeyError:
+                    items["settings"][0]["labelOnly"] = False
+                    items["labelOnly"] = items["settings"][0]["labelOnly"]
+                if not items["labelOnly"]:
+                    plotLine, = self.subplot.plot(ySmooth, zorder=items["zorder"])
+                    items["lines"] = [plotLine]
             else:
                 self.labelHandler.enableLabel(category, False)
         
@@ -181,17 +192,30 @@ class DPSGraph(tk.Frame):
                 items["yValues"] = items["yValues"][1:]
                 average = (np.sum(items["historical"])*(1000/self.interval))/len(items["historical"])
                 items["yValues"] = np.append(items["yValues"], average)
-                ySmooth = self.smoothListGaussian(items["yValues"], self.degree)
-                self.animateLine(ySmooth, items["settings"], items["lines"], zorder=items["zorder"])
-                self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
+                if not items["labelOnly"]:
+                    ySmooth = self.smoothListGaussian(items["yValues"], self.degree)
+                    self.animateLine(ySmooth, items["settings"], items["lines"], zorder=items["zorder"])
+                    self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
+                else:
+                    for index, item in enumerate(items["settings"]):
+                        if index == (len(items["settings"])-1):
+                            if average >= item["transitionValue"]:
+                                self.labelHandler.updateLabel(category, average, item["color"])
+                        elif average >= item["transitionValue"] and average < items["settings"][index+1]["transitionValue"]:
+                            self.labelHandler.updateLabel(category, average, item["color"])
+                            break
         
         #Find highest average for the y-axis scaling
         self.highestAverage = 0
+        self.highestLabelAverage = 0
         for i in range(int((self.seconds*1000)/self.interval)):
             for category, items in self.categories.items():
-                if items["settings"]:
+                if items["settings"] and not items["labelOnly"]:
                     if (items["yValues"][i] > self.highestAverage):
                         self.highestAverage = items["yValues"][i]
+                elif items["settings"]:
+                    if (items["yValues"][i] > self.highestAverage):
+                        self.highestLabelAverage = items["yValues"][i]
         
         if (self.highestAverage < 100):
             self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
@@ -200,7 +224,7 @@ class DPSGraph(tk.Frame):
         self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
         self.readjust(self.windowWidth)
         
-        if (self.highestAverage == 0):
+        if (self.highestAverage == 0 and self.highestLabelAverage == 0):
             if not self.slowDown:
                 self.slowDown = True
                 self.ani.event_source._set_interval(500)

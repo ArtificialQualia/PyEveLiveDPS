@@ -16,7 +16,7 @@ class LabelHandler(tk.Frame):
         tk.Frame.__init__(self, parent, **kwargs)
         self.settings = settings
         self.makeAllChildrenDraggable = makeAllChildrenDraggable
-        self.grid_columnconfigure(9, weight="1")
+        self.columnconfigure(9, weight="1")
         
         tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="9", rowspan="10")
         
@@ -69,7 +69,7 @@ class Label(tk.Frame):
         tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="3")
         
         tk.Label(self, text=text, fg="white", background="black").grid(row="0", column="1")
-        self.numberLabel = tk.Label(self, text="text", fg="white", background="black")
+        self.numberLabel = tk.Label(self, text="0.0", fg="white", background="black")
         self.numberLabel.grid(row="0", column="2")
         
     def updateLabel(self, number, color):
