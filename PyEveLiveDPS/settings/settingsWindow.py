@@ -42,7 +42,7 @@ class SideBar(tk.Frame):
             chosenImage = "gear.png"
             
         try:
-            image = tk.PhotoImage(file=sys._MEIPASS + '\\PyEveLiveDPS\\images\\' + chosenImage)
+            image = tk.PhotoImage(file=sys._MEIPASS + '\\images\\' + chosenImage)
             button.configure(image=image)
             button.image = image
         except Exception:
