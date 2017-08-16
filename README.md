@@ -8,7 +8,7 @@ It currently has the ability to track the following:
 - Outgoing and Incoming Neut/Nos
 
 Here is an example of what it looks like in regular mode and compact mode:  
-![PELD regular](http://i.imgur.com/lCzJGx1.png) ![PELD compact](http://i.imgur.com/XckztDX.png)
+![PELD regular](http://i.imgur.com/lCzJGx1.png) ![PELD compact](http://i.imgur.com/RriX0tV.png)
 
 ## Download and Running
 Download the latest version from here:  
