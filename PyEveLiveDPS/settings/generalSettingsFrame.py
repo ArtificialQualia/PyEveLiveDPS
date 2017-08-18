@@ -94,6 +94,14 @@ class GeneralSettingsFrame(tk.Frame):
             if not okCancel:
                 return
             
+        if (secondsSetting/intervalSetting > 1):
+            okCancel = tk.messagebox.askokcancel("Continue?", "(Seconds to average DPS)/(Graph update interval)\n is > 1\n" +
+                                   "This is ok, but it is recommended to decrease your (Graph update interval) to improve performance.\n"
+                                   "You don't need such a low graph update interval if you are using a high (Seconds to average DPS)\n"
+                                   "Would you like to keep these settings?")
+            if not okCancel:
+                return
+            
         try:
             compactTransparencySetting = int(self.transparencyVar.get())
         except ValueError:

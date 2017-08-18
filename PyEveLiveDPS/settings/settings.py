@@ -323,8 +323,9 @@ class Settings(FileSystemEventHandler):
         self.mainWindow.geometry("%sx%s+%s+%s" % (self.getWindowWidth(), self.getWindowHeight(), 
                                        self.getWindowX(), self.getWindowY()))
         self.mainWindow.update_idletasks()
-        self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width())
+        self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width(), 0)
         self.mainWindow.graphFrame.changeSettings()
+        #self.mainWindow.animator.changeSettings()
         self.writeSettings()
     
     def writeSettings(self):

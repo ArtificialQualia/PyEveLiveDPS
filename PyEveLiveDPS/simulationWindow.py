@@ -7,6 +7,7 @@ class SimulationWindow(tk.Toplevel):
         
         self.mainWindow = mainWindow
         self.graph = mainWindow.getGraph()
+        self.animator = mainWindow.animator
         
         self.values = {}
         
@@ -111,12 +112,12 @@ class SimulationWindow(tk.Toplevel):
         self.mainWindow.simulationLabel.grid()
         
         self.mainWindow.characterDetector.catchupLog()
-        self.graph.simulationSettings(enable=True, values=valuesCopy)
+        self.animator.simulationSettings(enable=True, values=valuesCopy)
         
         self.destroy()
         
     def stopSimulation(self):
-        self.graph.simulationSettings(enable=False)
+        self.animator.simulationSettings(enable=False)
         self.mainWindow.characterDetector.catchupLog()
         self.mainWindow.mainMenu.menu.delete(3)
         self.mainWindow.mainMenu.menu.insert_command(3, label="Simulate Input", command=lambda: SimulationWindow(self.mainWindow))

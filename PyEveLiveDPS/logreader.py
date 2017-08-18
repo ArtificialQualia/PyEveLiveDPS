@@ -30,7 +30,8 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 class CharacterDetector(FileSystemEventHandler):
-    def __init__(self, characterMenu):
+    def __init__(self, mainWindow, characterMenu):
+        self.mainWindow = mainWindow
         self.characterMenu = characterMenu
         self.observer = Observer()
         
@@ -99,9 +100,6 @@ class CharacterDetector(FileSystemEventHandler):
                                                 value=len(self.menuEntries), command=self.catchupLog)
         self.menuEntries.append(character)
         
-    def setGraphInstance(self, graphInstance):
-        self.graphInstance = graphInstance
-        
     def stop(self):
         self.observer.stop()
         
@@ -112,7 +110,7 @@ class CharacterDetector(FileSystemEventHandler):
             return 0,0,0,0,0,0,0,0
     
     def catchupLog(self):
-        self.graphInstance.catchup()
+        self.mainWindow.animator.catchup()
         try:
             self.logReaders[self.selectedIndex.get()].catchup()
         except IndexError:

@@ -36,42 +36,21 @@ import settings
 import simulator
 
 class DPSGraph(tk.Frame):
-    categories = {
-        "dpsIn": { "zorder": 90 },
-        "dpsOut": { "zorder": 100 },
-        "logiOut": { "zorder": 80 }, 
-        "logiIn": { "zorder": 70 },
-        "capTransfered": { "zorder": 60 },
-        "capRecieved": { "zorder": 50 },
-        "capDamageOut": { "zorder": 40 }, 
-        "capDamageIn": { "zorder": 30 }
-        }
-    def __init__(self, parent, characterDetector, settings, labelHandler, **kwargs):
+    def __init__(self, parent, settings, labelHandler, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         
+        self.parent = parent
         self.labelHandler = labelHandler
         self.settings = settings
-        self.simulationEnabled = False
         
         self.degree = 5
-        #We should be able to remove this, along with the initial adjust, but since animate would need to be moved
         self.windowWidth = self.settings.getWindowWidth()
-
-        self.highestAverage = 0
-        self.slowDown = False
-        
-        self.characterDetector = characterDetector
-        self.characterDetector.setGraphInstance(self)
         
         self.graphFigure = Figure(figsize=(4,2), dpi=100, facecolor="black")
         
         self.subplot = self.graphFigure.add_subplot(1,1,1, facecolor=(0.3, 0.3, 0.3))
         self.subplot.tick_params(axis="y", colors="grey", direction="in")
         self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
-        
-        self.ani = None
-        
-        self.changeSettings()
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
         self.graphFigure.subplots_adjust(left=(30/self.windowWidth), bottom=(15/self.windowWidth), 
@@ -80,160 +59,27 @@ class DPSGraph(tk.Frame):
         self.canvas = FigureCanvasTkAgg(self.graphFigure, self)
         self.canvas.get_tk_widget().configure(bg="black")
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        self.ani = FuncAnimation(self.graphFigure, self.animate, interval=self.interval, blit=False, init_func=self.init_animation)
         
         self.canvas.show()
         
-    def changeSettings(self):
-        """This function is called when a user changes settings after the settings are verified"""
-        if self.ani:
-            self.ani.event_source.stop()
-        self.subplot.clear()
-        
-        self.seconds = self.settings.getSeconds()
-        self.interval = self.settings.getInterval()
-        self.categories["dpsOut"]["settings"] = self.settings.getDpsOutSettings()
-        self.categories["dpsIn"]["settings"] = self.settings.getDpsInSettings()
-        self.categories["logiOut"]["settings"] = self.settings.getLogiOutSettings()
-        self.categories["logiIn"]["settings"] = self.settings.getLogiInSettings()
-        self.categories["capTransfered"]["settings"] = self.settings.getCapTransferedSettings()
-        self.categories["capRecieved"]["settings"] = self.settings.getCapRecievedSettings()
-        self.categories["capDamageOut"]["settings"] = self.settings.getCapDamageOutSettings()
-        self.categories["capDamageIn"]["settings"] = self.settings.getCapDamageInSettings()
-        
-        if self.settings.getGraphDisabled():
-            self.grid_remove()
-        else:
-            self.grid()
-        
-        self.labelHandler.redoLabels()
-        
-        for category, items in self.categories.items():
-            if items["settings"]:
-                self.labelHandler.enableLabel(category, True)
-                items["historical"] = [0] * int((self.seconds*1000)/self.interval)
-                items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
-                ySmooth = self.smoothListGaussian(items["yValues"], self.degree)
-                try:
-                    items["labelOnly"] = items["settings"][0]["labelOnly"]
-                except KeyError:
-                    items["settings"][0]["labelOnly"] = False
-                    items["labelOnly"] = items["settings"][0]["labelOnly"]
-                if not items["labelOnly"]:
-                    plotLine, = self.subplot.plot(ySmooth, zorder=items["zorder"])
-                    items["lines"] = [plotLine]
-            else:
-                self.labelHandler.enableLabel(category, False)
-        
-        self.subplot.margins(0,0)
-        
-        if self.ani:
-            self.slowDown = False
-            #self.ani.event_source.interval = interval
-            self.ani.event_source.start(self.interval)
-        
-    def simulationSettings(self, enable=False, values=None):
-        if enable:
-            self.simulationEnabled = True
-            self.simulator = simulator.Simulator(values, self.interval)
-        if not enable:
-            self.simulator = None
-            self.simulationEnabled = False
-                
-    def catchup(self):
-        """This is just to 'clear' the graph"""
-        self.changeSettings()
-        
-    def readjust(self, windowWidth):
+    def readjust(self, windowWidth, highestAverage):
         """
         This is for when a user resizes the window, we must change how much room we have to draw numbers
         on the left-hand side.
         Annoyingly, we have to use a %, not a number of pixels
         """
         self.windowWidth = windowWidth
-        if (self.highestAverage < 900):
+        if (highestAverage < 900):
             self.graphFigure.subplots_adjust(left=(33/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
-        elif (self.highestAverage < 9000):
+        elif (highestAverage < 9000):
             self.graphFigure.subplots_adjust(left=(44/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
         else:
             self.graphFigure.subplots_adjust(left=(55/self.windowWidth), top=(1-15/self.windowWidth), 
                                              bottom=(15/self.windowWidth))
         
-    def init_animation(self):
-        """
-        This runs before the first tic of the animation so the users don't experience a 'flash' when the
-        graph changes for the first time
-        """
-        self.animate(0)
-        return
-    
-    def animate(self, i):
-        if self.simulationEnabled:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.simulator.simulate()
-        else:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.characterDetector.readLog()
-        
-        self.categories["dpsOut"]["newEntry"] = damageOut
-        self.categories["dpsIn"]["newEntry"] = damageIn
-        self.categories["logiOut"]["newEntry"] = logiOut
-        self.categories["logiIn"]["newEntry"] = logiIn
-        self.categories["capTransfered"]["newEntry"] = capTransfered
-        self.categories["capRecieved"]["newEntry"] = capRecieved
-        self.categories["capDamageOut"]["newEntry"] = capDamageOut
-        self.categories["capDamageIn"]["newEntry"] = capDamageIn
-        
-        for category, items in self.categories.items():
-            if items["settings"]:
-                items["historical"].pop(0)
-                items["historical"].insert(len(items["historical"]), items["newEntry"])
-                items["yValues"] = items["yValues"][1:]
-                average = (np.sum(items["historical"])*(1000/self.interval))/len(items["historical"])
-                items["yValues"] = np.append(items["yValues"], average)
-                if not items["labelOnly"]:
-                    ySmooth = self.smoothListGaussian(items["yValues"], self.degree)
-                    self.animateLine(ySmooth, items["settings"], items["lines"], zorder=items["zorder"])
-                    self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
-                else:
-                    for index, item in enumerate(items["settings"]):
-                        if index == (len(items["settings"])-1):
-                            if average >= item["transitionValue"]:
-                                self.labelHandler.updateLabel(category, average, item["color"])
-                        elif average >= item["transitionValue"] and average < items["settings"][index+1]["transitionValue"]:
-                            self.labelHandler.updateLabel(category, average, item["color"])
-                            break
-        
-        #Find highest average for the y-axis scaling
-        self.highestAverage = 0
-        self.highestLabelAverage = 0
-        for i in range(int((self.seconds*1000)/self.interval)):
-            for category, items in self.categories.items():
-                if items["settings"] and not items["labelOnly"]:
-                    if (items["yValues"][i] > self.highestAverage):
-                        self.highestAverage = items["yValues"][i]
-                elif items["settings"]:
-                    if (items["yValues"][i] > self.highestAverage):
-                        self.highestLabelAverage = items["yValues"][i]
-        
-        if (self.highestAverage < 100):
-            self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
-        else:
-            self.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
-        self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
-        self.readjust(self.windowWidth)
-        
-        if (self.highestAverage == 0 and self.highestLabelAverage == 0):
-            if not self.slowDown:
-                self.slowDown = True
-                self.ani.event_source._set_interval(500)
-        else:
-            if self.slowDown:
-                self.slowDown = False
-                self.ani.event_source._set_interval(self.interval)
-        
-    def animateLine(self, smoothed, categories, lines, zorder):
+    def animateLine(self, yValues, categories, lines, zorder):
         """
         Magic to make many lines with colors work.
         
@@ -243,6 +89,7 @@ class DPSGraph(tk.Frame):
         Yes this mess is more efficient.
         It could be split up into some functions for greater readability.
         """
+        smoothed = self.smoothListGaussian(yValues, self.degree)
         
         lineCategoryTracker = 0
         lastValue = smoothed[0]

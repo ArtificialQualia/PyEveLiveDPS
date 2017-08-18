@@ -19,6 +19,7 @@ import settings.settingsWindow as settingsWindow
 import simulationWindow
 import settings.settings as settings
 import labelHandler
+import animate
 if (platform.system() == "Windows"):
     from ctypes import windll
 
@@ -115,11 +116,13 @@ class BorderlessWindow(tk.Tk):
         self.update_idletasks()
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.middleFrame, self.characterDetector, self.settings, self.labelHandler, background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.middleFrame, self.settings, self.labelHandler, background="black", borderwidth="0")
         self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
-        self.graphFrame.readjust(self.winfo_width())
+        self.animator = animate.Animator(self)
+        
+        self.graphFrame.readjust(self.winfo_width(), 0)
         if self.settings.getGraphDisabled():
             self.graphFrame.grid_remove()
         else:
@@ -153,7 +156,7 @@ class BorderlessWindow(tk.Tk):
         self.characterMenu.grid(row="5", column="2")
         self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
         self.characterMenu["menu"] = self.characterMenu.menu
-        self.characterDetector = logreader.CharacterDetector(self.characterMenu)
+        self.characterDetector = logreader.CharacterDetector(self, self.characterMenu)
         
     def addDraggableEdges(self):
         self.topResizeFrame = tk.Frame(height=5, background="black", cursor="sb_v_double_arrow")
@@ -339,9 +342,11 @@ class BorderlessWindow(tk.Tk):
     def quitEvent(self, event=None):
         if not event:
             self.saveWindowGeometry()
+            self.animator.stop()
             self.quit()
         if event and (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
             self.saveWindowGeometry()
+            self.animator.stop()
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
             self.quit()
@@ -358,7 +363,7 @@ class BorderlessWindow(tk.Tk):
         self.x = None
         self.y = None
         if (self.graphFrame):
-            self.graphFrame.readjust(self.winfo_width())
+            self.graphFrame.readjust(self.winfo_width(), 0)
         
     def OnMotionMove(self, event):
         deltax = event.x - self.x
