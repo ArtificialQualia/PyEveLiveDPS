@@ -131,6 +131,6 @@ class SettingsWindow(tk.Toplevel):
         
         self.mainWindow.settings.setSettings(**settings)
         
-        self.graph.changeSettings()
+        self.mainWindow.animator.changeSettings()
         
         self.destroy()

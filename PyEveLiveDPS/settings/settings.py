@@ -73,12 +73,12 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == currentProfileName):
                 self.currentProfile = profile["profileSettings"]
                 self.selectedIndex.set(i)
-                self.mainWindow.graphFrame.changeSettings()
+                self.mainWindow.animator.changeSettings()
                 return
             i += 1
         self.currentProfile = self.allSettings[0]["profileSettings"]
         self.selectedIndex.set(0)
-        self.mainWindow.graphFrame.changeSettings()
+        self.mainWindow.animator.changeSettings()
         
     def initializeMenu(self, mainWindow):
         self.mainWindow = mainWindow
@@ -324,8 +324,7 @@ class Settings(FileSystemEventHandler):
                                        self.getWindowX(), self.getWindowY()))
         self.mainWindow.update_idletasks()
         self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width(), 0)
-        self.mainWindow.graphFrame.changeSettings()
-        #self.mainWindow.animator.changeSettings()
+        self.mainWindow.animator.changeSettings()
         self.writeSettings()
     
     def writeSettings(self):
