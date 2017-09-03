@@ -29,6 +29,7 @@ class Animator(threading.Thread):
         
         self.slowDown = False
         self.simulationEnabled = False
+        self.daemon = True
         
         self.changeSettings()
         self.start()
@@ -98,6 +99,8 @@ class Animator(threading.Thread):
                             break
         
         #Find highest average for the y-axis scaling
+        #We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
+        # and label average is needed for detecting when to slow down the animation
         self.highestAverage = 0
         self.highestLabelAverage = 0
         for i in range(int((self.seconds*1000)/interval)):
@@ -141,6 +144,7 @@ class Animator(threading.Thread):
             self.mainWindow.mainMenu.menu.insert_command(3, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
             self.mainWindow.simulationLabel.grid_remove()
         
+        self.slowDown = False
         self.seconds = self.settings.getSeconds()
         self.interval = self.settings.getInterval()
         self.categories["dpsOut"]["settings"] = self.settings.getDpsOutSettings()
