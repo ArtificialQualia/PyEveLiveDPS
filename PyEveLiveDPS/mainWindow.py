@@ -131,7 +131,16 @@ class BorderlessWindow(tk.Tk):
         self.labelHandler.lift(self.graphFrame)
         
     def addMenus(self):
-        #Set up menu options
+        #character menu options are added dynamically by CharacterDetector, so we pass this into that
+        self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
+                                      highlightbackground="black", highlightthickness="1",
+                                      activebackground="gray25", activeforeground="white")
+        self.characterMenu.grid(row="5", column="2")
+        self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
+        self.characterMenu["menu"] = self.characterMenu.menu
+        self.characterDetector = logreader.CharacterDetector(self, self.characterMenu)
+        
+        #Set up file menu options
         self.mainMenu = tk.Menubutton(text="File...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -146,17 +155,10 @@ class BorderlessWindow(tk.Tk):
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
+        getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
+        self.mainMenu.menu.add_command(label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
-        
-        #character menu options are added dynamically by CharacterDetector, so we pass this into that
-        self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
-                                      highlightbackground="black", highlightthickness="1",
-                                      activebackground="gray25", activeforeground="white")
-        self.characterMenu.grid(row="5", column="2")
-        self.characterMenu.menu = tk.Menu(self.characterMenu, tearoff=False)
-        self.characterMenu["menu"] = self.characterMenu.menu
-        self.characterDetector = logreader.CharacterDetector(self, self.characterMenu)
         
     def addDraggableEdges(self):
         self.topResizeFrame = tk.Frame(height=5, background="black", cursor="sb_v_double_arrow")

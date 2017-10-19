@@ -44,6 +44,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.menuEntries = []
         self.logReaders = []
         self.selectedIndex = IntVar()
+        self.playbackLogReader = None
         
         try:
             oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
@@ -103,8 +104,14 @@ class CharacterDetector(FileSystemEventHandler):
     def stop(self):
         self.observer.stop()
         
+    def playbackLog(self, logPath):
+        self.playbackLogReader = PlaybackLogReader(logPath)
+        self.playbackLogReader = None
+        
     def readLog(self):
-        if (len(self.menuEntries) > 0):
+        if (self.playbackLogReader):
+            return self.playbackLogReader.readLog()
+        elif (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
             return 0,0,0,0,0,0,0,0
@@ -116,7 +123,15 @@ class CharacterDetector(FileSystemEventHandler):
         except IndexError:
             pass
         
-class LogReader():
+class BaseLogReader():
+    def __init__(self, logPath):
+        pass
+    
+class PlaybackLogReader(BaseLogReader):
+    def __init__(self, logPath):
+        pass
+        
+class LogReader(BaseLogReader):
     def __init__(self, logPath):
         self.log = open(logPath, 'r', encoding="utf8")
         self.log.readline()
