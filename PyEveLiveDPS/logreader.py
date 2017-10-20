@@ -107,13 +107,25 @@ class CharacterDetector(FileSystemEventHandler):
     def playbackLog(self, logPath):
         try:
             self.playbackLogReader = PlaybackLogReader(logPath)
+            self.mainWindow.mainMenu.menu.delete(4)
+            self.mainWindow.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.stopPlayback)
         except BadLogException:
-            pass
+            self.playbackLogReader = None
+            
+    def stopPlayback(self):
         self.playbackLogReader = None
+        getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
+        self.mainWindow.mainMenu.menu.delete(4)
+        self.mainWindow.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.playbackLog(getLogFilePath()))
         
     def readLog(self):
         if (self.playbackLogReader):
-            return self.playbackLogReader.readLog()
+            try:
+                return self.playbackLogReader.readLog()
+            except EndOfLogException:
+                self.playbackLogReader = None
+                messagebox.showinfo("Playback done", "End of log file reached, resuming normal operation.")
+                return 0,0,0,0,0,0,0,0
         elif (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
@@ -170,6 +182,14 @@ class BaseLogReader():
                 
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
     
+    def extractValues(self, regex, logData):
+        returnValue = 0
+        group = regex.findall(logData)
+        if group:
+            for match in group:
+                returnValue += int(match)
+        return returnValue
+    
 class PlaybackLogReader(BaseLogReader):
     def __init__(self, logPath):
         super().__init__(logPath)
@@ -184,7 +204,7 @@ class PlaybackLogReader(BaseLogReader):
         character = re.search("(?<=Listener: ).*", characterLine)
         if character:
             character = character.group(0)
-            self.startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
+            startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
         else:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
@@ -200,25 +220,28 @@ class PlaybackLogReader(BaseLogReader):
             #                    "Playback will continue\nlog file:\n" + logPath)
             self.log.readline()
             self.log.readline()
+            self.logLine = self.log.readline()
         self.timeRegex = re.compile("^\[ .*? \]")
-        self.nextLine = self.log.readline()
-        self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine).group(0), "[ %Y.%m.%d %X ]")
-        self.startTimeLive = datetime.datetime.utcnow()
-        self.startTimeDelta = self.startTimeLive - self.startTimeLog
+        self.nextLine = self.logLine
+        self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
+        self.startTimeDelta = datetime.datetime.utcnow() - startTimeLog
+        print(self.nextTime)
         
     def readLog(self):
-        while ( self.nextEntry > self.startTimeLog + (self.startTimeDelta + (self.datetime.datetime.utcnow() - self.startTimeLive)) ):
+        logData = ""
+        while ( self.nextTime < datetime.datetime.utcnow() - self.startTimeDelta ):
+            logData += self.nextLine
             self.nextLine = self.log.readline()
-            self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine).group(0), "[ %Y.%m.%d %X ]")
+            if (self.nextLine == ''):
+                raise EndOfLogException("End of log")
+            try:
+                nextTimeString = self.timeRegex.findall(self.nextLine)[0]
+            except IndexError:
+                continue
+            self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+            print(self.nextTime)
+        if logData != '': print(logData)
         return super().readLog(logData)
-        
-    def extractValues(self, regex, logData):
-        returnValue = 0
-        group = regex.findall(logData)
-        if group:
-            for match in group:
-                returnValue += int(match)
-        return returnValue
         
         
 class LogReader(BaseLogReader):
@@ -263,4 +286,6 @@ class LogReader(BaseLogReader):
         self.log.read()
     
 class BadLogException(Exception):
+    pass
+class EndOfLogException(Exception):
     pass
