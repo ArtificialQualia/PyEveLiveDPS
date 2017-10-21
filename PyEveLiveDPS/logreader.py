@@ -22,7 +22,7 @@ import os
 import datetime
 import time
 import platform
-from tkinter import messagebox, IntVar
+from tkinter import messagebox, IntVar, filedialog
 if (platform.system() == "Windows"):
     import win32com.client
 
@@ -107,16 +107,13 @@ class CharacterDetector(FileSystemEventHandler):
     def playbackLog(self, logPath):
         try:
             self.playbackLogReader = PlaybackLogReader(logPath)
-            self.mainWindow.mainMenu.menu.delete(4)
-            self.mainWindow.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.stopPlayback)
+            self.mainWindow.addPlaybackFrame()
         except BadLogException:
             self.playbackLogReader = None
             
     def stopPlayback(self):
         self.playbackLogReader = None
-        getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
-        self.mainWindow.mainMenu.menu.delete(4)
-        self.mainWindow.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.playbackLog(getLogFilePath()))
+        self.mainWindow.removePlaybackFrame()
         
     def readLog(self):
         if (self.playbackLogReader):
@@ -210,7 +207,7 @@ class PlaybackLogReader(BaseLogReader):
             raise BadLogException("not character log")
         self.log.readline()
         self.logLine = self.log.readline()
-        if (self.logLine == "------------------------------------------------------------\n"):
+        while (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
             collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
             #Since we currently don't have a use for characters during playback, this is not needed for now.
@@ -225,7 +222,6 @@ class PlaybackLogReader(BaseLogReader):
         self.nextLine = self.logLine
         self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
         self.startTimeDelta = datetime.datetime.utcnow() - startTimeLog
-        print(self.nextTime)
         
     def readLog(self):
         logData = ""
@@ -239,8 +235,7 @@ class PlaybackLogReader(BaseLogReader):
             except IndexError:
                 continue
             self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
-            print(self.nextTime)
-        if logData != '': print(logData)
+        #if logData != '': print(logData)
         return super().readLog(logData)
         
         

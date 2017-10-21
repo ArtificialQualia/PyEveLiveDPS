@@ -15,6 +15,7 @@ import platform
 import sys
 import graph
 import logreader
+import playbackFrame
 import settings.settingsWindow as settingsWindow
 import simulationWindow
 import settings.settings as settings
@@ -81,12 +82,12 @@ class BorderlessWindow(tk.Tk):
         self.mainFrame.grid(row="1", column="1", rowspan="19", columnspan="19", sticky="nesw")
         self.makeDraggable(self.mainFrame)
         
-        self.simulationLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
-        font = tkFont.Font(font=self.simulationLabel['font'])
+        self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
+        font = tkFont.Font(font=self.topLabel['font'])
         font.config(slant='italic')
-        self.simulationLabel['font'] = font
-        self.simulationLabel.grid(row="5", column="5", columnspan="10")
-        self.simulationLabel.grid_remove()
+        self.topLabel['font'] = font
+        self.topLabel.grid(row="5", column="5", columnspan="10")
+        self.topLabel.grid_remove()
         
         #Other items for setting up the window have been moved to separate functions
         self.addDraggableEdges()
@@ -300,6 +301,22 @@ class BorderlessWindow(tk.Tk):
             self.collapseButton.destroy()
             self.addCollapseButton(self.middleFrame, row="0", column="1")
             self.collapsed = True
+    
+    def addPlaybackFrame(self):
+        self.mainMenu.menu.delete(4)
+        self.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
+        self.topLabel.configure(text="Playback Mode")
+        self.topLabel.grid()
+        self.playbackFrame = playbackFrame.PlaybackFrame(self)
+        self.playbackFrame.grid(row="11", column="1", columnspan="19", sticky="news")
+    
+    def removePlaybackFrame(self):
+        getLogFilePath = lambda: filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
+        self.mainMenu.menu.delete(4)
+        self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.playbackLog(getLogFilePath()))
+        self.topLabel.grid_remove()
+        self.playbackFrame.grid_remove()
+        self.animator.catchup()
     
     def getGraph(self):
         return self.graphFrame
