@@ -302,12 +302,12 @@ class BorderlessWindow(tk.Tk):
             self.addCollapseButton(self.middleFrame, row="0", column="1")
             self.collapsed = True
     
-    def addPlaybackFrame(self):
+    def addPlaybackFrame(self, startTime, endTime):
         self.mainMenu.menu.delete(4)
         self.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
         self.topLabel.configure(text="Playback Mode")
         self.topLabel.grid()
-        self.playbackFrame = playbackFrame.PlaybackFrame(self)
+        self.playbackFrame = playbackFrame.PlaybackFrame(self, startTime, endTime)
         self.playbackFrame.grid(row="11", column="1", columnspan="19", sticky="news")
     
     def removePlaybackFrame(self):

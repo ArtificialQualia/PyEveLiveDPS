@@ -107,7 +107,7 @@ class CharacterDetector(FileSystemEventHandler):
     def playbackLog(self, logPath):
         try:
             self.playbackLogReader = PlaybackLogReader(logPath)
-            self.mainWindow.addPlaybackFrame()
+            self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
         except BadLogException:
             self.playbackLogReader = None
             
@@ -201,7 +201,7 @@ class PlaybackLogReader(BaseLogReader):
         character = re.search("(?<=Listener: ).*", characterLine)
         if character:
             character = character.group(0)
-            startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
+            self.startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
         else:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
@@ -221,7 +221,18 @@ class PlaybackLogReader(BaseLogReader):
         self.timeRegex = re.compile("^\[ .*? \]")
         self.nextLine = self.logLine
         self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
-        self.startTimeDelta = datetime.datetime.utcnow() - startTimeLog
+        self.startTimeDelta = datetime.datetime.utcnow() - self.startTimeLog
+        endOfLog = open(logPath, 'r', encoding="utf8")
+        line = endOfLog.readline()
+        #inefficient, but ok for our normal log size
+        while ( line != '' ):
+            line = endOfLog.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+            except IndexError:
+                continue
+            self.endTimeLog = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+        endofLog.close()
         
     def readLog(self):
         logData = ""
