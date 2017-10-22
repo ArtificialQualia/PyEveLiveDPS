@@ -311,9 +311,9 @@ class BorderlessWindow(tk.Tk):
         self.playbackFrame.grid(row="11", column="1", columnspan="19", sticky="news")
     
     def removePlaybackFrame(self):
-        getLogFilePath = lambda: filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
+        getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
         self.mainMenu.menu.delete(4)
-        self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.playbackLog(getLogFilePath()))
+        self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.topLabel.grid_remove()
         self.playbackFrame.grid_remove()
         self.animator.catchup()

@@ -106,8 +106,7 @@ class CharacterDetector(FileSystemEventHandler):
         
     def playbackLog(self, logPath):
         try:
-            self.playbackLogReader = PlaybackLogReader(logPath)
-            self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
+            self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
         except BadLogException:
             self.playbackLogReader = None
             
@@ -117,12 +116,7 @@ class CharacterDetector(FileSystemEventHandler):
         
     def readLog(self):
         if (self.playbackLogReader):
-            try:
-                return self.playbackLogReader.readLog()
-            except EndOfLogException:
-                self.playbackLogReader = None
-                messagebox.showinfo("Playback done", "End of log file reached, resuming normal operation.")
-                return 0,0,0,0,0,0,0,0
+            return self.playbackLogReader.readLog()
         elif (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
@@ -188,8 +182,11 @@ class BaseLogReader():
         return returnValue
     
 class PlaybackLogReader(BaseLogReader):
-    def __init__(self, logPath):
+    def __init__(self, logPath, mainWindow):
         super().__init__(logPath)
+        self.mainWindow = mainWindow
+        self.paused = False
+        self.logPath = logPath
         try:
             self.log = open(logPath, 'r', encoding="utf8")
             self.log.readline()
@@ -232,21 +229,39 @@ class PlaybackLogReader(BaseLogReader):
             except IndexError:
                 continue
             self.endTimeLog = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
-        endofLog.close()
+        endOfLog.close()
+        self.mainWindow.addPlaybackFrame(self.startTimeLog, self.endTimeLog)
+        
+    def newStartTime(self, newTime):
+        self.log.close()
+        self.log = open(self.logPath, 'r', encoding="utf8")
+        self.startTimeDelta = datetime.datetime.utcnow() - newTime
+        self.nextTime = self.startTimeLog
+        while ( self.nextTime < newTime ):
+            line = self.log.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+            except IndexError:
+                continue
+            self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
         
     def readLog(self):
+        if self.paused:
+            return 0,0,0,0,0,0,0,0
         logData = ""
-        while ( self.nextTime < datetime.datetime.utcnow() - self.startTimeDelta ):
+        logReaderTime = datetime.datetime.utcnow() - self.startTimeDelta
+        self.mainWindow.playbackFrame.timeSlider.set((logReaderTime - self.startTimeLog).seconds)
+        while ( self.nextTime < logReaderTime ):
             logData += self.nextLine
             self.nextLine = self.log.readline()
             if (self.nextLine == ''):
-                raise EndOfLogException("End of log")
+                self.mainWindow.playbackFrame.pauseButtonRelease(None)
+                return 0,0,0,0,0,0,0,0
             try:
                 nextTimeString = self.timeRegex.findall(self.nextLine)[0]
             except IndexError:
                 continue
             self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
-        #if logData != '': print(logData)
         return super().readLog(logData)
         
         
@@ -292,6 +307,4 @@ class LogReader(BaseLogReader):
         self.log.read()
     
 class BadLogException(Exception):
-    pass
-class EndOfLogException(Exception):
     pass
