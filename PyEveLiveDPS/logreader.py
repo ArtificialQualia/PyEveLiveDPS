@@ -107,6 +107,7 @@ class CharacterDetector(FileSystemEventHandler):
     def playbackLog(self, logPath):
         try:
             self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
+            self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
         except BadLogException:
             self.playbackLogReader = None
             
@@ -219,9 +220,10 @@ class PlaybackLogReader(BaseLogReader):
         self.nextLine = self.logLine
         self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
         self.startTimeDelta = datetime.datetime.utcnow() - self.startTimeLog
+        
+        #inefficient, but ok for our normal log size
         endOfLog = open(logPath, 'r', encoding="utf8")
         line = endOfLog.readline()
-        #inefficient, but ok for our normal log size
         while ( line != '' ):
             line = endOfLog.readline()
             try:
@@ -230,7 +232,19 @@ class PlaybackLogReader(BaseLogReader):
                 continue
             self.endTimeLog = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
         endOfLog.close()
-        self.mainWindow.addPlaybackFrame(self.startTimeLog, self.endTimeLog)
+        
+        endOfLog = open(logPath, 'r', encoding="utf8")
+        line = endOfLog.readline()
+        self.logEntryFrequency = [0] * (self.endTimeLog - self.startTimeLog).seconds
+        while ( line != '' ):
+            line = endOfLog.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+                entryTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+                self.logEntryFrequency[(entryTime - self.startTimeLog).seconds] += 1
+            except IndexError:
+                continue
+        endOfLog.close()
         
     def newStartTime(self, newTime):
         self.log.close()

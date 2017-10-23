@@ -2,6 +2,11 @@
 import tkinter as tk
 import datetime
 
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure, Axes
+
 class PlaybackFrame(tk.Frame):
     def __init__(self, parent, startTime, endTime, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
@@ -17,14 +22,22 @@ class PlaybackFrame(tk.Frame):
         
         self.startTimeLabel = tk.Label(self, background="black", foreground="white", text=self.startTime.strftime("%H:%M:%S"))
         self.startTimeLabel.grid(row="1", column="1")
+        self.mainWindow.makeDraggable(self.startTimeLabel)
         
         self.makeTimeLabel()
         self.makeTimeSlider()
         
         self.endTimeLabel = tk.Label(self, background="black", foreground="white", text=self.endTime.strftime("%H:%M:%S"))
         self.endTimeLabel.grid(row="1", column="3")
+        self.mainWindow.makeDraggable(self.endTimeLabel)
         
         self.makeStopButton()
+        
+        self.graphLabel = tk.Label(self, background="black", foreground="grey", text="Log Entry\nFrequency:")
+        self.graphLabel.grid(row="2", column="0", columnspan="2")
+        self.mainWindow.makeDraggable(self.graphLabel)
+        
+        self.makeGraph()
         
     def makeTimeSlider(self):
         self.timeSlider = tk.Scale(self, from_=self.startValue, to=self.endValue, orient=tk.constants.HORIZONTAL, 
@@ -38,6 +51,8 @@ class PlaybackFrame(tk.Frame):
         #self.timeSlider.bind("<ButtonRelease-1>", lambda e: True if not self.mainWindow.characterDetector.playbackLogReader.paused else self.pauseButtonRelease(e))
         
     def timeChanged(self, newValue):
+        self.timeLine.set_data([newValue, newValue], [0, self.highestValue])
+        self.graphFigure.canvas.draw()
         self.logtime = self.startTime + datetime.timedelta(seconds=int(newValue))
         self.timeVariable.set(self.logtime.strftime("%H:%M:%S"))
         
@@ -47,6 +62,7 @@ class PlaybackFrame(tk.Frame):
         self.timeLabel = tk.Label(self, textvariable=self.timeVariable)
         self.timeLabel.configure(foreground="white", background="black")
         self.timeLabel.grid(row="0", column="0", columnspan="5", sticky="news")
+        self.mainWindow.makeDraggable(self.timeLabel)
         
     def makePauseButton(self):
         self.pauseButton = tk.Canvas(self, width=17, height=16, background="black", borderwidth=2,
@@ -102,3 +118,29 @@ class PlaybackFrame(tk.Frame):
     
     def stopButtonLeave(self, e):
         self.stopButton.configure(relief=tk.constants.RAISED)
+        
+    def makeGraph(self):
+        self.graphFigure = Figure(figsize=(1,0.1), dpi=50, facecolor="black")
+        
+        self.subplot = self.graphFigure.add_subplot(1,1,1, facecolor=(0.3, 0.3, 0.3))
+        self.subplot.tick_params(axis="y", colors="grey", labelbottom="off", bottom="off")
+        self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
+        
+        self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
+        self.graphFigure.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+
+        self.graphCanvas = FigureCanvasTkAgg(self.graphFigure, self)
+        self.graphCanvas.get_tk_widget().configure(bg="black")
+        self.graphCanvas.get_tk_widget().grid(row="2", column="2", columnspan="3", sticky="news")
+        
+        yValues = self.mainWindow.characterDetector.playbackLogReader.logEntryFrequency
+        self.highestValue = 0
+        for value in yValues:
+            if value > self.highestValue: self.highestValue = value
+        self.subplot.plot(yValues, "dodgerblue")
+        self.timeLine, = self.subplot.plot([0, 0], [0, self.highestValue], "white")
+        #self.graphFigure.axes[0].set_xlim(0, len(yValues))
+        self.subplot.margins(0.005,0.01)
+        
+        self.graphCanvas.show()
+        self.mainWindow.makeDraggable(self.graphCanvas.get_tk_widget())
