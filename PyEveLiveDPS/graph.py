@@ -4,26 +4,13 @@ DPSGraph:
     
     matplotlib is used for all graphing
     
-    The function of interest here is "animate".  It gets run every
-    self.interval, which defaults to 100ms, so a balance must be struck
-    between how much we can do in that function with how often it is run.
-    If the interval is too high, the graph is choppy and less accurate.
-    If the interval is too low, the CPU usage spikes (mostly from redrwaing
-    the graph).
-    
     Blitting the graph (only rewriting parts that changed) has almost no
     effect on performance in my testing (and the ticks don't redraw, so we have
     to redraw that every frame anyways).
     
-    This class does NOT follow the principle of 'don't repeat yourself'
-    It doesn't really work well with how many class variables we are using.
-    It would probably be a good idea to switch all our different trackers to a
-    dict, and iterate on that list for all of these.  But that is a lot of
-    refactoring for little benefit (readability)
 """
 
 import matplotlib
-from matplotlib.animation import FuncAnimation
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure, Axes

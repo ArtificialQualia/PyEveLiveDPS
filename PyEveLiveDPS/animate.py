@@ -142,7 +142,7 @@ class Animator(threading.Thread):
             self.simulationSettings(enable=False)
             self.mainWindow.mainMenu.menu.delete(3)
             self.mainWindow.mainMenu.menu.insert_command(3, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
-            self.mainWindow.simulationLabel.grid_remove()
+            self.mainWindow.topLabel.grid_remove()
         
         self.slowDown = False
         self.seconds = self.settings.getSeconds()

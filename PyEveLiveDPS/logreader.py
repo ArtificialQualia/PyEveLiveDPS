@@ -22,7 +22,7 @@ import os
 import datetime
 import time
 import platform
-from tkinter import messagebox, IntVar
+from tkinter import messagebox, IntVar, filedialog
 if (platform.system() == "Windows"):
     import win32com.client
 
@@ -44,6 +44,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.menuEntries = []
         self.logReaders = []
         self.selectedIndex = IntVar()
+        self.playbackLogReader = None
         
         try:
             oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
@@ -103,8 +104,21 @@ class CharacterDetector(FileSystemEventHandler):
     def stop(self):
         self.observer.stop()
         
+    def playbackLog(self, logPath):
+        try:
+            self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
+            self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
+        except BadLogException:
+            self.playbackLogReader = None
+            
+    def stopPlayback(self):
+        self.playbackLogReader = None
+        self.mainWindow.removePlaybackFrame()
+        
     def readLog(self):
-        if (len(self.menuEntries) > 0):
+        if (self.playbackLogReader):
+            return self.playbackLogReader.readLog()
+        elif (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
             return 0,0,0,0,0,0,0,0
@@ -116,31 +130,8 @@ class CharacterDetector(FileSystemEventHandler):
         except IndexError:
             pass
         
-class LogReader():
+class BaseLogReader():
     def __init__(self, logPath):
-        self.log = open(logPath, 'r', encoding="utf8")
-        self.log.readline()
-        self.log.readline()
-        characterLine = self.log.readline()
-        character = re.search("(?<=Listener: ).*", characterLine)
-        if character:
-            character = character.group(0)
-        else:
-            raise BadLogException("not character log")
-        self.log.readline()
-        self.log.readline()
-        self.logLine = self.log.readline()
-        if (self.logLine == "------------------------------------------------------------\n"):
-            self.log.readline()
-            collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
-            messagebox.showinfo("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
-                                "\n\nThis happens when both characters log in at exactly the same second.\n" + 
-                                "This makes it impossible to know which character owns which log.\n\n" + 
-                                "Please restart the client of the character you want to track to use this program.\n" + 
-                                "If you already did, you can ignore this message, or delete this log file:\n" + logPath)
-            raise BadLogException("log file collision")
-        self.log.read()
-        
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
         
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
@@ -159,14 +150,12 @@ class LogReader():
         self.nosRecievedRegex = re.compile("\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <")
         
         self.capTransferedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <")
-        #add nos recieved to this group
+        #add nos recieved to this group in readlog
         
         self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <")
         self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <")
-            
-    def readLog(self):
-        logData = self.log.read()
         
+    def readLog(self, logData):
         damageOut = self.extractValues(self.damageOutRegex, logData)
         damageIn = self.extractValues(self.damageInRegex, logData)
         logisticsOut = self.extractValues(self.armorRepairedOutRegex, logData)
@@ -184,6 +173,141 @@ class LogReader():
         capDamageRecieved += self.extractValues(self.nosTakenRegex, logData)
                 
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
+    
+    def extractValues(self, regex, logData):
+        returnValue = 0
+        group = regex.findall(logData)
+        if group:
+            for match in group:
+                returnValue += int(match)
+        return returnValue
+    
+class PlaybackLogReader(BaseLogReader):
+    def __init__(self, logPath, mainWindow):
+        super().__init__(logPath)
+        self.mainWindow = mainWindow
+        self.paused = False
+        self.logPath = logPath
+        try:
+            self.log = open(logPath, 'r', encoding="utf8")
+            self.log.readline()
+            self.log.readline()
+        except:
+            messagebox.showerror("Error", "This doesn't appear to be a EVE log file.\nPlease select a different file.")
+            raise BadLogException("not character log")
+        characterLine = self.log.readline()
+        character = re.search("(?<=Listener: ).*", characterLine)
+        if character:
+            character = character.group(0)
+            self.startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
+        else:
+            messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
+            raise BadLogException("not character log")
+        self.log.readline()
+        self.logLine = self.log.readline()
+        while (self.logLine == "------------------------------------------------------------\n"):
+            self.log.readline()
+            collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
+            #Since we currently don't have a use for characters during playback, this is not needed for now.
+            #messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
+            #                    "\n\nThis happens when both characters log in at exactly the same second.\n" + 
+            #                    "This makes it impossible to know which character owns this log.\n\n" + 
+            #                    "Playback will continue\nlog file:\n" + logPath)
+            self.log.readline()
+            self.log.readline()
+            self.logLine = self.log.readline()
+        self.timeRegex = re.compile("^\[ .*? \]")
+        self.nextLine = self.logLine
+        self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
+        self.startTimeDelta = datetime.datetime.utcnow() - self.startTimeLog
+        
+        #inefficient, but ok for our normal log size
+        endOfLog = open(logPath, 'r', encoding="utf8")
+        line = endOfLog.readline()
+        while ( line != '' ):
+            line = endOfLog.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+            except IndexError:
+                continue
+            self.endTimeLog = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+        endOfLog.close()
+        
+        endOfLog = open(logPath, 'r', encoding="utf8")
+        line = endOfLog.readline()
+        self.logEntryFrequency = [0] * (self.endTimeLog - self.startTimeLog).seconds
+        while ( line != '' ):
+            line = endOfLog.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+                entryTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+                self.logEntryFrequency[(entryTime - self.startTimeLog).seconds] += 1
+            except IndexError:
+                continue
+        endOfLog.close()
+        
+    def newStartTime(self, newTime):
+        self.log.close()
+        self.log = open(self.logPath, 'r', encoding="utf8")
+        self.startTimeDelta = datetime.datetime.utcnow() - newTime
+        self.nextTime = self.startTimeLog
+        while ( self.nextTime < newTime ):
+            line = self.log.readline()
+            try:
+                nextTimeString = self.timeRegex.findall(line)[0]
+            except IndexError:
+                continue
+            self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+        
+    def readLog(self):
+        if self.paused:
+            return 0,0,0,0,0,0,0,0
+        logData = ""
+        logReaderTime = datetime.datetime.utcnow() - self.startTimeDelta
+        self.mainWindow.playbackFrame.timeSlider.set((logReaderTime - self.startTimeLog).seconds)
+        while ( self.nextTime < logReaderTime ):
+            logData += self.nextLine
+            self.nextLine = self.log.readline()
+            if (self.nextLine == ''):
+                self.mainWindow.playbackFrame.pauseButtonRelease(None)
+                return 0,0,0,0,0,0,0,0
+            try:
+                nextTimeString = self.timeRegex.findall(self.nextLine)[0]
+            except IndexError:
+                continue
+            self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+        return super().readLog(logData)
+        
+        
+class LogReader(BaseLogReader):
+    def __init__(self, logPath):
+        super().__init__(logPath)
+        self.log = open(logPath, 'r', encoding="utf8")
+        self.log.readline()
+        self.log.readline()
+        characterLine = self.log.readline()
+        character = re.search("(?<=Listener: ).*", characterLine)
+        if character:
+            character = character.group(0)
+        else:
+            raise BadLogException("not character log")
+        self.log.readline()
+        self.log.readline()
+        self.logLine = self.log.readline()
+        if (self.logLine == "------------------------------------------------------------\n"):
+            self.log.readline()
+            collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
+            messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
+                                "\n\nThis happens when both characters log in at exactly the same second.\n" + 
+                                "This makes it impossible to know which character owns which log.\n\n" + 
+                                "Please restart the client of the character you want to track to use this program.\n" + 
+                                "If you already did, you can ignore this message, or delete this log file:\n" + logPath)
+            raise BadLogException("log file collision")
+        self.log.read()
+            
+    def readLog(self):
+        logData = self.log.read()
+        return super().readLog(logData)
     
     def extractValues(self, regex, logData):
         returnValue = 0
