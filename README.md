@@ -6,6 +6,7 @@ It currently has the ability to track the following:
 - Outgoing and Incoming Shield/Armor/Hull Logistics
 - Outgoing and Incoming Cap transfers
 - Outgoing and Incoming Neut/Nos
+- Amount Mined in m3 or units mined
 
 Here is an example of what it looks like in regular mode and compact mode:  
 ![PELD regular](http://i.imgur.com/lCzJGx1.png) ![PELD compact](http://i.imgur.com/MBKb4jo.png)
