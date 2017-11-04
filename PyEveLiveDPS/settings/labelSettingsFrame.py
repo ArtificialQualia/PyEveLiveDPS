@@ -15,7 +15,8 @@ class LabelSettingsFrame(tk.Frame):
             "capTransfered": "Cap Out:",
             "capRecieved": "Cap In:",
             "capDamageOut": "Cap Dmg Out:",
-            "capDamageIn": "Cap Dmg In:"}
+            "capDamageIn": "Cap Dmg In:",
+            "mining": "Mining:"}
     def __init__(self, parent, mainWindow, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         self.parent = parent

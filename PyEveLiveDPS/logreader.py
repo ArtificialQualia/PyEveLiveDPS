@@ -22,12 +22,17 @@ import os
 import datetime
 import time
 import platform
+import settings
+import data.oreVolume
+_oreVolume = data.oreVolume._oreVolume
 from tkinter import messagebox, IntVar, filedialog
 if (platform.system() == "Windows"):
     import win32com.client
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+_emptyResult = [0]*9
 
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
@@ -86,14 +91,14 @@ class CharacterDetector(FileSystemEventHandler):
         for i in range(len(self.menuEntries)):
             if (character == self.menuEntries[i]):
                 try:
-                    newLogReader = LogReader(logPath)
+                    newLogReader = LogReader(logPath, self.mainWindow)
                 except BadLogException:
                     return
                 self.logReaders[i] = newLogReader
                 return
         
         try:
-            newLogReader = LogReader(logPath)
+            newLogReader = LogReader(logPath, self.mainWindow)
         except BadLogException:
             return
         self.logReaders.append(newLogReader)
@@ -121,7 +126,7 @@ class CharacterDetector(FileSystemEventHandler):
         elif (len(self.menuEntries) > 0):
             return self.logReaders[self.selectedIndex.get()].readLog()
         else:
-            return 0,0,0,0,0,0,0,0
+            return _emptyResult
     
     def catchupLog(self):
         self.mainWindow.animator.catchup()
@@ -131,7 +136,8 @@ class CharacterDetector(FileSystemEventHandler):
             pass
         
 class BaseLogReader():
-    def __init__(self, logPath):
+    def __init__(self, logPath, mainWindow):
+        self.mainWindow = mainWindow
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
         
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
@@ -155,6 +161,8 @@ class BaseLogReader():
         self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <")
         self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <")
         
+        self.minedRegex = re.compile("\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>")
+        
     def readLog(self, logData):
         damageOut = self.extractValues(self.damageOutRegex, logData)
         damageIn = self.extractValues(self.damageInRegex, logData)
@@ -171,12 +179,24 @@ class BaseLogReader():
         capDamageDone += self.extractValues(self.nosRecievedRegex, logData)
         capDamageRecieved = self.extractValues(self.capNeutralizedInRegex, logData)
         capDamageRecieved += self.extractValues(self.nosTakenRegex, logData)
+        mined = self.extractValues(self.minedRegex, logData, mining=True)
                 
-        return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
+        return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mined
     
-    def extractValues(self, regex, logData):
+    def extractValues(self, regex, logData, mining=False):
         returnValue = 0
         group = regex.findall(logData)
+        if mining:
+            if group:
+                for amount,type in group:
+                    if self.mainWindow.settings.getMiningM3Setting():
+                        if type in _oreVolume:
+                            returnValue += int(amount) * _oreVolume[type]
+                        else:
+                            returnValue += int(amount)
+                    else:
+                        returnValue += int(amount)
+            return returnValue
         if group:
             for match in group:
                 returnValue += int(match)
@@ -184,7 +204,7 @@ class BaseLogReader():
     
 class PlaybackLogReader(BaseLogReader):
     def __init__(self, logPath, mainWindow):
-        super().__init__(logPath)
+        super().__init__(logPath, mainWindow)
         self.mainWindow = mainWindow
         self.paused = False
         self.logPath = logPath
@@ -261,7 +281,7 @@ class PlaybackLogReader(BaseLogReader):
         
     def readLog(self):
         if self.paused:
-            return 0,0,0,0,0,0,0,0
+            return _emptyResult
         logData = ""
         logReaderTime = datetime.datetime.utcnow() - self.startTimeDelta
         self.mainWindow.playbackFrame.timeSlider.set((logReaderTime - self.startTimeLog).seconds)
@@ -270,7 +290,7 @@ class PlaybackLogReader(BaseLogReader):
             self.nextLine = self.log.readline()
             if (self.nextLine == ''):
                 self.mainWindow.playbackFrame.pauseButtonRelease(None)
-                return 0,0,0,0,0,0,0,0
+                return _emptyResult
             try:
                 nextTimeString = self.timeRegex.findall(self.nextLine)[0]
             except IndexError:
@@ -280,8 +300,8 @@ class PlaybackLogReader(BaseLogReader):
         
         
 class LogReader(BaseLogReader):
-    def __init__(self, logPath):
-        super().__init__(logPath)
+    def __init__(self, logPath, mainWindow):
+        super().__init__(logPath, mainWindow)
         self.log = open(logPath, 'r', encoding="utf8")
         self.log.readline()
         self.log.readline()
@@ -308,14 +328,6 @@ class LogReader(BaseLogReader):
     def readLog(self):
         logData = self.log.read()
         return super().readLog(logData)
-    
-    def extractValues(self, regex, logData):
-        returnValue = 0
-        group = regex.findall(logData)
-        if group:
-            for match in group:
-                returnValue += int(match)
-        return returnValue
     
     def catchup(self):
         self.log.read()

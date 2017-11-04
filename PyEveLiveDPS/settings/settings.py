@@ -18,6 +18,7 @@ class Settings(FileSystemEventHandler):
                          "logiOut": [], "logiIn": [],
                          "capTransfered": [], "capRecieved": [],
                          "capDamageOut": [], "capDamageIn": [],
+                         "mining": [],
                          "labels": {
                              "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
                              "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
@@ -26,7 +27,8 @@ class Settings(FileSystemEventHandler):
                              "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
                              "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
                              "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
-                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1}
+                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1},
+                             "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
                              },
                          "labelColumns": [4,4],
                          "labelColors": 0
@@ -215,6 +217,19 @@ class Settings(FileSystemEventHandler):
     def getLogiOutSettings(self):
         return copy.deepcopy(self.currentProfile["logiOut"])
     
+    def getMiningSettings(self):
+        try:
+            return copy.deepcopy(self.currentProfile["mining"])
+        except KeyError:
+            self.setSettings(mining=copy.deepcopy(self.defaultProfile[0]["profileSettings"]["mining"]))
+            return copy.deepcopy(self.currentProfile["mining"])
+        
+    def getMiningM3Setting(self):
+        try:
+            return self.currentProfile["mining"][0]["showM3"]
+        except KeyError:
+            return False
+    
     def getInterval(self):
         return self.currentProfile["interval"]
     
@@ -249,7 +264,15 @@ class Settings(FileSystemEventHandler):
         
     def getLabels(self):
         try:
-            return copy.deepcopy(self.currentProfile["labels"])
+            labelsCopy = copy.deepcopy(self.currentProfile["labels"])
+            if "mining" not in labelsCopy:
+                placementArray = [[x,y] for x in range(8) for y in range(8)]
+                for entry in labelsCopy:
+                    for place in placementArray:
+                        if place[0] == labelsCopy[entry]["row"] and place[1] == labelsCopy[entry]["column"]:
+                            placementArray.remove(place)
+                labelsCopy["mining"] = {"row": placementArray[0][0], "column": placementArray[0][1], "inThousands": 0, "decimalPlaces": 1}
+            return labelsCopy
         except KeyError:
             self.setSettings(labels=copy.deepcopy(self.defaultProfile[0]["profileSettings"]["labels"]))
             return copy.deepcopy(self.currentProfile["labels"])
@@ -269,7 +292,7 @@ class Settings(FileSystemEventHandler):
             return self.currentProfile["labelColors"]
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
-                    dpsIn=None, dpsOut=None, logiIn=None, logiOut=None,
+                    dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
                     labels=None, labelColumns=None, labelColors=None, graphDisabled=None):
@@ -289,6 +312,8 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["logiIn"] = logiIn
         if not logiOut == None:
             self.currentProfile["logiOut"] = logiOut
+        if not mining == None:
+            self.currentProfile["mining"] = mining
         if not interval == None:
             self.currentProfile["interval"] = interval
         if not seconds == None:
