@@ -23,10 +23,12 @@ class Simulator():
         except KeyError: capRecieved = 0
         try: capDamageRecieved = self.simulateValue(self.values["neutIn"])
         except KeyError: capDamageRecieved = 0
+        try: mining = self.simulateValue(self.values["mining"])
+        except KeyError: mining = 0
         
         self.timesRun += 1
         
-        return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved
+        return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mining
     
     def simulateValue(self, value):
         if ((self.timesRun*self.interval)%(value["cycle"]*1000) == 0):

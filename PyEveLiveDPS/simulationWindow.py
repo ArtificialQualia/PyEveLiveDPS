@@ -56,6 +56,9 @@ class SimulationWindow(tk.Toplevel):
         if self.mainWindow.settings.getCapDamageInSettings():
             tk.Label(self.innerFrame, text="Cap Warfare In:").grid(row="9", column="0", sticky="e")
             self.addRow("neutIn", "9")
+        if self.mainWindow.settings.getMiningSettings():
+            tk.Label(self.innerFrame, text="Mining:").grid(row="10", column="0", sticky="e")
+            self.addRow("mining", "10")
         
         tk.Frame(self, height="20", width="1").grid(row="99", column="1", columnspan="5")
         

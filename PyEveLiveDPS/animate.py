@@ -8,6 +8,7 @@ import matplotlib
 import simulator
 import simulationWindow
 
+
 class Animator(threading.Thread):
     categories = {
         "dpsIn": { "zorder": 90 },
@@ -17,7 +18,8 @@ class Animator(threading.Thread):
         "capTransfered": { "zorder": 60 },
         "capRecieved": { "zorder": 50 },
         "capDamageOut": { "zorder": 40 }, 
-        "capDamageIn": { "zorder": 30 }
+        "capDamageIn": { "zorder": 30 },
+        "mining": { "zorder": 20 }
         }
     def __init__(self, mainWindow, **kwargs):
         threading.Thread.__init__(self, name="animator")
@@ -65,9 +67,9 @@ class Animator(threading.Thread):
             
     def animate(self):
         if self.simulationEnabled:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.simulator.simulate()
+            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.simulator.simulate()
         else:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn = self.characterDetector.readLog()
+            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.characterDetector.readLog()
         
         self.categories["dpsOut"]["newEntry"] = damageOut
         self.categories["dpsIn"]["newEntry"] = damageIn
@@ -77,6 +79,7 @@ class Animator(threading.Thread):
         self.categories["capRecieved"]["newEntry"] = capRecieved
         self.categories["capDamageOut"]["newEntry"] = capDamageOut
         self.categories["capDamageIn"]["newEntry"] = capDamageIn
+        self.categories["mining"]["newEntry"] = mining
         interval = self.settings.getInterval()
         
         for category, items in self.categories.items():
@@ -155,6 +158,7 @@ class Animator(threading.Thread):
         self.categories["capRecieved"]["settings"] = self.settings.getCapRecievedSettings()
         self.categories["capDamageOut"]["settings"] = self.settings.getCapDamageOutSettings()
         self.categories["capDamageIn"]["settings"] = self.settings.getCapDamageInSettings()
+        self.categories["mining"]["settings"] = self.settings.getMiningSettings()
         self.graphDisabled = self.settings.getGraphDisabled()
         
         if self.graphDisabled:

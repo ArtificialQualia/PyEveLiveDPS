@@ -10,7 +10,8 @@ class LabelHandler(tk.Frame):
             "capTransfered": { "text": "Cap Out:" },
             "capRecieved": { "text": "Cap In:" },
             "capDamageOut": { "text": "Cap Dmg Out:" },
-            "capDamageIn": { "text": "Cap Dmg In:" }
+            "capDamageIn": { "text": "Cap Dmg In:" },
+            "mining": { "text": "Mining:" }
             }
     def __init__(self, parent, settings, makeAllChildrenDraggable, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
