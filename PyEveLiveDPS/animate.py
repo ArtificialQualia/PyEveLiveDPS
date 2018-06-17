@@ -71,14 +71,14 @@ class Animator(threading.Thread):
         else:
             damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.characterDetector.readLog()
         
-        self.categories["dpsOut"]["newEntry"] = damageOut
-        self.categories["dpsIn"]["newEntry"] = damageIn
-        self.categories["logiOut"]["newEntry"] = logiOut
-        self.categories["logiIn"]["newEntry"] = logiIn
-        self.categories["capTransfered"]["newEntry"] = capTransfered
-        self.categories["capRecieved"]["newEntry"] = capRecieved
-        self.categories["capDamageOut"]["newEntry"] = capDamageOut
-        self.categories["capDamageIn"]["newEntry"] = capDamageIn
+        self.categories["dpsOut"]["newEntry"] = sum([entry['amount'] for entry in damageOut])
+        self.categories["dpsIn"]["newEntry"] = sum([entry['amount'] for entry in damageIn])
+        self.categories["logiOut"]["newEntry"] = sum([entry['amount'] for entry in logiOut])
+        self.categories["logiIn"]["newEntry"] = sum([entry['amount'] for entry in logiIn])
+        self.categories["capTransfered"]["newEntry"] = sum([entry['amount'] for entry in capTransfered])
+        self.categories["capRecieved"]["newEntry"] = sum([entry['amount'] for entry in capRecieved])
+        self.categories["capDamageOut"]["newEntry"] = sum([entry['amount'] for entry in capDamageOut])
+        self.categories["capDamageIn"]["newEntry"] = sum([entry['amount'] for entry in capDamageIn])
         self.categories["mining"]["newEntry"] = mining
         interval = self.settings.getInterval()
         

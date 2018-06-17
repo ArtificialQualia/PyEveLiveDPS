@@ -32,7 +32,8 @@ if (platform.system() == "Windows"):
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-_emptyResult = [0]*9
+_emptyResult = [[] for x in range(0,8)]
+_emptyResult.append(0)
 
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
@@ -138,28 +139,29 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
-        self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<")
+        pilotAndWeaponRegex = '.*ffffffff>(.*)\[.*\((.*)\)<.*> \- (.*)[\-<]'
+        self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<" + pilotAndWeaponRegex)
         
-        self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<")
+        self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<" + pilotAndWeaponRegex)
         
-        self.armorRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <")
-        self.hullRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <")
-        self.shieldBoostedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <")
+        self.armorRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <" + pilotAndWeaponRegex)
+        self.hullRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <" + pilotAndWeaponRegex)
+        self.shieldBoostedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <" + pilotAndWeaponRegex)
         
-        self.armorRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <")
-        self.hullRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <")
-        self.shieldBoostedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <")
+        self.armorRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <" + pilotAndWeaponRegex)
+        self.hullRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <" + pilotAndWeaponRegex)
+        self.shieldBoostedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <" + pilotAndWeaponRegex)
         
-        self.capTransferedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <")
+        self.capTransferedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <" + pilotAndWeaponRegex)
         
-        self.capNeutralizedOutRegex = re.compile("\(combat\) <.*?ff7fffff><b>([0-9]+).*> energy neutralized <")
-        self.nosRecievedRegex = re.compile("\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <")
+        self.capNeutralizedOutRegex = re.compile("\(combat\) <.*?ff7fffff><b>([0-9]+).*> energy neutralized <" + pilotAndWeaponRegex)
+        self.nosRecievedRegex = re.compile("\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <" + pilotAndWeaponRegex)
         
-        self.capTransferedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <")
+        self.capTransferedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <" + pilotAndWeaponRegex)
         #add nos recieved to this group in readlog
         
-        self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <")
-        self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <")
+        self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <" + pilotAndWeaponRegex)
+        self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <" + pilotAndWeaponRegex)
         
         self.minedRegex = re.compile("\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>")
         
@@ -167,18 +169,18 @@ class BaseLogReader():
         damageOut = self.extractValues(self.damageOutRegex, logData)
         damageIn = self.extractValues(self.damageInRegex, logData)
         logisticsOut = self.extractValues(self.armorRepairedOutRegex, logData)
-        logisticsOut += self.extractValues(self.hullRepairedOutRegex, logData)
-        logisticsOut += self.extractValues(self.shieldBoostedOutRegex, logData)
+        logisticsOut.extend(self.extractValues(self.hullRepairedOutRegex, logData))
+        logisticsOut.extend(self.extractValues(self.shieldBoostedOutRegex, logData))
         logisticsIn = self.extractValues(self.armorRepairedInRegex, logData)
-        logisticsIn += self.extractValues(self.hullRepairedInRegex, logData)
-        logisticsIn += self.extractValues(self.shieldBoostedInRegex, logData)
+        logisticsIn.extend(self.extractValues(self.hullRepairedInRegex, logData))
+        logisticsIn.extend(self.extractValues(self.shieldBoostedInRegex, logData))
         capTransfered = self.extractValues(self.capTransferedOutRegex, logData)
         capRecieved = self.extractValues(self.capTransferedInRegex, logData)
-        capRecieved += self.extractValues(self.nosRecievedRegex, logData)
+        capRecieved.extend(self.extractValues(self.nosRecievedRegex, logData))
         capDamageDone = self.extractValues(self.capNeutralizedOutRegex, logData)
-        capDamageDone += self.extractValues(self.nosRecievedRegex, logData)
+        capDamageDone.extend(self.extractValues(self.nosRecievedRegex, logData))
         capDamageRecieved = self.extractValues(self.capNeutralizedInRegex, logData)
-        capDamageRecieved += self.extractValues(self.nosTakenRegex, logData)
+        capDamageRecieved.extend(self.extractValues(self.nosTakenRegex, logData))
         mined = self.extractValues(self.minedRegex, logData, mining=True)
                 
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mined
@@ -197,9 +199,15 @@ class BaseLogReader():
                     else:
                         returnValue += int(amount)
             return returnValue
+        returnValue = []
         if group:
             for match in group:
-                returnValue += int(match)
+                returnGroup = {}
+                returnGroup['amount'] = int(match[0])
+                returnGroup['pilotName'] = match[1]
+                returnGroup['shipType'] = match[2]
+                returnGroup['weaponType'] = match[3]
+                returnValue.append(returnGroup)
         return returnValue
     
 class PlaybackLogReader(BaseLogReader):

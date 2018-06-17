@@ -14,7 +14,7 @@ import traceback
 
 class App():
     def __init__(self):
-        graphWindow = mainWindow.BorderlessWindow()
+        graphWindow = mainWindow.MainWindow()
         graphWindow.mainloop()
     
 try:

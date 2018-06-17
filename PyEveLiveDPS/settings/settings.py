@@ -1,3 +1,12 @@
+"""
+ handles settings file management and retrieval of settings
+ 
+ settings retrieval is (mostly) done in a non-pythonic way,
+ hard to break those java habits!
+ 
+ They should all be refactored to use @property
+"""
+
 import platform
 import os
 import json
@@ -31,7 +40,14 @@ class Settings(FileSystemEventHandler):
                              "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
                              },
                          "labelColumns": [4,4],
-                         "labelColors": 0
+                         "labelColors": 0,
+                         "detailsWindow": {
+                             "show": 1,
+                             "width": 200,
+                             "height": 250,
+                             "x": 0,
+                             "y": 0
+                             }
                          } 
                         } ]
     def __init__(self):
@@ -290,12 +306,97 @@ class Settings(FileSystemEventHandler):
         except KeyError:
             self.setSettings(labelColors=0)
             return self.currentProfile["labelColors"]
+        
+    @property
+    def detailsWindow(self):
+        return self.currentProfile.get("detailsWindow") or self.defaultProfile[0]["profileSettings"]["detailsWindow"]
+    
+    @property
+    def detailsWindowShow(self):
+        if 'detailsWindow' in self.currentProfile and 'show' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["show"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["show"]
+        
+    @detailsWindowShow.setter
+    def detailsWindowShow(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["show"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["show"] = value
+        self.writeSettings()
+        
+    @property
+    def detailsWindowHeight(self):
+        if 'detailsWindow' in self.currentProfile and 'height' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["height"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["height"]
+    
+    @detailsWindowHeight.setter
+    def detailsWindowHeight(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["height"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["height"] = value
+        self.writeSettings()
+        
+    @property
+    def detailsWindowWidth(self):
+        if 'detailsWindow' in self.currentProfile and 'width' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["width"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["width"]
+    
+    @detailsWindowWidth.setter
+    def detailsWindowWidth(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["width"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["width"] = value
+        self.writeSettings()
+    
+    @property
+    def detailsWindowX(self):
+        if 'detailsWindow' in self.currentProfile and 'x' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["x"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["x"]
+    
+    @detailsWindowX.setter
+    def detailsWindowX(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["x"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["x"] = value
+        self.writeSettings()
+    
+    @property
+    def detailsWindowY(self):
+        if 'detailsWindow' in self.currentProfile and 'y' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["y"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["y"]
+    
+    @detailsWindowY.setter
+    def detailsWindowY(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["y"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["y"] = value
+        self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
-                    labels=None, labelColumns=None, labelColors=None, graphDisabled=None):
+                    labels=None, labelColumns=None, labelColors=None, graphDisabled=None,
+                    detailsWindowX=None, detailsWindowY=None, detailsWindowWidth=None, detailsWindowHeight=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -358,9 +459,7 @@ class Settings(FileSystemEventHandler):
         json.dump(self.allSettings, settingsFile, indent=4)
         settingsFile.close()
         os.remove(self.fullPath)
-        self.observer.stop()
+        self.observer.unschedule_all()
         os.rename(tempFile, self.fullPath)
-        self.observer = Observer()
         self.observer.schedule(self, self.path, recursive=False)
-        self.observer.start()
     
