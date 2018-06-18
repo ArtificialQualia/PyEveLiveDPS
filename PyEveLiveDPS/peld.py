@@ -10,11 +10,14 @@ allow that to control it for now.
 """
 
 import mainWindow
+import updateChecker
 import traceback
 
 class App():
     def __init__(self):
         graphWindow = mainWindow.MainWindow()
+        updateCheckerThread = updateChecker.UpdateChecker(graphWindow.settings)
+        updateCheckerThread.start()
         graphWindow.mainloop()
     
 try:

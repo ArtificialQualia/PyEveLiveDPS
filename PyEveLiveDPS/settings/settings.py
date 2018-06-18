@@ -48,7 +48,7 @@ class Settings(FileSystemEventHandler):
                              "x": 0,
                              "y": 0
                              }
-                         } 
+                         }
                         } ]
     def __init__(self):
         self.observer = Observer()
@@ -389,6 +389,19 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["y"] = value
+        self.writeSettings()
+    
+    @property
+    def disableUpdateReminderFor(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                return profile.get("disableUpdateReminderFor")
+    
+    @disableUpdateReminderFor.setter
+    def disableUpdateReminderFor(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["disableUpdateReminderFor"] = value
         self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
