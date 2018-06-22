@@ -19,19 +19,18 @@ import numpy as np
 import tkinter as tk
 import logreader
 import decimal
-import settings
+from peld import settings
 import simulator
 
 class DPSGraph(tk.Frame):
-    def __init__(self, parent, settings, labelHandler, **kwargs):
+    def __init__(self, parent, labelHandler, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         
         self.parent = parent
         self.labelHandler = labelHandler
-        self.settings = settings
         
         self.degree = 5
-        self.windowWidth = self.settings.getWindowWidth()
+        self.windowWidth = settings.getWindowWidth()
         
         self.graphFigure = Figure(figsize=(4,2), dpi=100, facecolor="black")
         

@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib
 import simulator
 import simulationWindow
+from peld import settings
 
 
 class Animator(threading.Thread):
@@ -26,7 +27,6 @@ class Animator(threading.Thread):
         self.mainWindow = mainWindow
         self.graph = mainWindow.graphFrame
         self.labelHandler = mainWindow.labelHandler
-        self.settings = mainWindow.settings
         self.characterDetector = mainWindow.characterDetector
         
         self.slowDown = False
@@ -60,7 +60,7 @@ class Animator(threading.Thread):
     def simulationSettings(self, enable=False, values=None):
         if enable:
             self.simulationEnabled = True
-            self.simulator = simulator.Simulator(values, self.settings.getInterval())
+            self.simulator = simulator.Simulator(values, settings.getInterval())
         if not enable:
             self.simulator = None
             self.simulationEnabled = False
@@ -71,21 +71,24 @@ class Animator(threading.Thread):
         else:
             damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.characterDetector.readLog()
         
-        self.categories["dpsOut"]["newEntry"] = sum([entry['amount'] for entry in damageOut])
-        self.categories["dpsIn"]["newEntry"] = sum([entry['amount'] for entry in damageIn])
-        self.categories["logiOut"]["newEntry"] = sum([entry['amount'] for entry in logiOut])
-        self.categories["logiIn"]["newEntry"] = sum([entry['amount'] for entry in logiIn])
-        self.categories["capTransfered"]["newEntry"] = sum([entry['amount'] for entry in capTransfered])
-        self.categories["capRecieved"]["newEntry"] = sum([entry['amount'] for entry in capRecieved])
-        self.categories["capDamageOut"]["newEntry"] = sum([entry['amount'] for entry in capDamageOut])
-        self.categories["capDamageIn"]["newEntry"] = sum([entry['amount'] for entry in capDamageIn])
+        self.categories["dpsOut"]["newEntry"] = damageOut
+        self.categories["dpsIn"]["newEntry"] = damageIn
+        self.categories["logiOut"]["newEntry"] = logiOut
+        self.categories["logiIn"]["newEntry"] = logiIn
+        self.categories["capTransfered"]["newEntry"] = capTransfered
+        self.categories["capRecieved"]["newEntry"] = capRecieved
+        self.categories["capDamageOut"]["newEntry"] = capDamageOut
+        self.categories["capDamageIn"]["newEntry"] = capDamageIn
         self.categories["mining"]["newEntry"] = mining
-        interval = self.settings.getInterval()
+        interval = settings.getInterval()
         
         for category, items in self.categories.items():
             if items["settings"]:
                 items["historical"].pop(0)
-                items["historical"].insert(len(items["historical"]), items["newEntry"])
+                items["historicalDetails"].pop(0)
+                amountSum = sum([entry['amount'] for entry in items["newEntry"]])
+                items["historical"].insert(len(items["historical"]), amountSum)
+                items["historicalDetails"].insert(len(items["historicalDetails"]), items["newEntry"])
                 items["yValues"] = items["yValues"][1:]
                 average = (np.sum(items["historical"])*(1000/interval))/len(items["historical"])
                 items["yValues"] = np.append(items["yValues"], average)
@@ -121,7 +124,7 @@ class Animator(threading.Thread):
             else:
                 self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
             self.graph.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
-            self.graph.readjust(self.settings.getWindowWidth(), self.highestAverage)
+            self.graph.readjust(settings.getWindowWidth(), self.highestAverage)
         
         if (self.highestAverage == 0 and self.highestLabelAverage == 0):
             if not self.slowDown:
@@ -130,7 +133,7 @@ class Animator(threading.Thread):
         else:
             if self.slowDown:
                 self.slowDown = False
-                self.interval = self.settings.getInterval()
+                self.interval = settings.getInterval()
 
         if not self.graphDisabled:
             self.graph.graphFigure.canvas.draw()
@@ -148,18 +151,18 @@ class Animator(threading.Thread):
             self.mainWindow.topLabel.grid_remove()
         
         self.slowDown = False
-        self.seconds = self.settings.getSeconds()
-        self.interval = self.settings.getInterval()
-        self.categories["dpsOut"]["settings"] = self.settings.getDpsOutSettings()
-        self.categories["dpsIn"]["settings"] = self.settings.getDpsInSettings()
-        self.categories["logiOut"]["settings"] = self.settings.getLogiOutSettings()
-        self.categories["logiIn"]["settings"] = self.settings.getLogiInSettings()
-        self.categories["capTransfered"]["settings"] = self.settings.getCapTransferedSettings()
-        self.categories["capRecieved"]["settings"] = self.settings.getCapRecievedSettings()
-        self.categories["capDamageOut"]["settings"] = self.settings.getCapDamageOutSettings()
-        self.categories["capDamageIn"]["settings"] = self.settings.getCapDamageInSettings()
-        self.categories["mining"]["settings"] = self.settings.getMiningSettings()
-        self.graphDisabled = self.settings.getGraphDisabled()
+        self.seconds = settings.getSeconds()
+        self.interval = settings.getInterval()
+        self.categories["dpsOut"]["settings"] = settings.getDpsOutSettings()
+        self.categories["dpsIn"]["settings"] = settings.getDpsInSettings()
+        self.categories["logiOut"]["settings"] = settings.getLogiOutSettings()
+        self.categories["logiIn"]["settings"] = settings.getLogiInSettings()
+        self.categories["capTransfered"]["settings"] = settings.getCapTransferedSettings()
+        self.categories["capRecieved"]["settings"] = settings.getCapRecievedSettings()
+        self.categories["capDamageOut"]["settings"] = settings.getCapDamageOutSettings()
+        self.categories["capDamageIn"]["settings"] = settings.getCapDamageInSettings()
+        self.categories["mining"]["settings"] = settings.getMiningSettings()
+        self.graphDisabled = settings.getGraphDisabled()
         
         if self.graphDisabled:
             self.graph.grid_remove()
@@ -172,6 +175,7 @@ class Animator(threading.Thread):
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
                 items["historical"] = [0] * int((self.seconds*1000)/self.interval)
+                items["historicalDetails"] = [0] * int((self.seconds*1000)/self.interval)
                 items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
                 try:
                     items["labelOnly"] = items["settings"][0]["labelOnly"]

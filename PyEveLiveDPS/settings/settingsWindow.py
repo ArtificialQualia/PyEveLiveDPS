@@ -11,6 +11,7 @@ import copy
 from settings.generalSettingsFrame import GeneralSettingsFrame
 from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
+from peld import settings
 
 class SideBar(tk.Frame):
     images = {"Tracking": "lines.png",
@@ -122,14 +123,14 @@ class SettingsWindow(tk.Toplevel):
             
         
     def doSettings(self):
-        settings = {}
+        settingsToApply = {}
         for option, frame in self.options:
             returnValue = frame.doSettings()
             if returnValue == None:
                 return
-            settings.update(returnValue)
+            settingsToApply.update(returnValue)
         
-        self.mainWindow.settings.setSettings(**settings)
+        settings.setSettings(**settingsToApply)
         
         self.mainWindow.animator.changeSettings()
         

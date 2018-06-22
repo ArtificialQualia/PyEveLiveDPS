@@ -16,39 +16,42 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 class Settings(FileSystemEventHandler):
-    defaultProfile = [ { "profile": "Default", "profileSettings": 
-                        { "windowX": 0, "windowY": 0,
-                         "windowHeight": 225, "windowWidth": 350,
-                         "compactTransparency": 65,
-                         "seconds": 10, "interval": 100,
-                         "graphDisabled": 0,
-                         "dpsIn": [{"color": "#FF0000", "transitionValue": 0, "labelOnly": 0}],
-                         "dpsOut": [{"color": "#00FFFF", "transitionValue": 0, "labelOnly": 0}],
-                         "logiOut": [], "logiIn": [],
-                         "capTransfered": [], "capRecieved": [],
-                         "capDamageOut": [], "capDamageIn": [],
-                         "mining": [],
-                         "labels": {
-                             "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
-                             "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
-                             "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
-                             "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
-                             "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
-                             "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
-                             "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
-                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1},
-                             "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
-                             },
-                         "labelColumns": [4,4],
-                         "labelColors": 0,
-                         "detailsWindow": {
-                             "show": 1,
-                             "width": 200,
-                             "height": 250,
-                             "x": 0,
-                             "y": 0
+    defaultProfile = [ {
+                        "profile": "Default",
+                        "logLevel": 20,
+                        "profileSettings": 
+                            { "windowX": 0, "windowY": 0,
+                             "windowHeight": 225, "windowWidth": 350,
+                             "compactTransparency": 65,
+                             "seconds": 10, "interval": 100,
+                             "graphDisabled": 0,
+                             "dpsIn": [{"color": "#FF0000", "transitionValue": 0, "labelOnly": 0}],
+                             "dpsOut": [{"color": "#00FFFF", "transitionValue": 0, "labelOnly": 0}],
+                             "logiOut": [], "logiIn": [],
+                             "capTransfered": [], "capRecieved": [],
+                             "capDamageOut": [], "capDamageIn": [],
+                             "mining": [],
+                             "labels": {
+                                 "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
+                                 "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
+                                 "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                                 "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                                 "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
+                                 "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1},
+                                 "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
+                                 },
+                             "labelColumns": [4,4],
+                             "labelColors": 0,
+                             "detailsWindow": {
+                                 "show": 1,
+                                 "width": 200,
+                                 "height": 250,
+                                 "x": 0,
+                                 "y": 0
+                                 }
                              }
-                         }
                         } ]
     def __init__(self):
         self.observer = Observer()
@@ -79,6 +82,8 @@ class Settings(FileSystemEventHandler):
         self.currentProfile = self.allSettings[0]["profileSettings"]
         
     def on_moved(self, event):
+        if not event.dest_path.endswith('.json'):
+            return
         currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
         settingsFile = open(self.fullPath, 'r')
         self.allSettings = json.load(settingsFile)
@@ -341,7 +346,6 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["height"] = value
-        self.writeSettings()
         
     @property
     def detailsWindowWidth(self):
@@ -357,7 +361,6 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["width"] = value
-        self.writeSettings()
     
     @property
     def detailsWindowX(self):
@@ -373,7 +376,6 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["x"] = value
-        self.writeSettings()
     
     @property
     def detailsWindowY(self):
@@ -389,7 +391,6 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["y"] = value
-        self.writeSettings()
     
     @property
     def disableUpdateReminderFor(self):
@@ -402,6 +403,22 @@ class Settings(FileSystemEventHandler):
         for profile in self.allSettings:
             if (profile["profile"] == "Default"):
                 profile["disableUpdateReminderFor"] = value
+        self.writeSettings()
+        
+    @property
+    def logLevel(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if not profile.get("logLevel"):
+                    profile["logLevel"] = self.defaultProfile[0]["logLevel"]
+                    self.writeSettings()
+                return profile.get("logLevel")
+    
+    @logLevel.setter
+    def logLevel(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["logLevel"] = value
         self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,

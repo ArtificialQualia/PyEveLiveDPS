@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.font as tkFont
+from peld import settings
 
 class GeneralSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
@@ -14,7 +15,7 @@ class GeneralSettingsFrame(tk.Frame):
         self.counter = 0
         
         checkboxValue = tk.BooleanVar()
-        checkboxValue.set(self.mainWindow.settings.getGraphDisabled())
+        checkboxValue.set(settings.getGraphDisabled())
         self.graphDisabled = tk.Checkbutton(self, text="Disable graph entirely", variable=checkboxValue)
         self.graphDisabled.var = checkboxValue
         self.graphDisabled.grid(row=self.counter, column="1", columnspan="2")
@@ -27,17 +28,17 @@ class GeneralSettingsFrame(tk.Frame):
         self.counter += 3
         
         self.secondsVar = tk.StringVar()
-        self.secondsVar.set(self.mainWindow.settings.getSeconds())
+        self.secondsVar.set(settings.getSeconds())
         self.addSetting(self.secondsVar, "Number of seconds to average values:", 
                         "Recommended to set this value higher than your weapon cycle time")
         
         self.intervalVar = tk.StringVar()
-        self.intervalVar.set(self.mainWindow.settings.getInterval())
+        self.intervalVar.set(settings.getInterval())
         self.addSetting(self.intervalVar, "How often to update graph/labels in milliseconds:", 
                         "The lower you set this value, the higher your CPU usage will be")
         
         self.transparencyVar = tk.StringVar()
-        self.transparencyVar.set(self.mainWindow.settings.getCompactTransparency())
+        self.transparencyVar.set(settings.getCompactTransparency())
         self.addSetting(self.transparencyVar, "Window transparency percentage in compact mode:", 
                         "100 is fully visible, 0 is invisible")
         

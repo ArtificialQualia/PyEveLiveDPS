@@ -1,5 +1,5 @@
 import tkinter as tk
-import settings
+from peld import settings
 import decimal
 
 class LabelHandler(tk.Frame):
@@ -13,9 +13,8 @@ class LabelHandler(tk.Frame):
             "capDamageIn": { "text": "Cap Dmg In:" },
             "mining": { "text": "Mining:" }
             }
-    def __init__(self, parent, settings, makeAllChildrenDraggable, **kwargs):
+    def __init__(self, parent, makeAllChildrenDraggable, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
-        self.settings = settings
         self.makeAllChildrenDraggable = makeAllChildrenDraggable
         self.columnconfigure(9, weight="1")
         
@@ -24,9 +23,9 @@ class LabelHandler(tk.Frame):
         self.initializeLabels()
         
     def initializeLabels(self):
-        self.labelSettings = self.settings.getLabels()
-        self.labelColumns = self.settings.getLabelColumns()
-        self.labelColors = self.settings.getLabelColors()
+        self.labelSettings = settings.getLabels()
+        self.labelColumns = settings.getLabelColumns()
+        self.labelColors = settings.getLabelColors()
         
         for index in self.labels:
             self.labels[index]["label"] = Label(self, text=self.labels[index]["text"], 

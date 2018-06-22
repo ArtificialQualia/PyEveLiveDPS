@@ -22,12 +22,11 @@ import os
 import datetime
 import time
 import platform
-import settings
+import tkinter as tk
+from peld import settings
 import data.oreVolume
 _oreVolume = data.oreVolume._oreVolume
 from tkinter import messagebox, IntVar, filedialog
-if (platform.system() == "Windows"):
-    import win32com.client
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -42,6 +41,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.observer = Observer()
         
         if (platform.system() == "Windows"):
+            import win32com.client
             oShell = win32com.client.Dispatch("Wscript.Shell")
             self.path = oShell.SpecialFolders("MyDocuments") + "\\EVE\\logs\\Gamelogs\\"
         else:
@@ -66,9 +66,13 @@ class CharacterDetector(FileSystemEventHandler):
         
             self.selectedIndex.set(0)
             
+            if len(self.menuEntries) == 0:
+                self.characterMenu.menu.add_command(label='No character logs detected for past 24 hours', state=tk.DISABLED)
+            
             self.observer.schedule(self, self.path, recursive=False)
             self.observer.start()
         except FileNotFoundError:
+            logger.error('EVE logs directory not found')
             messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
@@ -88,6 +92,9 @@ class CharacterDetector(FileSystemEventHandler):
             #print("Log created, but not a character log.")
             return
         log.close()
+        
+        if len(self.menuEntries) == 0:
+            self.characterMenu.menu.delete(0)
         
         for i in range(len(self.menuEntries)):
             if (character == self.menuEntries[i]):
@@ -186,20 +193,21 @@ class BaseLogReader():
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mined
     
     def extractValues(self, regex, logData, mining=False):
-        returnValue = 0
+        returnValue = []
         group = regex.findall(logData)
         if mining:
             if group:
                 for amount,type in group:
-                    if self.mainWindow.settings.getMiningM3Setting():
+                    returnGroup = {}
+                    if settings.getMiningM3Setting():
                         if type in _oreVolume:
-                            returnValue += int(amount) * _oreVolume[type]
+                            returnGroup['amount'] = int(amount) * _oreVolume[type]
                         else:
-                            returnValue += int(amount)
+                            returnGroup['amount'] = int(amount)
                     else:
-                        returnValue += int(amount)
+                        returnGroup['amount'] = int(amount)
+                    returnValue.append(returnGroup)
             return returnValue
-        returnValue = []
         if group:
             for match in group:
                 returnGroup = {}

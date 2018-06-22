@@ -13,30 +13,34 @@ import urllib.request
 import urllib.error
 import tkinter as tk
 import tkinter.font as tkFont
+from peld import logger
+from peld import settings
 import webbrowser
 
 class UpdateChecker(threading.Thread):
-    def __init__(self, settings):
-        threading.Thread.__init__(self)
+    def __init__(self):
+        threading.Thread.__init__(self, daemon=True)
         self.name = "UpdateChecker"
-        self.settings = settings
 
     def run(self):
         try:
             httpResponse = urllib.request.urlopen("https://api.github.com/repos/ArtificialQualia/PyEveLiveDPS/releases").read()
-        except urllib.error.URLError:
+        except urllib.error.URLError as e:
+            logger.exception('Exception checking for new releases:')
+            logger.exception(e)
             return
         
         releases = json.loads(httpResponse.decode('utf-8'))
         currentRelease = releases[0]
         
-        if currentRelease['name'] != version.version and currentRelease['name'] != self.settings.disableUpdateReminderFor:
-            UpdateNotificaitonWindow(self.settings, currentRelease)
+        logger.info('Current version: ' + version.version)
+        logger.info('Latest release: ' + currentRelease['name'])
+        if currentRelease['name'] != version.version and currentRelease['name'] != settings.disableUpdateReminderFor:
+            UpdateNotificaitonWindow(currentRelease)
 
 class UpdateNotificaitonWindow(tk.Toplevel):
-    def __init__(self, settings, release):
+    def __init__(self, release):
         tk.Toplevel.__init__(self)
-        self.settings = settings
         self.release = release
         self.wm_attributes("-topmost", True)
         self.wm_title("PELD Update Notification")
@@ -110,10 +114,10 @@ class UpdateNotificaitonWindow(tk.Toplevel):
     def downloadAction(self):
         webbrowser.open("https://github.com/ArtificialQualia/PyEveLiveDPS/releases", autoraise=True)
         if self.reminderCheckbox.var.get():
-            self.settings.disableUpdateReminderFor = self.release['name']
+            settings.disableUpdateReminderFor = self.release['name']
         self.destroy()
         
     def okAction(self):
         if self.reminderCheckbox.var.get():
-            self.settings.disableUpdateReminderFor = self.release['name']
+            settings.disableUpdateReminderFor = self.release['name']
         self.destroy()

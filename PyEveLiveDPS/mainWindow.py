@@ -14,10 +14,11 @@ import graph
 import logreader
 import playbackFrame
 import settings.settingsWindow as settingsWindow
-import settings.settings as settings
 import simulationWindow
 import labelHandler
 import animate
+from peld import logger
+from peld import settings
 from baseWindow import BaseWindow
 from detailsWindow import DetailsWindow
 if (platform.system() == "Windows"):
@@ -29,9 +30,6 @@ class MainWindow(tk.Tk):
         tk.Tk.__init__(self)
         self.baseWindow = BaseWindow(self)
         self.minsize(175,50)
-        
-        #Grab settings from our settings handler
-        self.settings = settings.Settings()
         
         #Set title and icon for alt+tab and taskbar
         self.wm_title("PyEveLiveDPS")
@@ -66,8 +64,8 @@ class MainWindow(tk.Tk):
                 self.wm_deiconify()
                 self.update_idletasks()
         except Exception as e:
-            tk.messagebox.showerror("Error", "Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.\n" +
-                                    "Internal Error: " + str(e))
+            logger.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
+            logger.exception(e)
         
         self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
         font = tkFont.Font(font=self.topLabel['font'])
@@ -90,32 +88,33 @@ class MainWindow(tk.Tk):
         self.middleFrame.grid(row="10", column="1", columnspan="19", sticky="news")
         self.makeDraggable(self.middleFrame)
         
-        self.labelHandler = labelHandler.LabelHandler(self.middleFrame, self.settings, lambda c:self.makeAllChildrenDraggable(c),
+        self.labelHandler = labelHandler.LabelHandler(self.middleFrame, lambda c:self.makeAllChildrenDraggable(c),
                                                        height="10", borderwidth="0", background="black")
         self.labelHandler.grid(row="0", column="0", sticky="news")
         self.makeDraggable(self.labelHandler)
         
-        self.geometry("%sx%s+%s+%s" % (self.settings.getWindowWidth(), self.settings.getWindowHeight(), 
-                                       self.settings.getWindowX(), self.settings.getWindowY()))
+        self.geometry("%sx%s+%s+%s" % (settings.getWindowWidth(), settings.getWindowHeight(), 
+                                       settings.getWindowX(), settings.getWindowY()))
         self.update_idletasks()
         
         #The hero of our app
-        self.graphFrame = graph.DPSGraph(self.middleFrame, self.settings, self.labelHandler, background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.middleFrame, self.labelHandler, background="black", borderwidth="0")
         self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
         self.animator = animate.Animator(self)
         
         self.graphFrame.readjust(self.winfo_width(), 0)
-        if self.settings.getGraphDisabled():
+        if settings.getGraphDisabled():
             self.graphFrame.grid_remove()
         else:
             self.graphFrame.grid()
             
         self.labelHandler.lift(self.graphFrame)
         
-        if self.settings.detailsWindowShow:
-            self.detailsWindow = DetailsWindow(self)
+        self.detailsWindow = DetailsWindow(self)
+        
+        logger.info('main window (and subcomponents) initialized')
         
     def __getattr__(self, attr):
         return getattr(self.baseWindow, attr)
@@ -140,7 +139,7 @@ class MainWindow(tk.Tk):
         self.mainMenu.menu.add_command(label="Edit Profile Settings", command=lambda: settingsWindow.SettingsWindow(self))
         
         self.profileMenu = tk.Menu(self.mainMenu, tearoff=False)
-        self.settings.initializeMenu(self)
+        settings.initializeMenu(self)
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
@@ -184,6 +183,8 @@ class MainWindow(tk.Tk):
         self.collapseButton.bind("<Leave>", self.buttonBlack)
     
     def collapseEvent(self, event):
+        logger.debug('window collapse event occured')
+        self.detailsWindow.collapseHandler(self.collapsed)
         if self.collapsed:
             self.wm_attributes("-alpha", 1.0)
             self.rightSpacerFrame.grid_remove()
@@ -207,7 +208,7 @@ class MainWindow(tk.Tk):
             self.addCollapseButton(self, row="5", column="17")
             self.collapsed = False
         else:
-            self.wm_attributes("-alpha", self.settings.getCompactTransparency()/100)
+            self.wm_attributes("-alpha", settings.getCompactTransparency()/100)
             self.topResizeFrame.grid_remove()
             self.bottomResizeFrame.grid_remove()
             self.leftResizeFrame.grid_remove()
@@ -258,11 +259,8 @@ class MainWindow(tk.Tk):
         event.widget.configure(background="black")
         
     def quitEvent(self, event=None):
-        if not event:
-            self.saveWindowGeometry()
-            self.animator.stop()
-            self.quit()
-        if event and (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
+        if not event or (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
+            logger.info('quit event received, saving window geometry and stopping threads')
             self.saveWindowGeometry()
             self.animator.stop()
             if hasattr(self, "caracterDetector"):
@@ -270,8 +268,7 @@ class MainWindow(tk.Tk):
             self.quit()
             
     def saveWindowGeometry(self):
-        if hasattr(self, 'detailsWindow'):
-            self.detailsWindow.saveWindowGeometry()
-        self.settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
+        self.detailsWindow.saveWindowGeometry()
+        settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
                                    windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
     
