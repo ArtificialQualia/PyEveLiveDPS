@@ -7,6 +7,7 @@ Some of the styling for this window comes from BaseWindow,
 import tkinter as tk
 from baseWindow import BaseWindow
 from peld import settings
+import detailsHandler
 
 class DetailsWindow(tk.Toplevel):
     def __init__(self, mainWindow):
@@ -14,19 +15,19 @@ class DetailsWindow(tk.Toplevel):
         self.baseWindow = BaseWindow(self)
         self.mainWindow = mainWindow
         
+        self.columnconfigure(5, weight=1)
+        self.rowconfigure(10, weight=1)
+        
         if settings.detailsWindowShow:
             self.deiconify()
         else:
             self.withdraw()
         
-        self.minsize(150,150)
+        self.minsize(150,200)
         
-        #Container for our "dps labels" and graph
-        self.middleFrame = tk.Frame(self, background="black")
-        self.middleFrame.columnconfigure(0, weight=1)
-        self.middleFrame.rowconfigure(1, weight=1)
-        self.middleFrame.grid(row="10", column="1", columnspan="19", sticky="news")
-        self.makeDraggable(self.middleFrame)
+        self.detailsHandler = detailsHandler.DetailsHandler(self, lambda c:self.makeAllChildrenDraggable(c), background="black")
+        self.detailsHandler.grid(row="10", column="1", columnspan="19", sticky="news")
+        self.makeDraggable(self.detailsHandler)
         
         self.geometry("%sx%s+%s+%s" % (settings.detailsWindowWidth, settings.detailsWindowHeight, 
                                settings.detailsWindowX, settings.detailsWindowY))
@@ -35,6 +36,8 @@ class DetailsWindow(tk.Toplevel):
         self.topLabel = tk.Label(self, text="Pilot Breakdown", fg="white", background="black")
         self.topLabel.grid(row="5", column="5", columnspan="10")
         self.makeDraggable(self.topLabel)
+        
+        tk.Frame(self, highlightthickness="1", highlightbackground="dim gray", background="black").grid(row="6", column="5", sticky="we", columnspan="10")
 
     def __getattr__(self, attr):
         return getattr(self.baseWindow, attr)
@@ -57,7 +60,7 @@ class DetailsWindow(tk.Toplevel):
             self.bottomLeftResizeFrame.grid()
             self.bottomRightResizeFrame.grid()
             self.makeDraggable(self.mainFrame)
-            self.makeDraggable(self.middleFrame)
+            self.makeDraggable(self.detailsHandler)
             self.makeDraggable(self.topLabel)
         else:
             self.wm_attributes("-alpha", settings.getCompactTransparency()/100)
@@ -70,5 +73,5 @@ class DetailsWindow(tk.Toplevel):
             self.bottomLeftResizeFrame.grid_remove()
             self.bottomRightResizeFrame.grid_remove()
             self.unmakeDraggable(self.mainFrame)
-            self.unmakeDraggable(self.middleFrame)
+            self.unmakeDraggable(self.detailsHandler)
             self.unmakeDraggable(self.topLabel)

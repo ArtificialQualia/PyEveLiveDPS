@@ -146,7 +146,7 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
-        pilotAndWeaponRegex = '.*ffffffff>(.*)\[.*\((.*)\)<.*> \- (.*)[\-<]'
+        pilotAndWeaponRegex = '.*ffffffff>(.*)(?:\[.*\((.*)\)<|[^\)]<)/b.*> \-(?: (.*) ?[\-<]|.*)'
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<" + pilotAndWeaponRegex)
         
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<" + pilotAndWeaponRegex)
@@ -198,24 +198,30 @@ class BaseLogReader():
         if mining:
             if group:
                 for amount,type in group:
-                    returnGroup = {}
-                    if settings.getMiningM3Setting():
-                        if type in _oreVolume:
-                            returnGroup['amount'] = int(amount) * _oreVolume[type]
+                    if amount != 0:
+                        returnGroup = {}
+                        if settings.getMiningM3Setting():
+                            if type in _oreVolume:
+                                returnGroup['amount'] = int(amount) * _oreVolume[type]
+                            else:
+                                returnGroup['amount'] = int(amount)
                         else:
                             returnGroup['amount'] = int(amount)
-                    else:
-                        returnGroup['amount'] = int(amount)
-                    returnValue.append(returnGroup)
+                        returnValue.append(returnGroup)
             return returnValue
         if group:
             for match in group:
-                returnGroup = {}
-                returnGroup['amount'] = int(match[0])
-                returnGroup['pilotName'] = match[1]
-                returnGroup['shipType'] = match[2]
-                returnGroup['weaponType'] = match[3]
-                returnValue.append(returnGroup)
+                if match[0] != 0:
+                    returnGroup = {}
+                    returnGroup['amount'] = int(match[0])
+                    returnGroup['pilotName'] = match[1]
+                    returnGroup['shipType'] = match[2]
+                    if returnGroup['shipType'] == '':
+                        returnGroup['shipType'] = returnGroup['pilotName']
+                    returnGroup['weaponType'] = match[3]
+                    if returnGroup['weaponType'] == '':
+                        returnGroup['weaponType'] = 'Unknown'
+                    returnValue.append(returnGroup)
         return returnValue
     
 class PlaybackLogReader(BaseLogReader):

@@ -73,6 +73,7 @@ class MainWindow(tk.Tk):
         self.topLabel['font'] = font
         self.topLabel.grid(row="5", column="5", columnspan="10")
         self.topLabel.grid_remove()
+        self.makeDraggable(self.topLabel)
         
         #Other items for setting up the window have been moved to separate functions
         self.addQuitButton()
@@ -102,6 +103,8 @@ class MainWindow(tk.Tk):
         self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
+        self.detailsWindow = DetailsWindow(self)
+        
         self.animator = animate.Animator(self)
         
         self.graphFrame.readjust(self.winfo_width(), 0)
@@ -111,8 +114,6 @@ class MainWindow(tk.Tk):
             self.graphFrame.grid()
             
         self.labelHandler.lift(self.graphFrame)
-        
-        self.detailsWindow = DetailsWindow(self)
         
         logger.info('main window (and subcomponents) initialized')
         
@@ -196,6 +197,7 @@ class MainWindow(tk.Tk):
             self.topRightResizeFrame.grid()
             self.bottomLeftResizeFrame.grid()
             self.bottomRightResizeFrame.grid()
+            self.makeDraggable(self.topLabel)
             self.makeDraggable(self.mainFrame)
             self.makeDraggable(self.middleFrame)
             self.makeDraggable(self.labelHandler)
@@ -218,6 +220,7 @@ class MainWindow(tk.Tk):
             self.bottomLeftResizeFrame.grid_remove()
             self.bottomRightResizeFrame.grid_remove()
             self.rightSpacerFrame.grid()
+            self.unmakeDraggable(self.topLabel)
             self.unmakeDraggable(self.mainFrame)
             self.unmakeDraggable(self.middleFrame)
             self.unmakeDraggable(self.labelHandler)

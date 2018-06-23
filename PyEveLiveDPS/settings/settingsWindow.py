@@ -11,11 +11,13 @@ import copy
 from settings.generalSettingsFrame import GeneralSettingsFrame
 from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
+from settings.detailSettingsFrame import DetailSettingsFrame
 from peld import settings
 
 class SideBar(tk.Frame):
     images = {"Tracking": "lines.png",
-              "Labels": "labels.png"}
+              "Labels": "labels.png",
+              "Pilot Breakdown": "pilotDetails.png"}
     
     def __init__(self, parent, mainWindow, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
@@ -88,7 +90,11 @@ class SettingsWindow(tk.Toplevel):
         labelsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
         labelsFrame.grid_remove()
         
-        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame]]
+        detailsFrame = DetailSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
+        detailsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+        detailsFrame.grid_remove()
+        
+        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame], ["Pilot Breakdown", detailsFrame]]
         
         self.sideBar = SideBar(self, self.mainWindow, bg="white", width="125", relief="groove", borderwidth=1)
         self.sideBar.grid(row="0", column="0", rowspan="90", sticky="nsew", padx="1", pady="1")

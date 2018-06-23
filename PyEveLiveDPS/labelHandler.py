@@ -25,7 +25,6 @@ class LabelHandler(tk.Frame):
     def initializeLabels(self):
         self.labelSettings = settings.getLabels()
         self.labelColumns = settings.getLabelColumns()
-        self.labelColors = settings.getLabelColors()
         
         for index in self.labels:
             self.labels[index]["label"] = Label(self, text=self.labels[index]["text"], 
@@ -52,10 +51,7 @@ class LabelHandler(tk.Frame):
             self.labels[labelName]["label"].grid_remove()
             
     def updateLabel(self, labelName, number, color):
-        if self.labelColors:
-            self.labels[labelName]["label"].updateLabel(number, color)
-        else:
-            self.labels[labelName]["label"].updateLabel(number, "white")
+        self.labels[labelName]["label"].updateLabel(number, color)
         
 class Label(tk.Frame):
     def __init__(self, parent, text, settings, **kwargs):

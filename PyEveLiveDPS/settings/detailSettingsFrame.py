@@ -1,14 +1,12 @@
 """
-I really wish tkinter had native support for Drag and Drop.
-But they don't.
-So everything here is painfully manual.
+
 """
 
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
 
-class LabelSettingsFrame(tk.Frame):
+class DetailSettingsFrame(tk.Frame):
     text = {"dpsOut": "DPS Out:",
             "dpsIn": "DPS In:",
             "logiOut": "Logi Out:",

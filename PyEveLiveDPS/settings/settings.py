@@ -43,11 +43,10 @@ class Settings(FileSystemEventHandler):
                                  "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
                                  },
                              "labelColumns": [4,4],
-                             "labelColors": 0,
                              "detailsWindow": {
                                  "show": 1,
-                                 "width": 200,
-                                 "height": 250,
+                                 "width": 250,
+                                 "height": 300,
                                  "x": 0,
                                  "y": 0
                                  }
@@ -305,13 +304,6 @@ class Settings(FileSystemEventHandler):
             self.setSettings(labelColumns=[4,4])
             return copy.deepcopy(self.currentProfile["labelColumns"])
         
-    def getLabelColors(self):
-        try:
-            return self.currentProfile["labelColors"]
-        except KeyError:
-            self.setSettings(labelColors=0)
-            return self.currentProfile["labelColors"]
-        
     @property
     def detailsWindow(self):
         return self.currentProfile.get("detailsWindow") or self.defaultProfile[0]["profileSettings"]["detailsWindow"]
@@ -425,7 +417,7 @@ class Settings(FileSystemEventHandler):
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
-                    labels=None, labelColumns=None, labelColors=None, graphDisabled=None,
+                    labels=None, labelColumns=None, graphDisabled=None,
                     detailsWindowX=None, detailsWindowY=None, detailsWindowWidth=None, detailsWindowHeight=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
@@ -463,8 +455,6 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["labels"] = labels
         if not labelColumns == None:
             self.currentProfile["labelColumns"] = labelColumns
-        if not labelColors == None:
-            self.currentProfile["labelColors"] = labelColors
         if not graphDisabled == None:
             self.currentProfile["graphDisabled"] = graphDisabled
         
