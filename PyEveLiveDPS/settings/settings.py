@@ -34,19 +34,29 @@ class Settings(FileSystemEventHandler):
                              "labels": {
                                  "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
                                  "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
-                                 "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
-                                 "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
-                                 "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
-                                 "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
-                                 "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
-                                 "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1},
-                                 "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
+                                 "logiOut": {"row": 1, "column": 0, "inThousands": 0, "decimalPlaces": 1},
+                                 "logiIn": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1},
+                                 "capTransfered": {"row": 1, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                                 "capRecieved": {"row": 1, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                                 "mining": {"row": 2, "column": 7, "inThousands": 0, "decimalPlaces": 1}
                                  },
                              "labelColumns": [4,4],
+                             "detailsOrder": [
+                                 "dpsOut",
+                                 "dpsIn",
+                                 "logiOut",
+                                 "logiIn",
+                                 "capTransfered",
+                                 "capRecieved",
+                                 "capDamageOut",
+                                 "capDamageIn"
+                                 ],
                              "detailsWindow": {
                                  "show": 1,
-                                 "width": 250,
-                                 "height": 300,
+                                 "width": 200,
+                                 "height": 250,
                                  "x": 0,
                                  "y": 0
                                  }
@@ -322,7 +332,6 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["detailsWindow"] = {}
             self.currentProfile["detailsWindow"]["show"] = value
-        self.writeSettings()
         
     @property
     def detailsWindowHeight(self):
@@ -412,13 +421,25 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == "Default"):
                 profile["logLevel"] = value
         self.writeSettings()
+        
+    @property
+    def detailsOrder(self):
+        if 'detailsOrder' in self.currentProfile:
+            return copy.deepcopy(self.currentProfile["detailsOrder"])
+        else:
+            return copy.deepcopy(self.defaultProfile[0]["profileSettings"]["detailsOrder"])
+    
+    @detailsOrder.setter
+    def detailsOrder(self, value):
+        self.currentProfile["detailsOrder"] = value
+        self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
                     labels=None, labelColumns=None, graphDisabled=None,
-                    detailsWindowX=None, detailsWindowY=None, detailsWindowWidth=None, detailsWindowHeight=None):
+                    detailsOrder=None, detailsWindowShow=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -457,6 +478,10 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["labelColumns"] = labelColumns
         if not graphDisabled == None:
             self.currentProfile["graphDisabled"] = graphDisabled
+        if not detailsWindowShow == None:
+            self.detailsWindowShow = detailsWindowShow
+        if not detailsOrder == None:
+            self.currentProfile["detailsOrder"] = detailsOrder
         
         self.writeSettings()
     

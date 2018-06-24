@@ -1,12 +1,12 @@
 
 import tkinter as tk
 import tkinter.font as tkFont
+from peld import settings
 
 class DetailsHandler(tk.Frame):
     def __init__(self, parent, makeAllChildrenDraggable, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         self.columnconfigure(0, weight=1)
-        self.rowCount = 1
         self.pilots = []
         self.enabledLabels = []
         
@@ -22,7 +22,7 @@ class DetailsHandler(tk.Frame):
                             match = True
                             weaponMatch = False
                             for weapon in pilot['weaponGroups']:
-                                if weapon['name'] == detail['weaponType']:
+                                if weapon['name'] == detail['weaponType'] and weapon['category'] == fieldName:
                                     weaponMatch = True
                                     weapon['amount'] += detail['amount']
                             if not weaponMatch:
@@ -30,6 +30,7 @@ class DetailsHandler(tk.Frame):
                                 weaponGroup['name'] = detail['weaponType']
                                 weaponGroup['amount'] = detail['amount']
                                 weaponGroup['color'] = color
+                                weaponGroup['category'] = fieldName
                                 pilot['weaponGroups'].append(weaponGroup)
                     if not match:
                         newPilot = {}
@@ -39,6 +40,7 @@ class DetailsHandler(tk.Frame):
                         weaponGroup['name'] = detail['weaponType']
                         weaponGroup['amount'] = detail['amount']
                         weaponGroup['color'] = color
+                        weaponGroup['category'] = fieldName
                         newPilot['weaponGroups'] = [weaponGroup]
                         self.pilots.append(newPilot)
 
@@ -47,6 +49,9 @@ class DetailsHandler(tk.Frame):
             for weapon in pilot['weaponGroups']:
                 weapon['amount'] = (weapon['amount']*(1000/interval))/length
                 
+        for group in reversed(settings.detailsOrder):
+            self.pilots.sort(key=lambda pilot: sum([x['amount'] if x['category'] == group else 0 for x in pilot['weaponGroups']]), reverse=True)
+        
         self.displayPilots()
         
         for pilot in self.pilots:
@@ -64,11 +69,10 @@ class DetailsHandler(tk.Frame):
             
                 
     def displayPilots(self):
-        for pilot in self.pilots:
+        for index, pilot in enumerate(self.pilots):
             if not pilot.get('detailFrame'):
                 pilot['detailFrame'] = DetailFrame(self, pilot, background="black")
-                self.rowCount += 1
-                pilot['detailFrame'].grid(row=self.rowCount, column="0", sticky="news")
+            pilot['detailFrame'].grid(row=index, column="0", sticky="news")
             pilot['detailFrame'].updateLabels(pilot['weaponGroups'])
             
     def enableLabel(self, labelName, enable):
@@ -87,7 +91,6 @@ class DetailFrame(tk.Frame):
         #self.decimalPlaces = settings["decimalPlaces"]
         #self.inThousands = settings["inThousands"]
         self.weaponLabels = []
-        self.rowCount = 1
         
         self.pilotLabel = tk.Label(self, text=pilot['pilotName'], fg="white", background="black")
         self.pilotLabel.grid(row="0", column="0", columnspan="2", sticky="w")
@@ -102,27 +105,32 @@ class DetailFrame(tk.Frame):
         tk.Frame(self, highlightthickness="1", highlightbackground="dim gray", background="black").grid(row="1000", column="0", columnspan="3", sticky="we")
         
     def updateLabels(self, weaponGroups):
+        for group in reversed(settings.detailsOrder):
+            weaponGroups.sort(key=lambda weaponGroup: weaponGroup['amount'] if weaponGroup['category'] == group else 0, reverse=True)
         for label in self.weaponLabels:
             label[3] = False
-        for group in weaponGroups:
+        for index, group in enumerate(weaponGroups):
             weaponMatch = False
             for label in self.weaponLabels:
-                if group['name'] == label[1]['text']:
+                if group['name'] == label[1]['text'] and group['category'] == label[1].category:
                     weaponMatch = True
                     label[2]['text'] = ('%.0f') % (round(group['amount'], 0),)
+                    label[0].grid(row=index+1, column="0", sticky="w")
+                    label[1].grid(row=index+1, column="1", sticky="w")
+                    label[2].grid(row=index+1, column="2", sticky="e")
                     label[3] = True
             if not weaponMatch:
-                self.rowCount += 1
                 weaponLabel = []
                 spacerFrame = tk.Frame(self, width="10", background="black")
-                spacerFrame.grid(row=self.rowCount, column="0", sticky="w")
+                spacerFrame.grid(row=index+1, column="0", sticky="w")
                 weaponLabel.append(spacerFrame)
                 nameLabel = tk.Label(self, text=group['name'], fg="white", background="black")
-                nameLabel.grid(row=self.rowCount, column="1", sticky="w", columnspan="2")
+                nameLabel.category = group['category']
+                nameLabel.grid(row=index+1, column="1", sticky="w", columnspan="2")
                 weaponLabel.append(nameLabel)
                 amountLabel = tk.Label(self, fg=group['color'], background="black")
                 amountLabel['text'] = ('%.0f') % (round(group['amount'], 0),)
-                amountLabel.grid(row=self.rowCount, column="2", sticky="e")
+                amountLabel.grid(row=index+1, column="2", sticky="e")
                 weaponLabel.append(amountLabel)
                 weaponLabel.append(True)
                 self.weaponLabels.append(weaponLabel)

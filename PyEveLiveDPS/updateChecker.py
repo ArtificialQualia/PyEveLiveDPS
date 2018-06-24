@@ -31,17 +31,16 @@ class UpdateChecker(threading.Thread):
             return
         
         releases = json.loads(httpResponse.decode('utf-8'))
-        currentRelease = releases[0]
         
         logger.info('Current version: ' + version.version)
-        logger.info('Latest release: ' + currentRelease['name'])
-        if currentRelease['name'] != version.version and currentRelease['name'] != settings.disableUpdateReminderFor:
-            UpdateNotificaitonWindow(currentRelease)
+        logger.info('Latest release: ' + releases[0]['name'])
+        if releases[0]['name'] != version.version and releases[0]['name'] != settings.disableUpdateReminderFor:
+            UpdateNotificaitonWindow(releases)
 
 class UpdateNotificaitonWindow(tk.Toplevel):
-    def __init__(self, release):
+    def __init__(self, releases):
         tk.Toplevel.__init__(self)
-        self.release = release
+        self.releases = releases
         self.wm_attributes("-topmost", True)
         self.wm_title("PELD Update Notification")
         
@@ -66,7 +65,7 @@ class UpdateNotificaitonWindow(tk.Toplevel):
         windowHeader['font'] = font
         windowHeader.grid(row="0", column="0", columnspan="10")
         
-        newVersionHeader = tk.Label(self, text=release['name'])
+        newVersionHeader = tk.Label(self, text=releases[0]['name'])
         font = tkFont.Font(font=newVersionHeader['font'])
         font.config(size='14', weight='bold')
         newVersionHeader['font'] = font
@@ -83,7 +82,12 @@ class UpdateNotificaitonWindow(tk.Toplevel):
         releaseNotesFrame.rowconfigure(0, weight=1)
         releaseNotesFrame.grid(row="3", column="0", columnspan="10")
         releaseNotes = tk.Text(releaseNotesFrame)
-        releaseNotes.insert(tk.END, release['body'])
+        for release in releases:
+            if release['name'] != version.version:
+                releaseNotes.insert(tk.END, 'Version '+release['name']+":\n")
+                releaseNotes.insert(tk.END, release['body']+"\n\n\n")
+            else:
+                break
         releaseNotes.config(state=tk.DISABLED, wrap='word')
         releaseNotes.grid(row="0", column="0")
         scrollbar = tk.Scrollbar(releaseNotesFrame, command=releaseNotes.yview)
@@ -114,10 +118,10 @@ class UpdateNotificaitonWindow(tk.Toplevel):
     def downloadAction(self):
         webbrowser.open("https://github.com/ArtificialQualia/PyEveLiveDPS/releases", autoraise=True)
         if self.reminderCheckbox.var.get():
-            settings.disableUpdateReminderFor = self.release['name']
+            settings.disableUpdateReminderFor = self.releases[0]['name']
         self.destroy()
         
     def okAction(self):
         if self.reminderCheckbox.var.get():
-            settings.disableUpdateReminderFor = self.release['name']
+            settings.disableUpdateReminderFor = self.releases[0]['name']
         self.destroy()

@@ -182,6 +182,11 @@ class Animator(threading.Thread):
         
         self.labelHandler.redoLabels()
         
+        if settings.detailsWindowShow:
+            self.mainWindow.detailsWindow.deiconify()
+        else:
+            self.mainWindow.detailsWindow.withdraw()
+        
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
