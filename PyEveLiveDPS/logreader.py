@@ -146,7 +146,7 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
-        pilotAndWeaponRegex = '.*ffffffff>(.*)(?:\[.*\((.*)\)<|[^\)]<)/b.*> \-(?: (.*) ?[\-<]|.*)'
+        pilotAndWeaponRegex = '.*ffffffff>(.*[^\)])(?: \[.*\((.*)\)<|<)/b.*> \-(?: (.*?) ?[\-<]|.*)'
         self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<" + pilotAndWeaponRegex)
         
         self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<" + pilotAndWeaponRegex)
