@@ -69,11 +69,8 @@ class DPSGraph(tk.Frame):
         """
         Magic to make many lines with colors work.
         
-        This code isn't pretty, but we HAVE to avoid calling subplot.clear and
-         also making new lines unless we have to in order to save CPU cycles.
-         
-        Yes this mess is more efficient.
-        It could be split up into some functions for greater readability.
+        This code appears inefficient, but we HAVE to avoid calling subplot.clear
+         and also making new lines in order to save CPU cycles.
         """
         smoothed = self.smoothListGaussian(yValues, self.degree)
         
@@ -134,8 +131,8 @@ class DPSGraph(tk.Frame):
     def smoothListGaussian(self, list, degree=5):
         """Standard Gaussian (1D) function to smooth out out line
         It's not great computationally that we have to do this every time,
-        but it makes the graph look soooo much better.
-        Degree of 5 is choosen to strike a balance between prettiness and
+        but it makes the graph look much better.
+        Degree of 5 is chosen to strike a balance between prettiness and
         accuracy/granularity of data"""
         window=degree*2-1  
         weight=np.array([1.0]*window)  

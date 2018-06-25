@@ -10,7 +10,7 @@ class DetailsHandler(tk.Frame):
         self.pilots = []
         self.enabledLabels = []
         
-    def updateDetails(self, fieldName, historicalDetails, color):
+    def updateDetails(self, fieldName, historicalDetails):
         if fieldName not in self.enabledLabels:
             return
         for detailList in historicalDetails:
@@ -29,7 +29,6 @@ class DetailsHandler(tk.Frame):
                                 weaponGroup = {}
                                 weaponGroup['name'] = detail['weaponType']
                                 weaponGroup['amount'] = detail['amount']
-                                weaponGroup['color'] = color
                                 weaponGroup['category'] = fieldName
                                 pilot['weaponGroups'].append(weaponGroup)
                     if not match:
@@ -39,15 +38,15 @@ class DetailsHandler(tk.Frame):
                         weaponGroup = {}
                         weaponGroup['name'] = detail['weaponType']
                         weaponGroup['amount'] = detail['amount']
-                        weaponGroup['color'] = color
                         weaponGroup['category'] = fieldName
                         newPilot['weaponGroups'] = [weaponGroup]
                         self.pilots.append(newPilot)
 
-    def cleanupAndDisplay(self, interval, length):
+    def cleanupAndDisplay(self, interval, length, findColor):
         for pilot in self.pilots:
             for weapon in pilot['weaponGroups']:
                 weapon['amount'] = (weapon['amount']*(1000/interval))/length
+                weapon['color'] = findColor(weapon['category'], weapon['amount'])
                 
         for group in reversed(settings.detailsOrder):
             self.pilots.sort(key=lambda pilot: sum([x['amount'] if x['category'] == group else 0 for x in pilot['weaponGroups']]), reverse=True)
@@ -93,6 +92,9 @@ class DetailFrame(tk.Frame):
         self.weaponLabels = []
         
         self.pilotLabel = tk.Label(self, text=pilot['pilotName'], fg="white", background="black")
+        font = tkFont.Font(font=self.pilotLabel['font'])
+        font.config(weight='bold')
+        self.pilotLabel['font'] = font
         self.pilotLabel.grid(row="0", column="0", columnspan="2", sticky="w")
         
         shipTypeString = "(" + pilot['shipType'] + ")"
@@ -115,6 +117,7 @@ class DetailFrame(tk.Frame):
                 if group['name'] == label[1]['text'] and group['category'] == label[1].category:
                     weaponMatch = True
                     label[2]['text'] = ('%.0f') % (round(group['amount'], 0),)
+                    label[2]['fg'] = group['color']
                     label[0].grid(row=index+1, column="0", sticky="w")
                     label[1].grid(row=index+1, column="1", sticky="w")
                     label[2].grid(row=index+1, column="2", sticky="e")

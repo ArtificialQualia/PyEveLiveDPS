@@ -493,6 +493,8 @@ class Settings(FileSystemEventHandler):
         self.initializeMenu(self.mainWindow)
         self.mainWindow.geometry("%sx%s+%s+%s" % (self.getWindowWidth(), self.getWindowHeight(), 
                                        self.getWindowX(), self.getWindowY()))
+        self.mainWindow.detailsWindow.geometry("%sx%s+%s+%s" % (self.detailsWindowWidth, self.detailsWindowHeight, 
+                                                self.detailsWindowX, self.detailsWindowY))
         self.mainWindow.update_idletasks()
         self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width(), 0)
         self.mainWindow.animator.changeSettings()

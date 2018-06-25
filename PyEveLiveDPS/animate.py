@@ -98,17 +98,12 @@ class Animator(threading.Thread):
                     if not items["labelOnly"] and not self.graphDisabled:
                         self.graph.animateLine(items["yValues"], items["settings"], items["lines"], zorder=items["zorder"])
                         self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
-                        self.detailsHandler.updateDetails(category, items["historicalDetails"], matplotlib.colors.to_hex(items["lines"][-1].get_color()))
+                        self.detailsHandler.updateDetails(category, items["historicalDetails"])
                     else:
                         for index, item in enumerate(items["settings"]):
-                            if index == (len(items["settings"])-1):
-                                if average >= item["transitionValue"]:
-                                    self.labelHandler.updateLabel(category, average, item["color"])
-                                    self.detailsHandler.updateDetails(category, items["historicalDetails"], item["color"])
-                            elif average >= item["transitionValue"] and average < items["settings"][index+1]["transitionValue"]:
-                                self.labelHandler.updateLabel(category, average, item["color"])
-                                self.detailsHandler.updateDetails(category, items["historicalDetails"], item["color"])
-                                break
+                            color = self.findColor(category, average)
+                            self.labelHandler.updateLabel(category, average, color)
+                            self.detailsHandler.updateDetails(category, items["historicalDetails"])
             
             #Find highest average for the y-axis scaling
             #We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
@@ -141,7 +136,7 @@ class Animator(threading.Thread):
                     self.slowDown = False
                     self.interval = settings.getInterval()
             
-            self.detailsHandler.cleanupAndDisplay(interval, int((self.seconds*1000)/self.interval))
+            self.detailsHandler.cleanupAndDisplay(interval, int((self.seconds*1000)/self.interval), lambda x,y: self.findColor(x,y))
     
             if not self.graphDisabled:
                 self.graph.graphFigure.canvas.draw()
@@ -214,3 +209,15 @@ class Animator(threading.Thread):
         
         self.paused = False
         
+    def findColor(self, category, value):
+        """
+        Helper function to find the right line/label color for a given value.
+        Returns the color to use
+        """
+        categorySettings = self.categories[category]["settings"]
+        for index, item in enumerate(categorySettings):
+            if index == (len(categorySettings)-1):
+                if value >= item["transitionValue"]:
+                    return item["color"]
+            elif value >= item["transitionValue"] and value < categorySettings[index+1]["transitionValue"]:
+                return item["color"]
