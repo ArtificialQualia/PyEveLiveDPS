@@ -1,7 +1,8 @@
 """
 DetailsWindow:
 
-Some of the styling for this window comes from BaseWindow,
+Some of the styling for this window comes from BaseWindow
+so only items specific to this window have to be implemented
 """
 
 import tkinter as tk
@@ -18,6 +19,7 @@ class DetailsWindow(tk.Toplevel):
         self.columnconfigure(5, weight=1)
         self.rowconfigure(10, weight=1)
         
+        # if the window is disabled, we just hide it
         if settings.detailsWindowShow:
             self.deiconify()
         else:
@@ -25,10 +27,12 @@ class DetailsWindow(tk.Toplevel):
         
         self.minsize(150,200)
         
-        self.detailsHandler = detailsHandler.DetailsHandler(self, lambda c:self.makeAllChildrenDraggable(c), background="black")
+        # DetailsHandler does most of the work displaying and updating the pilot/weapon details
+        self.detailsHandler = detailsHandler.DetailsHandler(self, background="black")
         self.detailsHandler.grid(row="10", column="1", columnspan="19", sticky="news")
         self.makeDraggable(self.detailsHandler)
         
+        # set the window size and position from settings
         self.geometry("%sx%s+%s+%s" % (settings.detailsWindowWidth, settings.detailsWindowHeight, 
                                settings.detailsWindowX, settings.detailsWindowY))
         self.update_idletasks()
@@ -49,6 +53,7 @@ class DetailsWindow(tk.Toplevel):
         settings.detailsWindowHeight = self.winfo_height()
         
     def collapseHandler(self, collapsed):
+        """ this is called when the main window receives a collapseEvent """
         if collapsed:
             self.wm_attributes("-alpha", 1.0)
             self.topResizeFrame.grid()

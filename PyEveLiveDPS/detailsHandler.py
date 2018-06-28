@@ -1,16 +1,29 @@
+"""
+DetailsHandler:
+
+Maintains all the pilot and weapon groups for the details window
+ and the child DetailFrame
+It handles grouping all the data under unique weapons and pilots
+
+DetailFrame:
+
+Contains the tk Labels that have the pilot and weapon information
+Receives values to display from DetailsHandler
+"""
 
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
 
 class DetailsHandler(tk.Frame):
-    def __init__(self, parent, makeAllChildrenDraggable, **kwargs):
+    def __init__(self, parent, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         self.columnconfigure(0, weight=1)
         self.pilots = []
         self.enabledLabels = []
         
     def updateDetails(self, fieldName, historicalDetails):
+        """ called from animator, sorts the pilots and weapons data into groups """
         if fieldName not in self.enabledLabels:
             return
         for detailList in historicalDetails:
@@ -43,6 +56,9 @@ class DetailsHandler(tk.Frame):
                         self.pilots.append(newPilot)
 
     def cleanupAndDisplay(self, interval, length, findColor):
+        """ called near the end of the animation cycle, does some cleanup of
+        stale labels and calculations/sorting needed before displaying the values,
+        then displays them """
         for pilot in self.pilots:
             for weapon in pilot['weaponGroups']:
                 weapon['amount'] = (weapon['amount']*(1000/interval))/length
@@ -68,6 +84,8 @@ class DetailsHandler(tk.Frame):
             
                 
     def displayPilots(self):
+        """ creates a DetailFrame if one doesn't exist for a pilot,
+         and updates all DetailsFrames with new data """
         for index, pilot in enumerate(self.pilots):
             if not pilot.get('detailFrame'):
                 pilot['detailFrame'] = DetailFrame(self, pilot, background="black")
@@ -91,22 +109,29 @@ class DetailFrame(tk.Frame):
         #self.inThousands = settings["inThousands"]
         self.weaponLabels = []
         
-        self.pilotLabel = tk.Label(self, text=pilot['pilotName'], fg="white", background="black")
+        self.topFrame = tk.Frame(self, background="black")
+        self.topFrame.grid(row="0", column="0", columnspan="3", sticky="ew")
+        self.topFrame.columnconfigure(1, weight=1)
+        
+        self.pilotLabel = tk.Label(self.topFrame, text=pilot['pilotName'], fg="white", background="black")
         font = tkFont.Font(font=self.pilotLabel['font'])
         font.config(weight='bold')
         self.pilotLabel['font'] = font
-        self.pilotLabel.grid(row="0", column="0", columnspan="2", sticky="w")
+        self.pilotLabel.grid(row="0", column="0", sticky="w")
+        
+        tk.Frame(self.topFrame, background="black").grid(row="0", column="1", sticky="news")
         
         shipTypeString = "(" + pilot['shipType'] + ")"
-        self.shipLabel = tk.Label(self, text=shipTypeString, fg="white", background="black")
+        self.shipLabel = tk.Label(self.topFrame, text=shipTypeString, fg="white", background="black")
         font = tkFont.Font(font=self.shipLabel['font'])
         font.config(slant='italic')
         self.shipLabel['font'] = font
-        self.shipLabel.grid(row="0", column="2", sticky="w")
+        self.shipLabel.grid(row="0", column="2", sticky="e")
         
         tk.Frame(self, highlightthickness="1", highlightbackground="dim gray", background="black").grid(row="1000", column="0", columnspan="3", sticky="we")
         
     def updateLabels(self, weaponGroups):
+        """ finds the right label for a weapon type, and updates it """
         for group in reversed(settings.detailsOrder):
             weaponGroups.sort(key=lambda weaponGroup: weaponGroup['amount'] if weaponGroup['category'] == group else 0, reverse=True)
         for label in self.weaponLabels:

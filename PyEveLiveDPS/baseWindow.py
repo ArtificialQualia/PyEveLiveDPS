@@ -14,7 +14,8 @@ By detatching it from the window manager with overrideredirect(true), one
 import tkinter as tk
 import platform
 
-
+# BaseWindow doesn't inhert from tkinter so that it can be used for both the main window and toplevels
+# it does assume whatever is inheriting it has all the tkinter functions though
 class BaseWindow():
     def __init__(self, child):
         self.childWindow = child

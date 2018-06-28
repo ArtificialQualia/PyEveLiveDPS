@@ -14,6 +14,7 @@ import copy
 import tkinter as tk
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+import logging
 
 class Settings(FileSystemEventHandler):
     defaultProfile = [ {
@@ -501,6 +502,9 @@ class Settings(FileSystemEventHandler):
         self.writeSettings()
     
     def writeSettings(self):
+        logger = logging.getLogger('peld')
+        logger.info('New settings:')
+        logger.info(str(self.currentProfile))
         tempFile = os.path.join(self.path, "PELD_temp.json")
         settingsFile = open(tempFile, 'w')
         json.dump(self.allSettings, settingsFile, indent=4)

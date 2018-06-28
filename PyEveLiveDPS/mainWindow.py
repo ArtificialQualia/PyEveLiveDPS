@@ -4,6 +4,8 @@ MainWindow:
 Some of the styling for this window comes from BaseWindow,
  but as this is the main window in the app some additional
  customizations are layered on.
+ 
+It also holds many of the main components for the app, like animator
 """
 
 import tkinter as tk
@@ -31,7 +33,7 @@ class MainWindow(tk.Tk):
         self.baseWindow = BaseWindow(self)
         self.minsize(175,50)
         
-        #Set title and icon for alt+tab and taskbar
+        # Set title and icon for alt+tab and taskbar
         self.wm_title("PyEveLiveDPS")
         try:
             self.iconbitmap(sys._MEIPASS + '\\app.ico')
@@ -41,7 +43,7 @@ class MainWindow(tk.Tk):
             except Exception:
                 pass
         
-        #Magic to make the window appear on the windows taskbar
+        # Magic to make the window appear on the windows taskbar
         try:
             if (self.platform == "Windows"):
                 self.update_idletasks()
@@ -67,6 +69,7 @@ class MainWindow(tk.Tk):
             logger.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
             logger.exception(e)
         
+        # label that appears at the top of the window that displays in special modes like simulation and playback modes
         self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
         font = tkFont.Font(font=self.topLabel['font'])
         font.config(slant='italic')
@@ -75,14 +78,14 @@ class MainWindow(tk.Tk):
         self.topLabel.grid_remove()
         self.makeDraggable(self.topLabel)
         
-        #Other items for setting up the window have been moved to separate functions
+        # Other items for setting up the window
         self.addQuitButton()
         
         self.addCollapseButton(self, row="5", column="17")
         
         self.addMenus()
         
-        #Container for our "dps labels" and graph
+        # Container for our "dps labels" and graph
         self.middleFrame = tk.Frame(self, background="black")
         self.middleFrame.columnconfigure(0, weight=1)
         self.middleFrame.rowconfigure(1, weight=1)
@@ -94,17 +97,20 @@ class MainWindow(tk.Tk):
         self.labelHandler.grid(row="0", column="0", sticky="news")
         self.makeDraggable(self.labelHandler)
         
+        # set the window size and position from the settings
         self.geometry("%sx%s+%s+%s" % (settings.getWindowWidth(), settings.getWindowHeight(), 
                                        settings.getWindowX(), settings.getWindowY()))
         self.update_idletasks()
         
-        #The hero of our app
+        # The hero of our app
         self.graphFrame = graph.DPSGraph(self.middleFrame, self.labelHandler, background="black", borderwidth="0")
         self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
+        # details window is a child of the main window, but the window will be hidden based on the profile settings
         self.detailsWindow = DetailsWindow(self)
         
+        # the animator is the main 'loop' of the program
         self.animator = animate.Animator(self)
         
         self.graphFrame.readjust(self.winfo_width(), 0)
@@ -121,7 +127,7 @@ class MainWindow(tk.Tk):
         return getattr(self.baseWindow, attr)
         
     def addMenus(self):
-        #character menu options are added dynamically by CharacterDetector, so we pass this into that
+        # character menu options are added dynamically by CharacterDetector, so we pass this into that
         self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -130,7 +136,7 @@ class MainWindow(tk.Tk):
         self.characterMenu["menu"] = self.characterMenu.menu
         self.characterDetector = logreader.CharacterDetector(self, self.characterMenu)
         
-        #Set up file menu options
+        # Set up file menu options
         self.mainMenu = tk.Menubutton(text="File...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
                                       activebackground="gray25", activeforeground="white")
@@ -139,6 +145,7 @@ class MainWindow(tk.Tk):
         self.mainMenu["menu"] = self.mainMenu.menu
         self.mainMenu.menu.add_command(label="Edit Profile Settings", command=lambda: settingsWindow.SettingsWindow(self))
         
+        # add all the profiles from settings into the menu
         self.profileMenu = tk.Menu(self.mainMenu, tearoff=False)
         settings.initializeMenu(self)
         
@@ -151,6 +158,7 @@ class MainWindow(tk.Tk):
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
     
     def addQuitButton(self):
+        """ draws and places the quit icon on the main window """
         self.quitButton = tk.Canvas(width=15, height=15, background="black",
                                     highlightbackground="white", highlightthickness="1")
         self.quitButton.create_line(0,0,16,16,fill="white")
@@ -168,6 +176,7 @@ class MainWindow(tk.Tk):
         self.rightSpacerFrame.grid_remove()
         
     def addCollapseButton(self, parent, row, column):
+        """ darws and places the collapse icon next to the quit button """
         self.collapsed = False
         self.collapseButton = tk.Canvas(parent, width=15, height=15, background="black",
                                     highlightbackground="white", highlightthickness="1")
@@ -184,6 +193,8 @@ class MainWindow(tk.Tk):
         self.collapseButton.bind("<Leave>", self.buttonBlack)
     
     def collapseEvent(self, event):
+        """ This is called when the collapse icon is clicked
+        it also calls the same event on the details window """
         logger.debug('window collapse event occured')
         self.detailsWindow.collapseHandler(self.collapsed)
         if self.collapsed:
@@ -234,6 +245,7 @@ class MainWindow(tk.Tk):
             self.collapsed = True
     
     def addPlaybackFrame(self, startTime, endTime):
+        """ adds the playback frame underneath the graph when in 'playback' mode """
         self.mainMenu.menu.delete(4)
         self.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
         self.topLabel.configure(text="Playback Mode")
@@ -242,6 +254,7 @@ class MainWindow(tk.Tk):
         self.playbackFrame.grid(row="11", column="1", columnspan="19", sticky="news")
     
     def removePlaybackFrame(self):
+        """ removes the playback frame when we leave playback mode """
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
         self.mainMenu.menu.delete(4)
         self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
@@ -262,15 +275,20 @@ class MainWindow(tk.Tk):
         event.widget.configure(background="black")
         
     def quitEvent(self, event=None):
+        """ quitEvent is run when either the menu quit option is clicked or the quit button is clicked """
+        # if the event came from the menu, event will be 'None', otherwise the event location is checked
+        # to make sure the user finished their click inside the quit button
         if not event or (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
             logger.info('quit event received, saving window geometry and stopping threads')
             self.saveWindowGeometry()
             self.animator.stop()
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
+            logger.info('bye')
             self.quit()
             
     def saveWindowGeometry(self):
+        """ saves window position and size to the settings file """
         self.detailsWindow.saveWindowGeometry()
         settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
                                    windowWidth=self.winfo_width(), windowHeight=self.winfo_height())

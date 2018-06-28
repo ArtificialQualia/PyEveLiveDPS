@@ -1,5 +1,6 @@
 """
 This class handles all the animation for peld
+it is the main loop of PELD, and runs in a separate thread
 """
 import threading
 import time
@@ -12,6 +13,7 @@ from peld import logger
 
 
 class Animator(threading.Thread):
+    # zorder may be added as a settings in the future
     categories = {
         "dpsIn": { "zorder": 90 },
         "dpsOut": { "zorder": 100 },
@@ -39,6 +41,7 @@ class Animator(threading.Thread):
         self.start()
     
     def run(self):
+        logger.info('Starting animator thread')
         self.run = True
         self.paused = False
         self.time = time.time()
@@ -68,46 +71,53 @@ class Animator(threading.Thread):
             self.simulationEnabled = False
             
     def animate(self):
+        """ this function gets called every 'interval', and handles all the tracking data """
         try:
+            # data points are retrieved from either the simulator or the EVE logs
             if self.simulationEnabled:
-                damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.simulator.simulate()
+                newEntries = self.simulator.simulate()
             else:
-                damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.characterDetector.readLog()
+                newEntries = self.characterDetector.readLog()
             
-            self.categories["dpsOut"]["newEntry"] = damageOut
-            self.categories["dpsIn"]["newEntry"] = damageIn
-            self.categories["logiOut"]["newEntry"] = logiOut
-            self.categories["logiIn"]["newEntry"] = logiIn
-            self.categories["capTransfered"]["newEntry"] = capTransfered
-            self.categories["capRecieved"]["newEntry"] = capRecieved
-            self.categories["capDamageOut"]["newEntry"] = capDamageOut
-            self.categories["capDamageIn"]["newEntry"] = capDamageIn
-            self.categories["mining"]["newEntry"] = mining
+            # insert all the new values into the categories entries
+            self.categories["dpsOut"]["newEntry"] = newEntries[0]
+            self.categories["dpsIn"]["newEntry"] = newEntries[1]
+            self.categories["logiOut"]["newEntry"] = newEntries[2]
+            self.categories["logiIn"]["newEntry"] = newEntries[3]
+            self.categories["capTransfered"]["newEntry"] = newEntries[4]
+            self.categories["capRecieved"]["newEntry"] = newEntries[5]
+            self.categories["capDamageOut"]["newEntry"] = newEntries[6]
+            self.categories["capDamageIn"]["newEntry"] = newEntries[7]
+            self.categories["mining"]["newEntry"] = newEntries[8]
             interval = settings.getInterval()
             
+            # pops old values, adds new values, and passes those to the graph and other handlers
             for category, items in self.categories.items():
+                # if items["settings"] is empty, this isn't a category that is being tracked
                 if items["settings"]:
+                    # remove old values
                     items["historical"].pop(0)
                     items["historicalDetails"].pop(0)
+                    # as values are broken up by weapon, add them together for the non-details views
                     amountSum = sum([entry['amount'] for entry in items["newEntry"]])
                     items["historical"].insert(len(items["historical"]), amountSum)
                     items["historicalDetails"].insert(len(items["historicalDetails"]), items["newEntry"])
+                    # 'yValues' is for the actual DPS at that point in time, as opposed to raw values
                     items["yValues"] = items["yValues"][1:]
                     average = (np.sum(items["historical"])*(1000/interval))/len(items["historical"])
                     items["yValues"] = np.append(items["yValues"], average)
+                    # pass the values to the graph and other handlers
                     if not items["labelOnly"] and not self.graphDisabled:
                         self.graph.animateLine(items["yValues"], items["settings"], items["lines"], zorder=items["zorder"])
                         self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
-                        self.detailsHandler.updateDetails(category, items["historicalDetails"])
                     else:
-                        for index, item in enumerate(items["settings"]):
-                            color = self.findColor(category, average)
-                            self.labelHandler.updateLabel(category, average, color)
-                            self.detailsHandler.updateDetails(category, items["historicalDetails"])
+                        color = self.findColor(category, average)
+                        self.labelHandler.updateLabel(category, average, color)
+                    self.detailsHandler.updateDetails(category, items["historicalDetails"])
             
-            #Find highest average for the y-axis scaling
-            #We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
-            # and label average is needed for detecting when to slow down the animation
+            # Find highest average for the y-axis scaling
+            # We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
+            #  and label average is needed for detecting when to slow down the animation
             self.highestAverage = 0
             self.highestLabelAverage = 0
             for i in range(int((self.seconds*1000)/interval)):
@@ -127,6 +137,7 @@ class Animator(threading.Thread):
                 self.graph.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
                 self.graph.readjust(settings.getWindowWidth(), self.highestAverage)
             
+            # if there are no values coming in to the graph, enable 'slowDown' mode to save CPU
             if (self.highestAverage == 0 and self.highestLabelAverage == 0):
                 if not self.slowDown:
                     self.slowDown = True
@@ -136,6 +147,7 @@ class Animator(threading.Thread):
                     self.slowDown = False
                     self.interval = settings.getInterval()
             
+            # display of pilot details is handled after all values are updated, for sorting and such
             self.detailsHandler.cleanupAndDisplay(interval, int((self.seconds*1000)/self.interval), lambda x,y: self.findColor(x,y))
     
             if not self.graphDisabled:
@@ -182,6 +194,7 @@ class Animator(threading.Thread):
         else:
             self.mainWindow.detailsWindow.withdraw()
         
+        # resets all the arrays to contain no values
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
