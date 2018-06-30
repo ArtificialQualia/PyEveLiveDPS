@@ -6,6 +6,7 @@ So everything here is painfully manual.
 
 import tkinter as tk
 import tkinter.font as tkFont
+from peld import settings
 
 class LabelSettingsFrame(tk.Frame):
     text = {"dpsOut": "DPS Out:",
@@ -21,11 +22,10 @@ class LabelSettingsFrame(tk.Frame):
         tk.Frame.__init__(self, parent, **kwargs)
         self.parent = parent
         self.mainWindow = mainWindow
-        self.settings = mainWindow.settings
         self.columnconfigure(2, weight=1)
         
-        self.gridColumns = self.settings.getLabelColumns()
-        self.labels = self.settings.getLabels()
+        self.gridColumns = settings.getLabelColumns()
+        self.labels = settings.getLabels()
         
         tk.Label(self, text="Labels on the left grid will be attached to the left side of the window.\n" +
                     "Labels on the right grid will be attached to the right side of the window.\n\n" + 
@@ -39,12 +39,6 @@ class LabelSettingsFrame(tk.Frame):
                     ).grid(row="100", column="1", columnspan="5", pady=10)
         
         tk.Frame(self, height="1", width="10").grid(row="1",column="2")
-        
-        checkboxValue = tk.IntVar()
-        checkboxValue.set(self.settings.getLabelColors())
-        self.labelColors = tk.Checkbutton(self, text="Use line colors for label numbers", variable=checkboxValue)
-        self.labelColors.var = checkboxValue
-        self.labelColors.grid(row="3", column="1", columnspan="10", sticky="w")
         
         self.makeArrowButtons()
         
@@ -140,7 +134,7 @@ class LabelSettingsFrame(tk.Frame):
     def doSettings(self):
         self.saveLabels()
         labelColumns = [len(self.gridListLeft), len(self.gridListRight)]
-        return {"labels": self.labels, "labelColumns": labelColumns, "labelColors": self.labelColors.var.get()}
+        return {"labels": self.labels, "labelColumns": labelColumns}
     
 class GridEntry(tk.Frame):
     def __init__(self, parent=None, title="", decimalPlaces=0, inThousands=0, *args, **kwargs):

@@ -15,6 +15,9 @@ install:
     - "pip install pyinstaller"
     - "choco install -y InnoSetup"
 
+before_build:
+    - "-join (\"version = `'\", $(git describe), \"`'\") > PyEveLiveDPS\\version.py"
+
 build_script:
     - "pyinstaller setup-standalone.spec"
     - "pyinstaller setup-for-installer.spec"

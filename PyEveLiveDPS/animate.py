@@ -1,5 +1,6 @@
 """
 This class handles all the animation for peld
+it is the main loop of PELD, and runs in a separate thread
 """
 import threading
 import time
@@ -7,9 +8,12 @@ import numpy as np
 import matplotlib
 import simulator
 import simulationWindow
+from peld import settings
+from peld import logger
 
 
 class Animator(threading.Thread):
+    # zorder may be added as a settings in the future
     categories = {
         "dpsIn": { "zorder": 90 },
         "dpsOut": { "zorder": 100 },
@@ -26,8 +30,8 @@ class Animator(threading.Thread):
         self.mainWindow = mainWindow
         self.graph = mainWindow.graphFrame
         self.labelHandler = mainWindow.labelHandler
-        self.settings = mainWindow.settings
         self.characterDetector = mainWindow.characterDetector
+        self.detailsHandler = mainWindow.detailsWindow.detailsHandler
         
         self.slowDown = False
         self.simulationEnabled = False
@@ -37,6 +41,7 @@ class Animator(threading.Thread):
         self.start()
     
     def run(self):
+        logger.info('Starting animator thread')
         self.run = True
         self.paused = False
         self.time = time.time()
@@ -60,80 +65,96 @@ class Animator(threading.Thread):
     def simulationSettings(self, enable=False, values=None):
         if enable:
             self.simulationEnabled = True
-            self.simulator = simulator.Simulator(values, self.settings.getInterval())
+            self.simulator = simulator.Simulator(values, settings.getInterval())
         if not enable:
             self.simulator = None
             self.simulationEnabled = False
             
     def animate(self):
-        if self.simulationEnabled:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.simulator.simulate()
-        else:
-            damageOut,damageIn,logiOut,logiIn,capTransfered,capRecieved,capDamageOut,capDamageIn,mining = self.characterDetector.readLog()
-        
-        self.categories["dpsOut"]["newEntry"] = damageOut
-        self.categories["dpsIn"]["newEntry"] = damageIn
-        self.categories["logiOut"]["newEntry"] = logiOut
-        self.categories["logiIn"]["newEntry"] = logiIn
-        self.categories["capTransfered"]["newEntry"] = capTransfered
-        self.categories["capRecieved"]["newEntry"] = capRecieved
-        self.categories["capDamageOut"]["newEntry"] = capDamageOut
-        self.categories["capDamageIn"]["newEntry"] = capDamageIn
-        self.categories["mining"]["newEntry"] = mining
-        interval = self.settings.getInterval()
-        
-        for category, items in self.categories.items():
-            if items["settings"]:
-                items["historical"].pop(0)
-                items["historical"].insert(len(items["historical"]), items["newEntry"])
-                items["yValues"] = items["yValues"][1:]
-                average = (np.sum(items["historical"])*(1000/interval))/len(items["historical"])
-                items["yValues"] = np.append(items["yValues"], average)
-                if not items["labelOnly"] and not self.graphDisabled:
-                    self.graph.animateLine(items["yValues"], items["settings"], items["lines"], zorder=items["zorder"])
-                    self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
-                else:
-                    for index, item in enumerate(items["settings"]):
-                        if index == (len(items["settings"])-1):
-                            if average >= item["transitionValue"]:
-                                self.labelHandler.updateLabel(category, average, item["color"])
-                        elif average >= item["transitionValue"] and average < items["settings"][index+1]["transitionValue"]:
-                            self.labelHandler.updateLabel(category, average, item["color"])
-                            break
-        
-        #Find highest average for the y-axis scaling
-        #We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
-        # and label average is needed for detecting when to slow down the animation
-        self.highestAverage = 0
-        self.highestLabelAverage = 0
-        for i in range(int((self.seconds*1000)/interval)):
-            for category, items in self.categories.items():
-                if items["settings"] and not items["labelOnly"]:
-                    if (items["yValues"][i] > self.highestAverage):
-                        self.highestAverage = items["yValues"][i]
-                elif items["settings"]:
-                    if (items["yValues"][i] > self.highestAverage):
-                        self.highestLabelAverage = items["yValues"][i]
-        
-        if not self.graphDisabled:
-            if (self.highestAverage < 100):
-                self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=100)
+        """ this function gets called every 'interval', and handles all the tracking data """
+        try:
+            # data points are retrieved from either the simulator or the EVE logs
+            if self.simulationEnabled:
+                newEntries = self.simulator.simulate()
             else:
-                self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
-            self.graph.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
-            self.graph.readjust(self.settings.getWindowWidth(), self.highestAverage)
-        
-        if (self.highestAverage == 0 and self.highestLabelAverage == 0):
-            if not self.slowDown:
-                self.slowDown = True
-                self.interval = 500
-        else:
-            if self.slowDown:
-                self.slowDown = False
-                self.interval = self.settings.getInterval()
-
-        if not self.graphDisabled:
-            self.graph.graphFigure.canvas.draw()
+                newEntries = self.characterDetector.readLog()
+            
+            # insert all the new values into the categories entries
+            self.categories["dpsOut"]["newEntry"] = newEntries[0]
+            self.categories["dpsIn"]["newEntry"] = newEntries[1]
+            self.categories["logiOut"]["newEntry"] = newEntries[2]
+            self.categories["logiIn"]["newEntry"] = newEntries[3]
+            self.categories["capTransfered"]["newEntry"] = newEntries[4]
+            self.categories["capRecieved"]["newEntry"] = newEntries[5]
+            self.categories["capDamageOut"]["newEntry"] = newEntries[6]
+            self.categories["capDamageIn"]["newEntry"] = newEntries[7]
+            self.categories["mining"]["newEntry"] = newEntries[8]
+            interval = settings.getInterval()
+            
+            # pops old values, adds new values, and passes those to the graph and other handlers
+            for category, items in self.categories.items():
+                # if items["settings"] is empty, this isn't a category that is being tracked
+                if items["settings"]:
+                    # remove old values
+                    items["historical"].pop(0)
+                    items["historicalDetails"].pop(0)
+                    # as values are broken up by weapon, add them together for the non-details views
+                    amountSum = sum([entry['amount'] for entry in items["newEntry"]])
+                    items["historical"].insert(len(items["historical"]), amountSum)
+                    items["historicalDetails"].insert(len(items["historicalDetails"]), items["newEntry"])
+                    # 'yValues' is for the actual DPS at that point in time, as opposed to raw values
+                    items["yValues"] = items["yValues"][1:]
+                    average = (np.sum(items["historical"])*(1000/interval))/len(items["historical"])
+                    items["yValues"] = np.append(items["yValues"], average)
+                    # pass the values to the graph and other handlers
+                    if not items["labelOnly"] and not self.graphDisabled:
+                        self.graph.animateLine(items["yValues"], items["settings"], items["lines"], zorder=items["zorder"])
+                        self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
+                    else:
+                        color = self.findColor(category, average)
+                        self.labelHandler.updateLabel(category, average, color)
+                    self.detailsHandler.updateDetails(category, items["historicalDetails"])
+            
+            # Find highest average for the y-axis scaling
+            # We need to track graph avg and label avg separately, since graph avg is used for y-axis scaling
+            #  and label average is needed for detecting when to slow down the animation
+            self.highestAverage = 0
+            self.highestLabelAverage = 0
+            for i in range(int((self.seconds*1000)/interval)):
+                for category, items in self.categories.items():
+                    if items["settings"] and not items["labelOnly"]:
+                        if (items["yValues"][i] > self.highestAverage):
+                            self.highestAverage = items["yValues"][i]
+                    elif items["settings"]:
+                        if (items["yValues"][i] > self.highestAverage):
+                            self.highestLabelAverage = items["yValues"][i]
+            
+            if not self.graphDisabled:
+                if (self.highestAverage < 100):
+                    self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=100)
+                else:
+                    self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
+                self.graph.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
+                self.graph.readjust(settings.getWindowWidth(), self.highestAverage)
+            
+            # if there are no values coming in to the graph, enable 'slowDown' mode to save CPU
+            if (self.highestAverage == 0 and self.highestLabelAverage == 0):
+                if not self.slowDown:
+                    self.slowDown = True
+                    self.interval = 500
+            else:
+                if self.slowDown:
+                    self.slowDown = False
+                    self.interval = settings.getInterval()
+            
+            # display of pilot details is handled after all values are updated, for sorting and such
+            self.detailsHandler.cleanupAndDisplay(interval, int((self.seconds*1000)/self.interval), lambda x,y: self.findColor(x,y))
+    
+            if not self.graphDisabled:
+                self.graph.graphFigure.canvas.draw()
+            
+        except Exception as e:
+            logger.exception(e)
         
     def changeSettings(self):
         """This function is called when a user changes settings after the settings are verified"""
@@ -148,18 +169,18 @@ class Animator(threading.Thread):
             self.mainWindow.topLabel.grid_remove()
         
         self.slowDown = False
-        self.seconds = self.settings.getSeconds()
-        self.interval = self.settings.getInterval()
-        self.categories["dpsOut"]["settings"] = self.settings.getDpsOutSettings()
-        self.categories["dpsIn"]["settings"] = self.settings.getDpsInSettings()
-        self.categories["logiOut"]["settings"] = self.settings.getLogiOutSettings()
-        self.categories["logiIn"]["settings"] = self.settings.getLogiInSettings()
-        self.categories["capTransfered"]["settings"] = self.settings.getCapTransferedSettings()
-        self.categories["capRecieved"]["settings"] = self.settings.getCapRecievedSettings()
-        self.categories["capDamageOut"]["settings"] = self.settings.getCapDamageOutSettings()
-        self.categories["capDamageIn"]["settings"] = self.settings.getCapDamageInSettings()
-        self.categories["mining"]["settings"] = self.settings.getMiningSettings()
-        self.graphDisabled = self.settings.getGraphDisabled()
+        self.seconds = settings.getSeconds()
+        self.interval = settings.getInterval()
+        self.categories["dpsOut"]["settings"] = settings.getDpsOutSettings()
+        self.categories["dpsIn"]["settings"] = settings.getDpsInSettings()
+        self.categories["logiOut"]["settings"] = settings.getLogiOutSettings()
+        self.categories["logiIn"]["settings"] = settings.getLogiInSettings()
+        self.categories["capTransfered"]["settings"] = settings.getCapTransferedSettings()
+        self.categories["capRecieved"]["settings"] = settings.getCapRecievedSettings()
+        self.categories["capDamageOut"]["settings"] = settings.getCapDamageOutSettings()
+        self.categories["capDamageIn"]["settings"] = settings.getCapDamageInSettings()
+        self.categories["mining"]["settings"] = settings.getMiningSettings()
+        self.graphDisabled = settings.getGraphDisabled()
         
         if self.graphDisabled:
             self.graph.grid_remove()
@@ -168,10 +189,18 @@ class Animator(threading.Thread):
         
         self.labelHandler.redoLabels()
         
+        if settings.detailsWindowShow:
+            self.mainWindow.detailsWindow.deiconify()
+        else:
+            self.mainWindow.detailsWindow.withdraw()
+        
+        # resets all the arrays to contain no values
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
+                self.detailsHandler.enableLabel(category, True)
                 items["historical"] = [0] * int((self.seconds*1000)/self.interval)
+                items["historicalDetails"] = [[]] * int((self.seconds*1000)/self.interval)
                 items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
                 try:
                     items["labelOnly"] = items["settings"][0]["labelOnly"]
@@ -184,6 +213,7 @@ class Animator(threading.Thread):
                     items["lines"] = [plotLine]
             else:
                 self.labelHandler.enableLabel(category, False)
+                self.detailsHandler.enableLabel(category, False)
         
         if not self.graphDisabled:
             self.graph.subplot.margins(0,0)
@@ -192,3 +222,15 @@ class Animator(threading.Thread):
         
         self.paused = False
         
+    def findColor(self, category, value):
+        """
+        Helper function to find the right line/label color for a given value.
+        Returns the color to use
+        """
+        categorySettings = self.categories[category]["settings"]
+        for index, item in enumerate(categorySettings):
+            if index == (len(categorySettings)-1):
+                if value >= item["transitionValue"]:
+                    return item["color"]
+            elif value >= item["transitionValue"] and value < categorySettings[index+1]["transitionValue"]:
+                return item["color"]

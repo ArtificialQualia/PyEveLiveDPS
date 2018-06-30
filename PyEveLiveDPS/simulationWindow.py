@@ -1,5 +1,6 @@
 
 import tkinter as tk
+from peld import settings
 
 class SimulationWindow(tk.Toplevel):
     def __init__(self, mainWindow):
@@ -32,31 +33,31 @@ class SimulationWindow(tk.Toplevel):
         self.innerFrame = tk.Frame(self)
         self.innerFrame.grid(row="2", column="0")
         
-        if self.mainWindow.settings.getDpsOutSettings():
+        if settings.getDpsOutSettings():
             tk.Label(self.innerFrame, text="DPS Out:").grid(row="2", column="0", sticky="e")
             self.addRow("dpsOut", "2")
-        if self.mainWindow.settings.getLogiOutSettings():
+        if settings.getLogiOutSettings():
             tk.Label(self.innerFrame, text="Logistics Out:").grid(row="3", column="0", sticky="e")
             self.addRow("logiOut", "3")
-        if self.mainWindow.settings.getCapTransferedSettings():
+        if settings.getCapTransferedSettings():
             tk.Label(self.innerFrame, text="Cap Transfer Out:").grid(row="4", column="0", sticky="e")
             self.addRow("capOut", "4")
-        if self.mainWindow.settings.getCapDamageOutSettings():
+        if settings.getCapDamageOutSettings():
             tk.Label(self.innerFrame, text="Cap Warfare Out:").grid(row="5", column="0", sticky="e")
             self.addRow("neutOut", "5")
-        if self.mainWindow.settings.getDpsInSettings():
+        if settings.getDpsInSettings():
             tk.Label(self.innerFrame, text="DPS In:").grid(row="6", column="0", sticky="e")
             self.addRow("dpsIn", "6")
-        if self.mainWindow.settings.getLogiInSettings():
+        if settings.getLogiInSettings():
             tk.Label(self.innerFrame, text="Logistics In:").grid(row="7", column="0", sticky="e")
             self.addRow("logiIn", "7")
-        if self.mainWindow.settings.getCapRecievedSettings():
+        if settings.getCapRecievedSettings():
             tk.Label(self.innerFrame, text="Cap Transfer In:").grid(row="8", column="0", sticky="e")
             self.addRow("capIn", "8")
-        if self.mainWindow.settings.getCapDamageInSettings():
+        if settings.getCapDamageInSettings():
             tk.Label(self.innerFrame, text="Cap Warfare In:").grid(row="9", column="0", sticky="e")
             self.addRow("neutIn", "9")
-        if self.mainWindow.settings.getMiningSettings():
+        if settings.getMiningSettings():
             tk.Label(self.innerFrame, text="Mining:").grid(row="10", column="0", sticky="e")
             self.addRow("mining", "10")
         

@@ -1,5 +1,5 @@
 import tkinter as tk
-import settings
+from peld import settings
 import decimal
 
 class LabelHandler(tk.Frame):
@@ -13,9 +13,8 @@ class LabelHandler(tk.Frame):
             "capDamageIn": { "text": "Cap Dmg In:" },
             "mining": { "text": "Mining:" }
             }
-    def __init__(self, parent, settings, makeAllChildrenDraggable, **kwargs):
+    def __init__(self, parent, makeAllChildrenDraggable, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
-        self.settings = settings
         self.makeAllChildrenDraggable = makeAllChildrenDraggable
         self.columnconfigure(9, weight="1")
         
@@ -24,9 +23,8 @@ class LabelHandler(tk.Frame):
         self.initializeLabels()
         
     def initializeLabels(self):
-        self.labelSettings = self.settings.getLabels()
-        self.labelColumns = self.settings.getLabelColumns()
-        self.labelColors = self.settings.getLabelColors()
+        self.labelSettings = settings.getLabels()
+        self.labelColumns = settings.getLabelColumns()
         
         for index in self.labels:
             self.labels[index]["label"] = Label(self, text=self.labels[index]["text"], 
@@ -53,10 +51,7 @@ class LabelHandler(tk.Frame):
             self.labels[labelName]["label"].grid_remove()
             
     def updateLabel(self, labelName, number, color):
-        if self.labelColors:
-            self.labels[labelName]["label"].updateLabel(number, color)
-        else:
-            self.labels[labelName]["label"].updateLabel(number, "white")
+        self.labels[labelName]["label"].updateLabel(number, color)
         
 class Label(tk.Frame):
     def __init__(self, parent, text, settings, **kwargs):

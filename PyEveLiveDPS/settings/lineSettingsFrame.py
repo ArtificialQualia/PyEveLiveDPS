@@ -3,6 +3,7 @@ import tkinter.font as tkFont
 import tkinter.colorchooser as colorchooser
 import sys
 import copy
+from peld import settings
 
 class LineSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
@@ -25,47 +26,47 @@ class LineSettingsFrame(tk.Frame):
         
         dpsOutFrame = tk.Frame(canvasFrame)
         dpsOutFrame.grid(row="6", column="0", columnspan="5", padx="5", sticky="we")
-        self.dpsOutSettings = self.mainWindow.settings.getDpsOutSettings()
+        self.dpsOutSettings = settings.getDpsOutSettings()
         self.addLineSection(dpsOutFrame, "Outgoing: DPS", self.dpsOutSettings)
         
         dpsInFrame = tk.Frame(canvasFrame)
         dpsInFrame.grid(row="14", column="0", columnspan="5", padx="5", sticky="we")
-        self.dpsInSettings = self.mainWindow.settings.getDpsInSettings()
+        self.dpsInSettings = settings.getDpsInSettings()
         self.addLineSection(dpsInFrame, "Incoming: DPS", self.dpsInSettings)
         
         logiOutFrame = tk.Frame(canvasFrame)
         logiOutFrame.grid(row="8", column="0", columnspan="5", padx="5", sticky="we")
-        self.logiOutSettings = self.mainWindow.settings.getLogiOutSettings()
+        self.logiOutSettings = settings.getLogiOutSettings()
         self.addLineSection(logiOutFrame, "Outgoing: logistics", self.logiOutSettings)
         
         logiInFrame = tk.Frame(canvasFrame)
         logiInFrame.grid(row="16", column="0", columnspan="5", padx="5", sticky="we")
-        self.logiInSettings = self.mainWindow.settings.getLogiInSettings()
+        self.logiInSettings = settings.getLogiInSettings()
         self.addLineSection(logiInFrame, "Incoming: logistics", self.logiInSettings)
         
         capTransferedFrame = tk.Frame(canvasFrame)
         capTransferedFrame.grid(row="10", column="0", columnspan="5", padx="5", sticky="we")
-        self.capTransferedSettings = self.mainWindow.settings.getCapTransferedSettings()
+        self.capTransferedSettings = settings.getCapTransferedSettings()
         self.addLineSection(capTransferedFrame, "Outgoing: capacitor transfer", self.capTransferedSettings)
         
         capRecievedFrame = tk.Frame(canvasFrame)
         capRecievedFrame.grid(row="18", column="0", columnspan="5", padx="5", sticky="we")
-        self.capRecievedSettings = self.mainWindow.settings.getCapRecievedSettings()
+        self.capRecievedSettings = settings.getCapRecievedSettings()
         self.addLineSection(capRecievedFrame, "Incoming: capacitor transfer (including +nos)", self.capRecievedSettings)
         
         capDamageOutFrame = tk.Frame(canvasFrame)
         capDamageOutFrame.grid(row="12", column="0", columnspan="5", padx="5", sticky="we")
-        self.capDamageOutSettings = self.mainWindow.settings.getCapDamageOutSettings()
+        self.capDamageOutSettings = settings.getCapDamageOutSettings()
         self.addLineSection(capDamageOutFrame, "Outgoing: capacitor drain", self.capDamageOutSettings)
         
         capDamageInFrame = tk.Frame(canvasFrame)
         capDamageInFrame.grid(row="20", column="0", columnspan="5", padx="5", sticky="we")
-        self.capDamageInSettings = self.mainWindow.settings.getCapDamageInSettings()
+        self.capDamageInSettings = settings.getCapDamageInSettings()
         self.addLineSection(capDamageInFrame, "Incoming: capacitor drain", self.capDamageInSettings)
         
         miningFrame = tk.Frame(canvasFrame)
         miningFrame.grid(row="22", column="0", columnspan="5", padx="5", sticky="we")
-        self.miningSettings = self.mainWindow.settings.getMiningSettings()
+        self.miningSettings = settings.getMiningSettings()
         self.addLineSection(miningFrame, "Mining", self.miningSettings, mining=True)
         
     def bindMousewheel(self, event):

@@ -1,3 +1,12 @@
+"""
+ handles settings file management and retrieval of settings
+ 
+ settings retrieval is (mostly) done in a non-pythonic way,
+ hard to break those java habits!
+ 
+ They should all be refactored to use @property
+"""
+
 import platform
 import os
 import json
@@ -5,34 +14,54 @@ import copy
 import tkinter as tk
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+import logging
 
 class Settings(FileSystemEventHandler):
-    defaultProfile = [ { "profile": "Default", "profileSettings": 
-                        { "windowX": 0, "windowY": 0,
-                         "windowHeight": 225, "windowWidth": 350,
-                         "compactTransparency": 65,
-                         "seconds": 10, "interval": 100,
-                         "graphDisabled": 0,
-                         "dpsIn": [{"color": "#FF0000", "transitionValue": 0, "labelOnly": 0}],
-                         "dpsOut": [{"color": "#00FFFF", "transitionValue": 0, "labelOnly": 0}],
-                         "logiOut": [], "logiIn": [],
-                         "capTransfered": [], "capRecieved": [],
-                         "capDamageOut": [], "capDamageIn": [],
-                         "mining": [],
-                         "labels": {
-                             "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
-                             "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
-                             "logiOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
-                             "logiIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
-                             "capTransfered": {"row": 0, "column": 2, "inThousands": 0, "decimalPlaces": 1},
-                             "capRecieved": {"row": 0, "column": 5, "inThousands": 0, "decimalPlaces": 1},
-                             "capDamageOut": {"row": 0, "column": 3, "inThousands": 0, "decimalPlaces": 1},
-                             "capDamageIn": {"row": 0, "column": 4, "inThousands": 0, "decimalPlaces": 1},
-                             "mining": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1}
-                             },
-                         "labelColumns": [4,4],
-                         "labelColors": 0
-                         } 
+    defaultProfile = [ {
+                        "profile": "Default",
+                        "logLevel": 20,
+                        "profileSettings": 
+                            { "windowX": 0, "windowY": 0,
+                             "windowHeight": 225, "windowWidth": 350,
+                             "compactTransparency": 65,
+                             "seconds": 10, "interval": 100,
+                             "graphDisabled": 0,
+                             "dpsIn": [{"color": "#FF0000", "transitionValue": 0, "labelOnly": 0}],
+                             "dpsOut": [{"color": "#00FFFF", "transitionValue": 0, "labelOnly": 0}],
+                             "logiOut": [], "logiIn": [],
+                             "capTransfered": [], "capRecieved": [],
+                             "capDamageOut": [], "capDamageIn": [],
+                             "mining": [],
+                             "labels": {
+                                 "dpsIn": {"row": 0, "column": 7, "inThousands": 0, "decimalPlaces": 1},
+                                 "dpsOut": {"row": 0, "column": 0, "inThousands": 0, "decimalPlaces": 1},
+                                 "logiOut": {"row": 1, "column": 0, "inThousands": 0, "decimalPlaces": 1},
+                                 "logiIn": {"row": 1, "column": 7, "inThousands": 0, "decimalPlaces": 1},
+                                 "capTransfered": {"row": 1, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                                 "capRecieved": {"row": 1, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageOut": {"row": 0, "column": 1, "inThousands": 0, "decimalPlaces": 1},
+                                 "capDamageIn": {"row": 0, "column": 6, "inThousands": 0, "decimalPlaces": 1},
+                                 "mining": {"row": 2, "column": 7, "inThousands": 0, "decimalPlaces": 1}
+                                 },
+                             "labelColumns": [4,4],
+                             "detailsOrder": [
+                                 "dpsOut",
+                                 "dpsIn",
+                                 "logiOut",
+                                 "logiIn",
+                                 "capTransfered",
+                                 "capRecieved",
+                                 "capDamageOut",
+                                 "capDamageIn"
+                                 ],
+                             "detailsWindow": {
+                                 "show": 1,
+                                 "width": 200,
+                                 "height": 250,
+                                 "x": 0,
+                                 "y": 0
+                                 }
+                             }
                         } ]
     def __init__(self):
         self.observer = Observer()
@@ -63,6 +92,8 @@ class Settings(FileSystemEventHandler):
         self.currentProfile = self.allSettings[0]["profileSettings"]
         
     def on_moved(self, event):
+        if not event.dest_path.endswith('.json'):
+            return
         currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
         settingsFile = open(self.fullPath, 'r')
         self.allSettings = json.load(settingsFile)
@@ -284,18 +315,132 @@ class Settings(FileSystemEventHandler):
             self.setSettings(labelColumns=[4,4])
             return copy.deepcopy(self.currentProfile["labelColumns"])
         
-    def getLabelColors(self):
-        try:
-            return self.currentProfile["labelColors"]
-        except KeyError:
-            self.setSettings(labelColors=0)
-            return self.currentProfile["labelColors"]
+    @property
+    def detailsWindow(self):
+        return self.currentProfile.get("detailsWindow") or self.defaultProfile[0]["profileSettings"]["detailsWindow"]
+    
+    @property
+    def detailsWindowShow(self):
+        if 'detailsWindow' in self.currentProfile and 'show' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["show"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["show"]
+        
+    @detailsWindowShow.setter
+    def detailsWindowShow(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["show"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["show"] = value
+        
+    @property
+    def detailsWindowHeight(self):
+        if 'detailsWindow' in self.currentProfile and 'height' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["height"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["height"]
+    
+    @detailsWindowHeight.setter
+    def detailsWindowHeight(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["height"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["height"] = value
+        
+    @property
+    def detailsWindowWidth(self):
+        if 'detailsWindow' in self.currentProfile and 'width' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["width"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["width"]
+    
+    @detailsWindowWidth.setter
+    def detailsWindowWidth(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["width"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["width"] = value
+    
+    @property
+    def detailsWindowX(self):
+        if 'detailsWindow' in self.currentProfile and 'x' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["x"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["x"]
+    
+    @detailsWindowX.setter
+    def detailsWindowX(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["x"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["x"] = value
+    
+    @property
+    def detailsWindowY(self):
+        if 'detailsWindow' in self.currentProfile and 'y' in self.currentProfile["detailsWindow"]:
+            return self.currentProfile["detailsWindow"]["y"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["detailsWindow"]["y"]
+    
+    @detailsWindowY.setter
+    def detailsWindowY(self, value):
+        if 'detailsWindow' in self.currentProfile:
+            self.currentProfile["detailsWindow"]["y"] = value
+        else:
+            self.currentProfile["detailsWindow"] = {}
+            self.currentProfile["detailsWindow"]["y"] = value
+    
+    @property
+    def disableUpdateReminderFor(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                return profile.get("disableUpdateReminderFor")
+    
+    @disableUpdateReminderFor.setter
+    def disableUpdateReminderFor(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["disableUpdateReminderFor"] = value
+        self.writeSettings()
+        
+    @property
+    def logLevel(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if not profile.get("logLevel"):
+                    profile["logLevel"] = self.defaultProfile[0]["logLevel"]
+                    self.writeSettings()
+                return profile.get("logLevel")
+    
+    @logLevel.setter
+    def logLevel(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["logLevel"] = value
+        self.writeSettings()
+        
+    @property
+    def detailsOrder(self):
+        if 'detailsOrder' in self.currentProfile:
+            return copy.deepcopy(self.currentProfile["detailsOrder"])
+        else:
+            return copy.deepcopy(self.defaultProfile[0]["profileSettings"]["detailsOrder"])
+    
+    @detailsOrder.setter
+    def detailsOrder(self, value):
+        self.currentProfile["detailsOrder"] = value
+        self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
-                    labels=None, labelColumns=None, labelColors=None, graphDisabled=None):
+                    labels=None, labelColumns=None, graphDisabled=None,
+                    detailsOrder=None, detailsWindowShow=None):
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -332,10 +477,12 @@ class Settings(FileSystemEventHandler):
             self.currentProfile["labels"] = labels
         if not labelColumns == None:
             self.currentProfile["labelColumns"] = labelColumns
-        if not labelColors == None:
-            self.currentProfile["labelColors"] = labelColors
         if not graphDisabled == None:
             self.currentProfile["graphDisabled"] = graphDisabled
+        if not detailsWindowShow == None:
+            self.detailsWindowShow = detailsWindowShow
+        if not detailsOrder == None:
+            self.currentProfile["detailsOrder"] = detailsOrder
         
         self.writeSettings()
     
@@ -347,20 +494,23 @@ class Settings(FileSystemEventHandler):
         self.initializeMenu(self.mainWindow)
         self.mainWindow.geometry("%sx%s+%s+%s" % (self.getWindowWidth(), self.getWindowHeight(), 
                                        self.getWindowX(), self.getWindowY()))
+        self.mainWindow.detailsWindow.geometry("%sx%s+%s+%s" % (self.detailsWindowWidth, self.detailsWindowHeight, 
+                                                self.detailsWindowX, self.detailsWindowY))
         self.mainWindow.update_idletasks()
         self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width(), 0)
         self.mainWindow.animator.changeSettings()
         self.writeSettings()
     
     def writeSettings(self):
+        logger = logging.getLogger('peld')
+        logger.info('New settings:')
+        logger.info(str(self.currentProfile))
         tempFile = os.path.join(self.path, "PELD_temp.json")
         settingsFile = open(tempFile, 'w')
         json.dump(self.allSettings, settingsFile, indent=4)
         settingsFile.close()
         os.remove(self.fullPath)
-        self.observer.stop()
+        self.observer.unschedule_all()
         os.rename(tempFile, self.fullPath)
-        self.observer = Observer()
         self.observer.schedule(self, self.path, recursive=False)
-        self.observer.start()
     
