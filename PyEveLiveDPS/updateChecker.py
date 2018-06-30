@@ -34,7 +34,7 @@ class UpdateChecker(threading.Thread):
         
         logger.info('Current version: ' + version.version)
         logger.info('Latest release: ' + releases[0]['name'])
-        if releases[0]['name'] != version.version and releases[0]['name'] != settings.disableUpdateReminderFor:
+        if releases[0]['name'] != version.version.split('-')[0] and releases[0]['name'] != settings.disableUpdateReminderFor:
             UpdateNotificaitonWindow(releases)
 
 class UpdateNotificaitonWindow(tk.Toplevel):
@@ -83,7 +83,7 @@ class UpdateNotificaitonWindow(tk.Toplevel):
         releaseNotesFrame.grid(row="3", column="0", columnspan="10")
         releaseNotes = tk.Text(releaseNotesFrame)
         for release in releases:
-            if release['name'] != version.version:
+            if release['name'] != version.version.split('-')[0]:
                 releaseNotes.insert(tk.END, 'Version '+release['name']+":\n")
                 releaseNotes.insert(tk.END, release['body']+"\n\n\n")
             else:
