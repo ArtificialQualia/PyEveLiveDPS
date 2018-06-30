@@ -16,7 +16,7 @@ install:
     - "choco install -y InnoSetup"
 
 before_build:
-    - powershell -command "-join (\"version = `'\", $(git describe), \"`'\") > PyEveLiveDPS\\version.py"
+    - powershell -command "-join (\"version = `'\", $(git describe), \"`'\") | Out-File -encoding utf8 PyEveLiveDPS\\version.py"
 
 build_script:
     - "pyinstaller setup-standalone.spec"
