@@ -35,9 +35,13 @@ def SetupLogger():
     logger.addHandler(ch)
     
     if (platform.system() == "Windows"):
-        logFile = os.environ['APPDATA'] + "\\PELD" + "\\PELD.log"
+        logPath = os.environ['APPDATA'] + "\\PELD"
+        logFile = logPath + "\\PELD.log"
+        if not os.path.exists(logPath):
+            os.mkdir(logPath)
     else:
         logFile = os.environ['HOME'] + "/.peld.log"
+    
     fiveMegabytes = 1024*1024*5
     fi = RotatingFileHandler(logFile, maxBytes=fiveMegabytes, backupCount=1)
     fi.setFormatter(formatter)
