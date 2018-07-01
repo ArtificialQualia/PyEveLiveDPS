@@ -21,6 +21,9 @@ SetupIconFile=app.ico
 OutputDir=dist
 OutputBaseFilename=PELD-installer
 
+[InstallDelete]
+Type: files; Name: "{app}\api-ms-win*.dll"
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
