@@ -24,6 +24,7 @@ import time
 import platform
 import tkinter as tk
 from peld import settings
+from peld import logger
 import data.oreVolume
 _oreVolume = data.oreVolume._oreVolume
 from tkinter import messagebox, IntVar, filedialog
@@ -76,6 +77,7 @@ class CharacterDetector(FileSystemEventHandler):
             messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
+            self.characterMenu.menu.add_command(label='No EVE installation detected', state=tk.DISABLED)
         
     def on_created(self, event):
         self.addLog(event.src_path)

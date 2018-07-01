@@ -7,12 +7,13 @@ build:
 
 environment:
     matrix:
-        - PYTHON: "C:\\Python35"
+        - PYTHON: "C:\\Python34"
 
 install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "pip install -r requirements.txt"
+    - "pip install pypiwin32==219"
     - "pip install pyinstaller"
+    - "pip install -r requirements.txt"
     - "choco install -y InnoSetup"
 
 before_build:
