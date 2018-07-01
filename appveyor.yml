@@ -7,7 +7,7 @@ build:
 
 environment:
     matrix:
-        - PYTHON: "C:\\Python35"
+        - PYTHON: "C:\\Python34"
 
 install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
