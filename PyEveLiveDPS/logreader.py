@@ -54,7 +54,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.playbackLogReader = None
         
         try:
-            oneDayAgo = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+            oneDayAgo = datetime.datetime.now() - datetime.timedelta(hours=24)
             fileList = sorted(os.listdir(self.path), key=lambda file: os.stat(os.path.join(self.path, file)).st_mtime)
             for filename in fileList:
                 timeString = filename.strip(".txt")
@@ -73,7 +73,7 @@ class CharacterDetector(FileSystemEventHandler):
             self.observer.schedule(self, self.path, recursive=False)
             self.observer.start()
         except FileNotFoundError:
-            logger.error('EVE logs directory not found')
+            logger.error('EVE logs directory not found, path checked: ' + self.path)
             messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
@@ -83,6 +83,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.addLog(event.src_path)
         
     def addLog(self, logPath):
+        logger.info('Processing log file: ' + logPath)
         log = open(logPath, 'r', encoding="utf8")
         log.readline()
         log.readline()
@@ -91,7 +92,7 @@ class CharacterDetector(FileSystemEventHandler):
         if character:
             character = character.group(0)
         else:
-            #print("Log created, but not a character log.")
+            logger.info("Log " + logPath + " is not a character log.")
             return
         log.close()
         
@@ -341,6 +342,7 @@ class LogReader(BaseLogReader):
         if (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
             collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
+            logger.error('Log file collision on characters' + character + " and " + collisionCharacter)
             messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
