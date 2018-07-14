@@ -1,20 +1,18 @@
 """
-This file contains two classes:
-
-    CharacterDetector:
-        This class monitors the eve gamelog directory for new files,
-        as well as initializes PELD with the last day's worth of eve logs
-        and keeps track of what eve character belongs to which log.
-        
-        When a new file enters the gamelog directory, CharacterDetector
-        either replaces an existing character with the new log file,
-        or adds a new character to the character menu.
-        
-    LogReader:
-        This class does the actual reading of the logs.  Each eve
-        character has it's own instance of this class.  This class
-        contains the regex which process new log entries into a consumable
-        format.
+CharacterDetector:
+    This class monitors the eve gamelog directory for new files,
+    as well as initializes PELD with the last day's worth of eve logs
+    and keeps track of what eve character belongs to which log.
+    
+    When a new file enters the gamelog directory, CharacterDetector
+    either replaces an existing character with the new log file,
+    or adds a new character to the character menu.
+    
+LogReader:
+    This class does the actual reading of the logs.  Each eve
+    character has it's own instance of this class.  This class
+    contains the regex which process new log entries into a consumable
+    format.
 """
 
 import re
@@ -32,8 +30,111 @@ from tkinter import messagebox, IntVar, filedialog
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-_emptyResult = [[] for x in range(0,8)]
-_emptyResult.append(0)
+_emptyResult = [[] for x in range(0,9)]
+
+# this holds the regex strings for all the different languages the eve game log can be in
+_logLanguageRegex = {
+    'english': {
+        'character': "(?<=Listener: ).*",
+        'sessionTime': "(?<=Session Started: ).*",
+        'pilotAndWeapon': '.*ffffffff>([^\(\)<>]*)(?:\[.*\((.*)\)<|<)/b.*> \-(?: (.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>to<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>from<",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> energy neutralized <",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <",
+        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>"
+    },
+    'russian': {
+        'character': "(?<=Слушатель: ).*",
+        'sessionTime': "(?<=Сеанс начат: ).*",
+        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> наносит удар по <",
+        'damageIn': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> удар от <",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони отремонтировано <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности корпуса отремонтировано <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности щитов накачано <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони получено дистанционным ремонтом от <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности корпуса получено дистанционным ремонтом от <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности щитов получено накачкой от <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса энергии накопителя отправлено в <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> энергии нейтрализовано <",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> энергии извлечено из <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса энергии накопителя получено от <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> энергии нейтрализовано <",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> энергии извлечено и передано <",
+        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+    },
+    'french': {
+        'character': "(?<=Auditeur: ).*",
+        'sessionTime': "(?<=Session commencée: ).*",
+        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>sur<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>de<",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de blindage transférés à distance à <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de structure transférés à distance à <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transférés à distance à <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de blindage réparés à distance par <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de structure réparés à distance par <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transférés à distance par <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transférés à distance à <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> d'énergie neutralisée en faveur de <",
+        'nosRecieved': "\(combat\) <.*?><b>([0-9]+).*> d'énergie siphonnée aux dépens de <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transférés à distance par <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> d'énergie neutralisée aux dépens de <",
+        'nosTaken': "\(combat\) <.*?><b>([0-9]+).*> d'énergie siphonnée en faveur de <",
+        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+    },
+    'german': {
+        'character': "(?<=Empfänger: ).*",
+        'sessionTime': "(?<=Sitzung gestartet: ).*",
+        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>gegen<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>von <",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur zu <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> Rumpf-Fernreparatur zu <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> Schildfernbooster aktiviert zu <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur von <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> Rumpf-Fernreparatur von <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> Schildfernbooster aktiviert von <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher übertragen zu <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> Energie neutralisiert <",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> Energie transferiert von <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher übertragen von <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>\-([0-9]+).*> Energie neutralisiert <",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> Energie transferiert zu <",
+        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+    },
+    'japanese': {
+        'character': "(?<=傍聴者: ).*",
+        'sessionTime': "(?<=セッション開始: ).*",
+        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>対象:<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>攻撃者:<",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> エネルギーニュートラライズ 対象:<",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> エネルギードレイン 対象:<",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>のエネルギーが解放されました<",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> エネルギードレイン 攻撃者:<",
+        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+    }
+}
 
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
@@ -88,10 +189,9 @@ class CharacterDetector(FileSystemEventHandler):
         log.readline()
         log.readline()
         characterLine = log.readline()
-        character = re.search("(?<=Listener: ).*", characterLine)
-        if character:
-            character = character.group(0)
-        else:
+        try:
+            character, language = ProcessCharacterLine(characterLine)
+        except BadLogException:
             logger.info("Log " + logPath + " is not a character log.")
             return
         log.close()
@@ -149,31 +249,33 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
-        pilotAndWeaponRegex = '.*ffffffff>([^\(\)<>]*)(?:\[.*\((.*)\)<|<)/b.*> \-(?: (.*?) ?[\-<]|.*)'
-        self.damageOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>to<" + pilotAndWeaponRegex)
         
-        self.damageInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*>from<" + pilotAndWeaponRegex)
+    def compileRegex(self):
+        pilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
+        self.damageOutRegex = re.compile(_logLanguageRegex[self.language]['damageOut'] + pilotAndWeaponRegex)
         
-        self.armorRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <" + pilotAndWeaponRegex)
-        self.hullRepairedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <" + pilotAndWeaponRegex)
-        self.shieldBoostedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <" + pilotAndWeaponRegex)
+        self.damageInRegex = re.compile(_logLanguageRegex[self.language]['damageIn'] + pilotAndWeaponRegex)
         
-        self.armorRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote armor repaired by <" + pilotAndWeaponRegex)
-        self.hullRepairedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <" + pilotAndWeaponRegex)
-        self.shieldBoostedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <" + pilotAndWeaponRegex)
+        self.armorRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['armorRepairedOut'] + pilotAndWeaponRegex)
+        self.hullRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['hullRepairedOut'] + pilotAndWeaponRegex)
+        self.shieldBoostedOutRegex = re.compile(_logLanguageRegex[self.language]['shieldBoostedOut'] + pilotAndWeaponRegex)
         
-        self.capTransferedOutRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <" + pilotAndWeaponRegex)
+        self.armorRepairedInRegex = re.compile(_logLanguageRegex[self.language]['armorRepairedIn']+ pilotAndWeaponRegex)
+        self.hullRepairedInRegex = re.compile(_logLanguageRegex[self.language]['hullRepairedIn'] + pilotAndWeaponRegex)
+        self.shieldBoostedInRegex = re.compile(_logLanguageRegex[self.language]['shieldBoostedIn'] + pilotAndWeaponRegex)
         
-        self.capNeutralizedOutRegex = re.compile("\(combat\) <.*?ff7fffff><b>([0-9]+).*> energy neutralized <" + pilotAndWeaponRegex)
-        self.nosRecievedRegex = re.compile("\(combat\) <.*?><b>\+([0-9]+).*> energy drained from <" + pilotAndWeaponRegex)
+        self.capTransferedOutRegex = re.compile(_logLanguageRegex[self.language]['capTransferedOut'] + pilotAndWeaponRegex)
         
-        self.capTransferedInRegex = re.compile("\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <" + pilotAndWeaponRegex)
+        self.capNeutralizedOutRegex = re.compile(_logLanguageRegex[self.language]['capNeutralizedOut'] + pilotAndWeaponRegex)
+        self.nosRecievedRegex = re.compile(_logLanguageRegex[self.language]['nosRecieved'] + pilotAndWeaponRegex)
+        
+        self.capTransferedInRegex = re.compile(_logLanguageRegex[self.language]['capTransferedIn'] + pilotAndWeaponRegex)
         #add nos recieved to this group in readlog
         
-        self.capNeutralizedInRegex = re.compile("\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <" + pilotAndWeaponRegex)
-        self.nosTakenRegex = re.compile("\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <" + pilotAndWeaponRegex)
+        self.capNeutralizedInRegex = re.compile(_logLanguageRegex[self.language]['capNeutralizedIn'] + pilotAndWeaponRegex)
+        self.nosTakenRegex = re.compile(_logLanguageRegex[self.language]['nosTaken'] + pilotAndWeaponRegex)
         
-        self.minedRegex = re.compile("\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>")
+        self.minedRegex = re.compile(_logLanguageRegex[self.language]['mined'])
         
     def readLog(self, logData):
         damageOut = self.extractValues(self.damageOutRegex, logData)
@@ -217,7 +319,7 @@ class BaseLogReader():
                 if match[0] != 0:
                     returnGroup = {}
                     returnGroup['amount'] = int(match[0])
-                    returnGroup['pilotName'] = match[1]
+                    returnGroup['pilotName'] = match[1].strip()
                     returnGroup['shipType'] = match[2]
                     if returnGroup['shipType'] == '':
                         returnGroup['shipType'] = returnGroup['pilotName']
@@ -230,6 +332,7 @@ class BaseLogReader():
 class PlaybackLogReader(BaseLogReader):
     def __init__(self, logPath, mainWindow):
         super().__init__(logPath, mainWindow)
+        logger.info('Processing playback log file: ' + logPath)
         self.mainWindow = mainWindow
         self.paused = False
         self.logPath = logPath
@@ -241,18 +344,21 @@ class PlaybackLogReader(BaseLogReader):
             messagebox.showerror("Error", "This doesn't appear to be a EVE log file.\nPlease select a different file.")
             raise BadLogException("not character log")
         characterLine = self.log.readline()
-        character = re.search("(?<=Listener: ).*", characterLine)
-        if character:
-            character = character.group(0)
-            self.startTimeLog = datetime.datetime.strptime(re.search("(?<=Session Started: ).*", self.log.readline()).group(0), "%Y.%m.%d %X")
-        else:
+        try:
+            character, self.language = ProcessCharacterLine(characterLine)
+        except BadLogException:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
+        logger.info('Log language is ' + self.language)
+        
+        startTimeRegex = _logLanguageRegex[self.language]['sessionTime']
+        self.startTimeLog = datetime.datetime.strptime(re.search(startTimeRegex, self.log.readline()).group(0), "%Y.%m.%d %X")
+
         self.log.readline()
         self.logLine = self.log.readline()
         while (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
-            collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
+            collisionCharacter, language = ProcessCharacterLine(self.log.readline())
             #Since we currently don't have a use for characters during playback, this is not needed for now.
             #messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
             #                    "\n\nThis happens when both characters log in at exactly the same second.\n" + 
@@ -265,6 +371,8 @@ class PlaybackLogReader(BaseLogReader):
         self.nextLine = self.logLine
         self.nextTime = datetime.datetime.strptime(self.timeRegex.findall(self.nextLine)[0], "[ %Y.%m.%d %X ]")
         self.startTimeDelta = datetime.datetime.utcnow() - self.startTimeLog
+        
+        self.compileRegex()
         
         #inefficient, but ok for our normal log size
         endOfLog = open(logPath, 'r', encoding="utf8")
@@ -291,6 +399,7 @@ class PlaybackLogReader(BaseLogReader):
                 continue
         endOfLog.close()
         
+        
     def newStartTime(self, newTime):
         self.log.close()
         self.log = open(self.logPath, 'r', encoding="utf8")
@@ -303,6 +412,7 @@ class PlaybackLogReader(BaseLogReader):
             except IndexError:
                 continue
             self.nextTime = datetime.datetime.strptime(nextTimeString, "[ %Y.%m.%d %X ]")
+            self.nextLine = line
         
     def readLog(self):
         if self.paused:
@@ -331,17 +441,14 @@ class LogReader(BaseLogReader):
         self.log.readline()
         self.log.readline()
         characterLine = self.log.readline()
-        character = re.search("(?<=Listener: ).*", characterLine)
-        if character:
-            character = character.group(0)
-        else:
-            raise BadLogException("not character log")
+        character, self.language = ProcessCharacterLine(characterLine)
+        logger.info('Log language is ' + self.language)
         self.log.readline()
         self.log.readline()
         self.logLine = self.log.readline()
         if (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
-            collisionCharacter = re.search("(?<=Listener: ).*", self.log.readline()).group(0)
+            collisionCharacter, language = ProcessCharacterLine(self.log.readline())
             logger.error('Log file collision on characters' + character + " and " + collisionCharacter)
             messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
@@ -350,6 +457,7 @@ class LogReader(BaseLogReader):
                                 "If you already did, you can ignore this message, or delete this log file:\n" + logPath)
             raise BadLogException("log file collision")
         self.log.read()
+        self.compileRegex()
             
     def readLog(self):
         logData = self.log.read()
@@ -360,3 +468,10 @@ class LogReader(BaseLogReader):
     
 class BadLogException(Exception):
     pass
+
+def ProcessCharacterLine(characterLine):
+    for language, regex in _logLanguageRegex.items():
+        character = re.search(regex['character'], characterLine)
+        if character:
+            return character.group(0), language
+    raise BadLogException("not character log")
