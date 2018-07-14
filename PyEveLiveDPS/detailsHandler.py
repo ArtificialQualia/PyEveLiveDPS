@@ -28,7 +28,7 @@ class DetailsHandler(tk.Frame):
             return
         for detailList in historicalDetails:
             for detail in detailList:
-                if detail.get('pilotName'):
+                if detail.get('pilotName') and detail['amount'] > 0:
                     match = False
                     for pilot in self.pilots:
                         if pilot['pilotName'] == detail['pilotName']:
@@ -65,12 +65,11 @@ class DetailsHandler(tk.Frame):
                 weapon['color'] = findColor(weapon['category'], weapon['amount'])
                 
         for group in reversed(settings.detailsOrder):
-            self.pilots.sort(key=lambda pilot: sum([x['amount'] if x['category'] == group else 0 for x in pilot['weaponGroups']]), reverse=True)
+            self.pilots.sort(key=lambda pilot: sum([x['amount'] if x['category'] == group else -1 for x in pilot['weaponGroups']]), reverse=True)
         
         self.displayPilots()
         
         for pilot in self.pilots:
-            noValues = False
             for weapon in pilot['weaponGroups']:
                 if weapon['amount'] == 0:
                     pilot['weaponGroups'].remove(weapon)
@@ -133,7 +132,7 @@ class DetailFrame(tk.Frame):
     def updateLabels(self, weaponGroups):
         """ finds the right label for a weapon type, and updates it """
         for group in reversed(settings.detailsOrder):
-            weaponGroups.sort(key=lambda weaponGroup: weaponGroup['amount'] if weaponGroup['category'] == group else 0, reverse=True)
+            weaponGroups.sort(key=lambda weaponGroup: weaponGroup['amount'] if weaponGroup['category'] == group else -1, reverse=True)
         for label in self.weaponLabels:
             label[3] = False
         for index, group in enumerate(weaponGroups):

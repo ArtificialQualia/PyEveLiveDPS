@@ -43,7 +43,7 @@ def SetupLogger():
         logFile = os.environ['HOME'] + "/.peld.log"
     
     fiveMegabytes = 1024*1024*5
-    fi = RotatingFileHandler(logFile, maxBytes=fiveMegabytes, backupCount=1)
+    fi = RotatingFileHandler(logFile, maxBytes=fiveMegabytes, backupCount=1, encoding='utf-8')
     fi.setFormatter(formatter)
     logger.addHandler(fi)
     logger.info('logger initialized')
