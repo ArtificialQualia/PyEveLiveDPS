@@ -57,12 +57,12 @@ if __name__ == '__main__':
     try:
         App()
     except Exception as e:
-        logger = logging.getLogger('peld')
+        logger = logging.getLogger()
         logger.exception(e)
 else:
     # this gets hit on all imports from other files, which happens before the app starts
     # this allows easy sharing of the logger and settings references
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger()
     SetupLogger()
     settings = settings.Settings()
     ApplyLoggerSettings()

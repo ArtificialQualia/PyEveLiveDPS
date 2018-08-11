@@ -19,6 +19,7 @@ import settings.settingsWindow as settingsWindow
 import simulationWindow
 import labelHandler
 import animate
+import fleetWindow
 from peld import logger
 from peld import settings
 from baseWindow import BaseWindow
@@ -151,6 +152,8 @@ class MainWindow(tk.Tk):
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
+        self.mainMenu.menu.add_command(label="Fleet Mode", command=lambda: fleetWindow.FleetWindow(self))
+        self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
         self.mainMenu.menu.add_command(label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
@@ -246,8 +249,9 @@ class MainWindow(tk.Tk):
     
     def addPlaybackFrame(self, startTime, endTime):
         """ adds the playback frame underneath the graph when in 'playback' mode """
-        self.mainMenu.menu.delete(4)
-        self.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
+        self.mainMenu.menu.entryconfig(3, state="disabled")
+        self.mainMenu.menu.delete(6)
+        self.mainMenu.menu.insert_command(6, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
         self.topLabel.configure(text="Playback Mode")
         self.topLabel.grid()
         self.playbackFrame = playbackFrame.PlaybackFrame(self, startTime, endTime)
@@ -256,8 +260,9 @@ class MainWindow(tk.Tk):
     def removePlaybackFrame(self):
         """ removes the playback frame when we leave playback mode """
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
-        self.mainMenu.menu.delete(4)
-        self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
+        self.mainMenu.menu.entryconfig(3, state="normal")
+        self.mainMenu.menu.delete(6)
+        self.mainMenu.menu.insert_command(6, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.topLabel.grid_remove()
         self.playbackFrame.grid_remove()
         self.animator.catchup()

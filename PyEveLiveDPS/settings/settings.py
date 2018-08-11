@@ -20,6 +20,7 @@ class Settings(FileSystemEventHandler):
     defaultProfile = [ {
                         "profile": "Default",
                         "logLevel": 20,
+                        "fleetServer": "peld-fleet.com",
                         "profileSettings": 
                             { "windowX": 0, "windowY": 0,
                              "windowHeight": 225, "windowWidth": 350,
@@ -434,6 +435,22 @@ class Settings(FileSystemEventHandler):
     def detailsOrder(self, value):
         self.currentProfile["detailsOrder"] = value
         self.writeSettings()
+        
+    @property
+    def fleetServer(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if not profile.get("fleetServer"):
+                    profile["fleetServer"] = self.defaultProfile[0]["fleetServer"]
+                    self.writeSettings()
+                return profile.get("fleetServer")
+            
+    @fleetServer.setter
+    def fleetServer(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["fleetServer"] = value
+        self.writeSettings()
     
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
@@ -502,7 +519,7 @@ class Settings(FileSystemEventHandler):
         self.writeSettings()
     
     def writeSettings(self):
-        logger = logging.getLogger('peld')
+        logger = logging.getLogger()
         logger.info('New settings:')
         logger.info(str(self.currentProfile))
         tempFile = os.path.join(self.path, "PELD_temp.json")

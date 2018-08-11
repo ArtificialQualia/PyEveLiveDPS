@@ -110,8 +110,9 @@ class SimulationWindow(tk.Toplevel):
                 tk.messagebox.showerror("Error", "Please enter only whole, positive numbers for all values")
                 return
         
-        self.mainWindow.mainMenu.menu.delete(3)
-        self.mainWindow.mainMenu.menu.insert_command(3, label="Stop Simulation", command=self.stopSimulation)
+        self.mainWindow.mainMenu.menu.delete(5)
+        self.mainWindow.mainMenu.menu.insert_command(5, label="Stop Simulation", command=self.stopSimulation)
+        self.mainWindow.mainMenu.menu.entryconfig(3, state="disabled")
         
         self.mainWindow.topLabel.configure(text="Simulation Mode")
         self.mainWindow.topLabel.grid()
@@ -124,6 +125,7 @@ class SimulationWindow(tk.Toplevel):
     def stopSimulation(self):
         self.animator.simulationSettings(enable=False)
         self.mainWindow.characterDetector.catchupLog()
-        self.mainWindow.mainMenu.menu.delete(3)
-        self.mainWindow.mainMenu.menu.insert_command(3, label="Simulate Input", command=lambda: SimulationWindow(self.mainWindow))
+        self.mainWindow.mainMenu.menu.delete(5)
+        self.mainWindow.mainMenu.menu.insert_command(5, label="Simulate Input", command=lambda: SimulationWindow(self.mainWindow))
+        self.mainWindow.mainMenu.menu.entryconfig(3, state="normal")
         self.mainWindow.topLabel.grid_remove()
