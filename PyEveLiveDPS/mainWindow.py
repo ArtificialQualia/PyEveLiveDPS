@@ -19,8 +19,8 @@ import settings.settingsWindow as settingsWindow
 import simulationWindow
 import labelHandler
 import animate
-import fleetWindow
-from peld import logger
+import fleetWindow 
+import logging
 from peld import settings
 from baseWindow import BaseWindow
 from detailsWindow import DetailsWindow
@@ -67,8 +67,8 @@ class MainWindow(tk.Tk):
                 self.wm_deiconify()
                 self.update_idletasks()
         except Exception as e:
-            logger.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
-            logger.exception(e)
+            logging.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
+            logging.exception(e)
         
         # label that appears at the top of the window that displays in special modes like simulation and playback modes
         self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
@@ -122,7 +122,7 @@ class MainWindow(tk.Tk):
             
         self.labelHandler.lift(self.graphFrame)
         
-        logger.info('main window (and subcomponents) initialized')
+        logging.info('main window (and subcomponents) initialized')
         
     def __getattr__(self, attr):
         return getattr(self.baseWindow, attr)
@@ -198,7 +198,7 @@ class MainWindow(tk.Tk):
     def collapseEvent(self, event):
         """ This is called when the collapse icon is clicked
         it also calls the same event on the details window """
-        logger.debug('window collapse event occured')
+        logging.debug('window collapse event occured')
         self.detailsWindow.collapseHandler(self.collapsed)
         if self.collapsed:
             self.wm_attributes("-alpha", 1.0)
@@ -284,12 +284,12 @@ class MainWindow(tk.Tk):
         # if the event came from the menu, event will be 'None', otherwise the event location is checked
         # to make sure the user finished their click inside the quit button
         if not event or (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
-            logger.info('quit event received, saving window geometry and stopping threads')
+            logging.info('quit event received, saving window geometry and stopping threads')
             self.saveWindowGeometry()
             self.animator.stop()
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
-            logger.info('bye')
+            logging.info('bye')
             self.quit()
             
     def saveWindowGeometry(self):

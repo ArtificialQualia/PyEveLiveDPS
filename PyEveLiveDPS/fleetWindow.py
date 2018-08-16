@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
 import socketManager
+import sys
 
 class FleetWindow(tk.Toplevel):
     def __init__(self, mainWindow):
@@ -15,6 +16,7 @@ class FleetWindow(tk.Toplevel):
         if len(characterEntries) == 0:
             self.destroy()
             tk.messagebox.showerror("Error", "PELD must be tracking a character before enabling fleet mode.")
+            return
         characterIndex = mainWindow.characterDetector.selectedIndex.get()
         self.characterName = characterEntries[characterIndex]
         
@@ -88,7 +90,7 @@ class FleetWindow(tk.Toplevel):
         cancelButton.grid(row="0", column="2")
         
     def login(self):
-        settings.fleetServer = self.serverVar.get()
+        #settings.fleetServer = self.serverVar.get()
         requestArgs = "/sso/login?read_fleet=esi-fleets.read_fleet.v1"
         if self.modeVar.get() == 1:
             requestArgs += "&login_type=member"
@@ -100,7 +102,7 @@ class FleetWindow(tk.Toplevel):
         self.mainWindow.mainMenu.menu.delete(3)
         self.mainWindow.mainMenu.menu.insert_command(3, label="End Fleet Mode", command=self.logout)
         self.mainWindow.mainMenu.menu.entryconfig(5, state="disabled")
-        self.mainWindow.mainMenu.menu.entryconfig(6, state="disabled")
+        #self.mainWindow.mainMenu.menu.entryconfig(6, state="disabled")
         self.mainWindow.topLabel.configure(text="Fleet Mode (" + self.characterName + ")")
         self.mainWindow.topLabel.grid()
         self.mainWindow.characterMenu.configure(state="disabled")
@@ -109,7 +111,7 @@ class FleetWindow(tk.Toplevel):
         
     def logout(self):
         self.mainWindow.animator.queue = None
-        self.sockMgr.stop()
+        self.sockMgr.terminate()
         self.mainWindow.mainMenu.menu.delete(3)
         self.mainWindow.mainMenu.menu.insert_command(3, label="Fleet Mode", command=lambda: FleetWindow(self.mainWindow))
         self.mainWindow.mainMenu.menu.entryconfig(5, state="normal")

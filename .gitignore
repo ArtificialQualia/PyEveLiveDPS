@@ -101,6 +101,8 @@ ENV/
 # mypy
 .mypy_cache/
 
+.vscode
+
 /.project
 /.pydevproject
 /.settings

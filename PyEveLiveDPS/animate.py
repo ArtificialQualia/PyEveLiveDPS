@@ -9,7 +9,7 @@ import matplotlib
 import simulator
 import simulationWindow
 from peld import settings
-from peld import logger
+import logging
 
 
 class Animator(threading.Thread):
@@ -42,7 +42,7 @@ class Animator(threading.Thread):
         self.start()
     
     def run(self):
-        logger.info('Starting animator thread')
+        logging.info('Starting animator thread')
         self.run = True
         self.paused = False
         self.time = time.time()
@@ -158,7 +158,7 @@ class Animator(threading.Thread):
                 self.graph.graphFigure.canvas.draw()
             
         except Exception as e:
-            logger.exception(e)
+            logging.exception(e)
         
     def changeSettings(self):
         """This function is called when a user changes settings after the settings are verified"""

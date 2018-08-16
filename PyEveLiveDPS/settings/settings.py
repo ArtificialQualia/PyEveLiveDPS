@@ -95,7 +95,10 @@ class Settings(FileSystemEventHandler):
     def on_moved(self, event):
         if not event.dest_path.endswith('.json'):
             return
-        currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
+        try:
+            currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
+        except AttributeError:
+            return
         settingsFile = open(self.fullPath, 'r')
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
@@ -519,9 +522,8 @@ class Settings(FileSystemEventHandler):
         self.writeSettings()
     
     def writeSettings(self):
-        logger = logging.getLogger()
-        logger.info('New settings:')
-        logger.info(str(self.currentProfile))
+        logging.info('New settings:')
+        logging.info(str(self.currentProfile))
         tempFile = os.path.join(self.path, "PELD_temp.json")
         settingsFile = open(tempFile, 'w')
         json.dump(self.allSettings, settingsFile, indent=4)
