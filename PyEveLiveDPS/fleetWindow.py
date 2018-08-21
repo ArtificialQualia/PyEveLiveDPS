@@ -2,8 +2,11 @@
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
+import logging
 import socketManager
 import sys
+import multiprocessing
+import threading
 
 class FleetWindow(tk.Toplevel):
     def __init__(self, mainWindow):
@@ -11,6 +14,7 @@ class FleetWindow(tk.Toplevel):
         
         self.mainWindow = mainWindow
         self.counter = 0
+        self.sockMgr = None
         
         characterEntries = mainWindow.characterDetector.menuEntries
         if len(characterEntries) == 0:
@@ -83,13 +87,20 @@ class FleetWindow(tk.Toplevel):
         
         buttonFrame = tk.Frame(self)
         buttonFrame.grid(row="100", column="0", columnspan="10")
-        okButton = tk.Button(buttonFrame, text="  Login  ", command=self.login)
-        okButton.grid(row="0", column="0")
+        self.loginButton = tk.Button(buttonFrame, text="  Login  ", command=self.login)
+        self.loginButton.grid(row="0", column="0")
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
-        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.destroy)
+        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.logout)
         cancelButton.grid(row="0", column="2")
+
+        self.mainWindow.mainMenu.menu.delete(3)
+        self.mainWindow.mainMenu.menu.insert_command(3, label="End Fleet Mode", command=self.logout)
+        self.mainWindow.mainMenu.menu.entryconfig(5, state=tk.DISABLED)
+        self.mainWindow.mainMenu.menu.entryconfig(6, state=tk.DISABLED)
+        self.mainWindow.characterMenu.configure(state=tk.DISABLED)
         
     def login(self):
+        self.loginNotificationQueue = multiprocessing.Queue()
         #settings.fleetServer = self.serverVar.get()
         requestArgs = "/sso/login?read_fleet=esi-fleets.read_fleet.v1"
         if self.modeVar.get() == 1:
@@ -97,27 +108,44 @@ class FleetWindow(tk.Toplevel):
         else:
             requestArgs += "&write_fleet=esi-fleets.write_fleet.v1"
             requestArgs += "&login_type=fc"
-        self.sockMgr = socketManager.SocketManager(self.serverVar.get(), self.characterName, requestArgs)
+        self.sockMgr = socketManager.SocketManager(self.serverVar.get(), self.characterName, requestArgs, self.loginNotificationQueue)
         self.sockMgr.start()
-        self.mainWindow.mainMenu.menu.delete(3)
-        self.mainWindow.mainMenu.menu.insert_command(3, label="End Fleet Mode", command=self.logout)
-        self.mainWindow.mainMenu.menu.entryconfig(5, state="disabled")
-        #self.mainWindow.mainMenu.menu.entryconfig(6, state="disabled")
-        self.mainWindow.topLabel.configure(text="Fleet Mode (" + self.characterName + ")")
-        self.mainWindow.topLabel.grid()
-        self.mainWindow.characterMenu.configure(state="disabled")
-        self.mainWindow.animator.queue = self.sockMgr.queue
-        self.destroy()
+        self.loginButton.configure(state=tk.DISABLED)
+        self.loginWindowThread = threading.Thread(target=self.waitForLogin, daemon=True)
+        self.loginWindowThread.start()
+
+    def waitForLogin(self):
+        loginWindow = SocketNotificationWindow(self.loginNotificationQueue)
+        if loginWindow.loginStatus:
+            if self.lowCPUVar.get():
+                settings.lowCPUMode = True
+                self.mainWindow.animator.changeSettings()
+            self.mainWindow.topLabel.configure(text="Fleet Mode (" + self.characterName + ")")
+            self.mainWindow.topLabel.grid()
+            self.mainWindow.animator.queue = self.sockMgr.dataQueue
+            self.destroy()
         
     def logout(self):
-        self.mainWindow.animator.queue = None
-        self.sockMgr.terminate()
+        if hasattr(self, 'loginWindowThread') and self.loginWindowThread.is_alive():
+            self.sockMgr.terminate()
+            self.sockMgr = None
+            logging.info('Websocket process terminated')
+            self.loginNotificationQueue.put(False)
+        elif self.sockMgr:
+            self.sockMgr.terminate()
+            self.sockMgr = None
+            logging.info('Websocket process terminated')
+            if settings.lowCPUMode:
+                settings.lowCPUMode = False
+                self.mainWindow.animator.changeSettings()
+            self.mainWindow.animator.queue = None
+            self.mainWindow.topLabel.grid_remove()
         self.mainWindow.mainMenu.menu.delete(3)
         self.mainWindow.mainMenu.menu.insert_command(3, label="Fleet Mode", command=lambda: FleetWindow(self.mainWindow))
         self.mainWindow.mainMenu.menu.entryconfig(5, state="normal")
         self.mainWindow.mainMenu.menu.entryconfig(6, state="normal")
-        self.mainWindow.topLabel.grid_remove()
         self.mainWindow.characterMenu.configure(state="normal")
+        self.destroy()
         
     def addEntrySetting(self, var, labelText, descriptorText):
         centerFrame = tk.Frame(self)
@@ -133,3 +161,27 @@ class FleetWindow(tk.Toplevel):
         descriptor.grid(row=self.counter+1, column="1", columnspan="2", sticky="w")
         tk.Frame(self, height="10", width="10").grid(row=self.counter+2, column="1", columnspan="5")
         self.counter += 3
+
+class SocketNotificationWindow(tk.Toplevel):
+    def __init__(self, loginQueue):
+        tk.Toplevel.__init__(self)
+        
+        self.configure(pady=10, padx=20)
+        
+        self.wm_attributes("-topmost", True)
+        self.wm_title("PyEveLiveDPS Awaiting Login")
+        try:
+            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+        except Exception:
+            try:
+                self.iconbitmap("app.ico")
+            except Exception:
+                pass
+        self.geometry("200x50")
+        self.update_idletasks()
+            
+        tk.Label(self, text='Waiting for you to login...').grid(row=1, column=1)
+
+        self.loginStatus = loginQueue.get()
+
+        self.destroy()

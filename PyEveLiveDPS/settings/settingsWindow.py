@@ -129,6 +129,11 @@ class SettingsWindow(tk.Toplevel):
             
         
     def doSettings(self):
+        if settings.lowCPUMode:
+            if not tk.messagebox.askokcancel("Are you sure?", "Applying settings while in 'Low CPU Fleet Mode'" + 
+                                         " will not apply until after you end Fleet Mode.\n\n" + 
+                                         "It will also remove most of your settings."):
+                return
         settingsToApply = {}
         for option, frame in self.options:
             returnValue = frame.doSettings()

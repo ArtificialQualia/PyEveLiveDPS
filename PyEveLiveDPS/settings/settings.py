@@ -91,6 +91,8 @@ class Settings(FileSystemEventHandler):
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
         self.currentProfile = self.allSettings[0]["profileSettings"]
+
+        self.lowCPUMode = False
         
     def on_moved(self, event):
         if not event.dest_path.endswith('.json'):
@@ -229,30 +231,48 @@ class Settings(FileSystemEventHandler):
         self.currentProfile = self.allSettings[0]["profileSettings"]
     
     def getCapDamageInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capDamageIn"])
     
     def getCapDamageOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capDamageOut"])
     
     def getCapRecievedSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capRecieved"])
     
     def getCapTransferedSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capTransfered"])
     
     def getDpsInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["dpsIn"])
     
     def getDpsOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["dpsOut"])
     
     def getLogiInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["logiIn"])
     
     def getLogiOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["logiOut"])
     
     def getMiningSettings(self):
+        if self.lowCPUMode:
+            return []
         try:
             return copy.deepcopy(self.currentProfile["mining"])
         except KeyError:
@@ -260,15 +280,21 @@ class Settings(FileSystemEventHandler):
             return copy.deepcopy(self.currentProfile["mining"])
         
     def getMiningM3Setting(self):
+        if self.lowCPUMode:
+            return []
         try:
             return self.currentProfile["mining"][0]["showM3"]
         except KeyError:
             return False
     
     def getInterval(self):
+        if self.lowCPUMode:
+            return 100
         return self.currentProfile["interval"]
     
     def getSeconds(self):
+        if self.lowCPUMode:
+            return 2
         return self.currentProfile["seconds"]
     
     def getWindowHeight(self):
@@ -291,6 +317,8 @@ class Settings(FileSystemEventHandler):
             return self.currentProfile["compactTransparency"]
         
     def getGraphDisabled(self):
+        if self.lowCPUMode:
+            return True
         try:
             return self.currentProfile["graphDisabled"]
         except KeyError:
@@ -325,6 +353,8 @@ class Settings(FileSystemEventHandler):
     
     @property
     def detailsWindowShow(self):
+        if self.lowCPUMode:
+            return False
         if 'detailsWindow' in self.currentProfile and 'show' in self.currentProfile["detailsWindow"]:
             return self.currentProfile["detailsWindow"]["show"]
         else:
@@ -454,7 +484,7 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == "Default"):
                 profile["fleetServer"] = value
         self.writeSettings()
-    
+
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,

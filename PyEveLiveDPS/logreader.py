@@ -222,6 +222,7 @@ class CharacterDetector(FileSystemEventHandler):
         
     def playbackLog(self, logPath):
         try:
+            self.mainWindow.animator.queue = None
             self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
             self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
         except BadLogException:

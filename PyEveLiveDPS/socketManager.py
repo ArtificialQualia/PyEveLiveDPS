@@ -8,40 +8,25 @@ import webbrowser
 import time
 import sys
 from socketIO_client import SocketIO, BaseNamespace
+import socketIO_client.exceptions
 import ssl
 import urllib3
 urllib3.disable_warnings()
 
-class SocketNotificationWindow(tk.Toplevel):
-    def __init__(self):
-        tk.Toplevel.__init__(self)
-        
-        self.configure(pady=10, padx=20)
-        
-        self.wm_attributes("-topmost", True)
-        self.wm_title("PyEveLiveDPS Awaiting Login")
-        try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
-        except Exception:
-            try:
-                self.iconbitmap("app.ico")
-            except Exception:
-                pass
-        self.geometry("200x50")
-        self.update_idletasks()
-            
-        tk.Label(self, text='Waiting for you to login...').grid(row=1, column=1)
-
 class SocketManager(multiprocessing.Process):
-    def __init__(self, server, characterName, loginArgs):
+    def __init__(self, server, characterName, loginArgs, loginNotificationQueue):
         multiprocessing.Process.__init__(self)
-        self.server = "https://" + server
+        if server.startswith("http://") or server.startswith("https://"):
+            self.server = server
+        else:
+            self.server = "https://" + server
         self.characterName = characterName
         self.loginArgs = loginArgs
         self.loginArgs += "&character_name=" + self.characterName
         self.guid = str(uuid.uuid4())
         self.loginArgs += "&socket_guid=" + self.guid
-        self.queue = multiprocessing.Queue()
+        self.loginNotificationQueue = loginNotificationQueue
+        self.dataQueue = multiprocessing.Queue()
         self.daemon = True
         self.running = True
         self.registered = False
@@ -79,39 +64,34 @@ class SocketManager(multiprocessing.Process):
 
             def on_client_registered(self, *args):
                 logger.info('Websocket client registered with server')
-                #_sockMgr.loginWindow.destroy()
+                _sockMgr.loginNotificationQueue.put(True)
                 _sockMgr.registered = True
 
-        try:
-            #self.loginWindow = SocketNotificationWindow()
-            webbrowser.open(self.server + self.loginArgs)
-            while self.running:
-                try:
-                    self.socket = SocketIO(self.server, verify=False,
-                                          cookies={'socket_guid': self.guid, 'name': self.characterName})
-                    self.namespace = self.socket.define(Namespace, '/client')
-                    while not self.registered:
-                        try:
-                            self.namespace.emit('register_client')
-                            self.socket.wait(2)
-                        except Exception as e:
-                            logger.exception(e)
-                    timeWaiting = 30.0
-                    while self.running:
-                        try:
-                            while not self.queue.empty():
-                                self.namespace.emit('peld_data', self.queue.get())
-                            time.sleep(0.1)
-                            timeWaiting += 0.1
-                            if timeWaiting >= 30:
-                                self.namespace.emit('peld_check')
-                                timeWaiting = 0.0
-                        except Exception as e:
-                            logger.exception(e)
-                except Exception as e:
-                    logger.exception(e)
-        except Exception as e:
-            logger.exception(e)
+        webbrowser.open(self.server + self.loginArgs)
+        while self.running:
+            try:
+                self.socket = SocketIO(self.server, verify=False, wait_for_connection=False,
+                                      cookies={'socket_guid': self.guid, 'name': self.characterName})
+                self.socket.wait(1)
+                self.namespace = self.socket.define(Namespace, '/client')
+                while not self.registered:
+                    self.namespace.emit('register_client')
+                    self.socket.wait(1)
+                timeWaiting = 30.0
+                while self.running:
+                    while not self.dataQueue.empty():
+                        self.namespace.emit('peld_data', self.dataQueue.get())
+                    time.sleep(0.1)
+                    timeWaiting += 0.1
+                    if timeWaiting >= 30:
+                        self.namespace.emit('peld_check')
+                        timeWaiting = 0.0
+            except socketIO_client.exceptions.ConnectionError as e:
+                logger.exception(e)
+            except Exception as e:
+                logger.exception(e)
+            except:
+                logger.critical('baseException')
 
 def LoggerThread(q):
     while True:
