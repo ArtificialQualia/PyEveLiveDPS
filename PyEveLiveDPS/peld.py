@@ -10,6 +10,7 @@ from settings import settings
 settings = settings.Settings()
 
 import threading
+import multiprocessing
 import logging
 from logging.handlers import RotatingFileHandler
 import platform
@@ -56,6 +57,7 @@ def SetupLogger():
     logger.info('log level set to ' + str(settings.logLevel))
     
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     try:
         App()
     except Exception as e:
