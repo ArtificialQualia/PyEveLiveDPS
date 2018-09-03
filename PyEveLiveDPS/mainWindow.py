@@ -69,7 +69,7 @@ class MainWindow(tk.Tk):
             logger.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
             logger.exception(e)
         
-        # label that appears at the top of the window that displays in special modes like simulation and playback modes
+        # label that appears at the top of the window in special modes like simulation and playback modes
         self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
         font = tkFont.Font(font=self.topLabel['font'])
         font.config(slant='italic')

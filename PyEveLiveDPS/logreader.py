@@ -37,7 +37,7 @@ _logLanguageRegex = {
     'english': {
         'character': "(?<=Listener: ).*",
         'sessionTime': "(?<=Session Started: ).*",
-        'pilotAndWeapon': '.*ffffffff>([^\(\)<>]*)(?:\[.*\((.*)\)<|<)/b.*> \-(?: (.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?P<default_ship>.*)\)<|<)/b.*> \-(?: (?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>to<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>from<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
@@ -57,7 +57,7 @@ _logLanguageRegex = {
     'russian': {
         'character': "(?<=Слушатель: ).*",
         'sessionTime': "(?<=Сеанс начат: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> наносит удар по <",
         'damageIn': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> удар от <",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони отремонтировано <",
@@ -77,7 +77,7 @@ _logLanguageRegex = {
     'french': {
         'character': "(?<=Auditeur: ).*",
         'sessionTime': "(?<=Session commencée: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>sur<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>de<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de blindage transférés à distance à <",
@@ -97,7 +97,7 @@ _logLanguageRegex = {
     'german': {
         'character': "(?<=Empfänger: ).*",
         'sessionTime': "(?<=Sitzung gestartet: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>gegen<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>von <",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur zu <",
@@ -117,7 +117,7 @@ _logLanguageRegex = {
     'japanese': {
         'character': "(?<=傍聴者: ).*",
         'sessionTime': "(?<=セッション開始: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>対象:<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>攻撃者:<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
@@ -136,6 +136,8 @@ _logLanguageRegex = {
     }
 }
 
+_logReaders = []
+
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
         self.mainWindow = mainWindow
@@ -150,7 +152,7 @@ class CharacterDetector(FileSystemEventHandler):
             self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
         self.menuEntries = []
-        self.logReaders = []
+        self.logReaders = _logReaders
         self.selectedIndex = IntVar()
         self.playbackLogReader = None
         
@@ -179,6 +181,10 @@ class CharacterDetector(FileSystemEventHandler):
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
             self.characterMenu.menu.add_command(label='No EVE installation detected', state=tk.DISABLED)
+
+        self.characterMenu.menu.add_separator()
+        from settings.overviewSettings import OverviewSettingsWindow
+        self.characterMenu.menu.add_command(label='Open overview settings', command=OverviewSettingsWindow)
         
     def on_created(self, event):
         self.addLog(event.src_path)
@@ -213,7 +219,7 @@ class CharacterDetector(FileSystemEventHandler):
         except BadLogException:
             return
         self.logReaders.append(newLogReader)
-        self.characterMenu.menu.add_radiobutton(label=character, variable=self.selectedIndex, 
+        self.characterMenu.menu.insert_radiobutton(0, label=character, variable=self.selectedIndex, 
                                                 value=len(self.menuEntries), command=self.catchupLog)
         self.menuEntries.append(character)
         
@@ -249,12 +255,58 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
+
+    def createOverviewRegex(self, overviewSettings):
+        if overviewSettings:
+            def safeGetIndex(elem, _list):
+                try:
+                    return _list.index(elem)
+                except ValueError:
+                    return 10
+            try:
+                keyLambda = lambda e: safeGetIndex(e[0], overviewSettings['shipLabelOrder'])
+                sortedShipLabels = sorted(overviewSettings['shipLabels'], key=keyLambda)
+                pilotAndWeaponRegex = "(?:(?:.*ffffffff>"
+                for shipLabel in sortedShipLabels[:]:
+                    shipLabel[1] = dict(shipLabel[1])
+                    if not shipLabel[1]['state']:
+                        if shipLabel[1]['type'] in ['pilot name', 'ship type']:
+                            identifier = shipLabel[1]['type'].split()[0]
+                            pilotAndWeaponRegex += '(?P<'+identifier+'>)'
+                        continue
+                    if shipLabel[1]['type'] == None:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        pilotAndWeaponRegex += '(?:'+safePre+')?'
+                    elif shipLabel[1]['type'] in ['alliance', 'corporation', 'ship name']:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        safePost = re.escape(shipLabel[1]['post'])
+                        pilotAndWeaponRegex += '(?:'+safePre+'.*?'+safePost+')?'
+                    elif shipLabel[1]['type'] in ['pilot name', 'ship type']:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        safePost = re.escape(shipLabel[1]['post'])
+                        identifier = shipLabel[1]['type'].split()[0]
+                        pilotAndWeaponRegex += '(?:'+safePre+'(?:<localized .*?>)?(?P<'+identifier+'>.*?)'+safePost+')'
+                    else:
+                        continue
+                pilotAndWeaponRegex += ".*> \-(?: (?:<localized .*?>)?(?P<weapon>.*?)(?: \-|<)|.*))"
+                pilotAndWeaponRegex += '|' + _logLanguageRegex[self.language]['pilotAndWeapon'] + ')?'
+                return pilotAndWeaponRegex
+            except Exception as e:
+                logger.error('error parsing overview settings: ' + str(e))
+                return None
+        else:
+            return None
         
     def compileRegex(self):
-        pilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
-        self.damageOutRegex = re.compile(_logLanguageRegex[self.language]['damageOut'] + pilotAndWeaponRegex)
+        basicPilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
+        basicPilotAndWeaponRegex += '(?P<pilot>)(?P<ship>)(?P<weapon>)'
+
+        overviewSettings = settings.getOverviewSettings(self.character)
+        pilotAndWeaponRegex = self.createOverviewRegex(overviewSettings) or basicPilotAndWeaponRegex
+
+        self.damageOutRegex = re.compile(_logLanguageRegex[self.language]['damageOut'] + basicPilotAndWeaponRegex)
         
-        self.damageInRegex = re.compile(_logLanguageRegex[self.language]['damageIn'] + pilotAndWeaponRegex)
+        self.damageInRegex = re.compile(_logLanguageRegex[self.language]['damageIn'] + basicPilotAndWeaponRegex)
         
         self.armorRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['armorRepairedOut'] + pilotAndWeaponRegex)
         self.hullRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['hullRepairedOut'] + pilotAndWeaponRegex)
@@ -299,34 +351,34 @@ class BaseLogReader():
     
     def extractValues(self, regex, logData, mining=False):
         returnValue = []
-        group = regex.findall(logData)
+        group = regex.finditer(logData)
         if mining:
-            if group:
-                for amount,type in group:
-                    if amount != 0:
-                        returnGroup = {}
-                        if settings.getMiningM3Setting():
-                            if type in _oreVolume:
-                                returnGroup['amount'] = int(amount) * _oreVolume[type]
-                            else:
-                                returnGroup['amount'] = int(amount)
+            for match in group:
+                amount = match.group(1)
+                _type = match.group(2)
+                if amount != 0:
+                    returnGroup = {}
+                    if settings.getMiningM3Setting():
+                        if _type in _oreVolume:
+                            returnGroup['amount'] = int(amount) * _oreVolume[_type]
                         else:
                             returnGroup['amount'] = int(amount)
-                        returnValue.append(returnGroup)
-            return returnValue
-        if group:
-            for match in group:
-                if match[0] != 0:
-                    returnGroup = {}
-                    returnGroup['amount'] = int(match[0])
-                    returnGroup['pilotName'] = match[1].strip()
-                    returnGroup['shipType'] = match[2]
-                    if returnGroup['shipType'] == '':
-                        returnGroup['shipType'] = returnGroup['pilotName']
-                    returnGroup['weaponType'] = match[3]
-                    if returnGroup['weaponType'] == '':
-                        returnGroup['weaponType'] = 'Unknown'
+                    else:
+                        returnGroup['amount'] = int(amount)
                     returnValue.append(returnGroup)
+            return returnValue
+        for match in group:
+            amount = match.group(1) or 0
+            pilotName = match.group('default_pilot') or match.group('pilot') or '?'
+            shipType = match.group('ship') or match.group('default_ship') or pilotName
+            weaponType = match.group('default_weapon') or match.group('weapon') or 'Unknown'
+            if amount != 0:
+                returnGroup = {}
+                returnGroup['amount'] = int(amount)
+                returnGroup['pilotName'] = pilotName.strip()
+                returnGroup['shipType'] = shipType
+                returnGroup['weaponType'] = weaponType
+                returnValue.append(returnGroup)
         return returnValue
     
 class PlaybackLogReader(BaseLogReader):
@@ -345,7 +397,7 @@ class PlaybackLogReader(BaseLogReader):
             raise BadLogException("not character log")
         characterLine = self.log.readline()
         try:
-            character, self.language = ProcessCharacterLine(characterLine)
+            self.character, self.language = ProcessCharacterLine(characterLine)
         except BadLogException:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
@@ -441,7 +493,7 @@ class LogReader(BaseLogReader):
         self.log.readline()
         self.log.readline()
         characterLine = self.log.readline()
-        character, self.language = ProcessCharacterLine(characterLine)
+        self.character, self.language = ProcessCharacterLine(characterLine)
         logger.info('Log language is ' + self.language)
         self.log.readline()
         self.log.readline()
@@ -449,8 +501,8 @@ class LogReader(BaseLogReader):
         if (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
             collisionCharacter, language = ProcessCharacterLine(self.log.readline())
-            logger.error('Log file collision on characters' + character + " and " + collisionCharacter)
-            messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
+            logger.error('Log file collision on characters' + self.character + " and " + collisionCharacter)
+            messagebox.showerror("Error", "Log file collision on characters:\n\n" + self.character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
                                 "Please restart the client of the character you want to track to use this program.\n" + 
