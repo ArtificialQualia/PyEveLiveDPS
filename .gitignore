@@ -103,3 +103,4 @@ ENV/
 
 /.project
 /.pydevproject
+.settings/org.eclipse.core.resources.prefs
