@@ -37,7 +37,7 @@ _logLanguageRegex = {
     'english': {
         'character': "(?<=Listener: ).*",
         'sessionTime': "(?<=Session Started: ).*",
-        'pilotAndWeapon': '.*ffffffff>([^\(\)<>]*)(?:\[.*\((.*)\)<|<)/b.*> \-(?: (.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?P<default_ship>.*)\)<|<)/b.*> \-(?: (?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>to<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>from<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
@@ -55,49 +55,49 @@ _logLanguageRegex = {
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>"
     },
     'russian': {
-        'character': "(?<=Слушатель: ).*",
-        'sessionTime': "(?<=Сеанс начат: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
-        'damageOut': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> наносит удар по <",
-        'damageIn': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> удар от <",
-        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони отремонтировано <",
-        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности корпуса отремонтировано <",
-        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности щитов накачано <",
-        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони получено дистанционным ремонтом от <",
-        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности корпуса получено дистанционным ремонтом от <",
-        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности щитов получено накачкой от <",
-        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса энергии накопителя отправлено в <",
-        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> энергии нейтрализовано <",
-        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> энергии извлечено из <",
-        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса энергии накопителя получено от <",
-        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> энергии нейтрализовано <",
-        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> энергии извлечено и передано <",
+        'character': "(?<=Ð¡Ð»ÑƒÑˆÐ°Ñ‚ÐµÐ»ÑŒ: ).*",
+        'sessionTime': "(?<=Ð¡ÐµÐ°Ð½Ñ� Ð½Ð°Ñ‡Ð°Ñ‚: ).*",
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>Ð£Ñ‰ÐµÑ€Ð± ([0-9]+).*> Ð½Ð°Ð½Ð¾Ñ�Ð¸Ñ‚ ÑƒÐ´Ð°Ñ€ Ð¿Ð¾ <",
+        'damageIn': "\(combat\) <.*?><b>Ð£Ñ‰ÐµÑ€Ð± ([0-9]+).*> ÑƒÐ´Ð°Ñ€ Ð¾Ñ‚ <",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ Ð±Ñ€Ð¾Ð½Ð¸ Ð¾Ñ‚Ñ€ÐµÐ¼Ð¾Ð½Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¾ <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ ÐºÐ¾Ñ€Ð¿ÑƒÑ�Ð° Ð¾Ñ‚Ñ€ÐµÐ¼Ð¾Ð½Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¾ <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ Ñ‰Ð¸Ñ‚Ð¾Ð² Ð½Ð°ÐºÐ°Ñ‡Ð°Ð½Ð¾ <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ Ð±Ñ€Ð¾Ð½Ð¸ Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð´Ð¸Ñ�Ñ‚Ð°Ð½Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¼ Ñ€ÐµÐ¼Ð¾Ð½Ñ‚Ð¾Ð¼ Ð¾Ñ‚ <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ ÐºÐ¾Ñ€Ð¿ÑƒÑ�Ð° Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð´Ð¸Ñ�Ñ‚Ð°Ð½Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¼ Ñ€ÐµÐ¼Ð¾Ð½Ñ‚Ð¾Ð¼ Ð¾Ñ‚ <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ð¿Ñ€Ð¾Ñ‡Ð½Ð¾Ñ�Ñ‚Ð¸ Ñ‰Ð¸Ñ‚Ð¾Ð² Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð½Ð°ÐºÐ°Ñ‡ÐºÐ¾Ð¹ Ð¾Ñ‚ <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð½Ð°ÐºÐ¾Ð¿Ð¸Ñ‚ÐµÐ»Ñ� Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾ Ð² <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð½ÐµÐ¹Ñ‚Ñ€Ð°Ð»Ð¸Ð·Ð¾Ð²Ð°Ð½Ð¾ <",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð¸Ð·Ð²Ð»ÐµÑ‡ÐµÐ½Ð¾ Ð¸Ð· <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> ÐµÐ´Ð¸Ð½Ð¸Ñ† Ð·Ð°Ð¿Ð°Ñ�Ð° Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð½Ð°ÐºÐ¾Ð¿Ð¸Ñ‚ÐµÐ»Ñ� Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð¾Ñ‚ <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð½ÐµÐ¹Ñ‚Ñ€Ð°Ð»Ð¸Ð·Ð¾Ð²Ð°Ð½Ð¾ <",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> Ñ�Ð½ÐµÑ€Ð³Ð¸Ð¸ Ð¸Ð·Ð²Ð»ÐµÑ‡ÐµÐ½Ð¾ Ð¸ Ð¿ÐµÑ€ÐµÐ´Ð°Ð½Ð¾ <",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     },
     'french': {
         'character': "(?<=Auditeur: ).*",
-        'sessionTime': "(?<=Session commencée: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'sessionTime': "(?<=Session commencÃ©e: ).*",
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>sur<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>de<",
-        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de blindage transférés à distance à <",
-        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de structure transférés à distance à <",
-        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transférés à distance à <",
-        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de blindage réparés à distance par <",
-        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de structure réparés à distance par <",
-        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transférés à distance par <",
-        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transférés à distance à <",
-        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> d'énergie neutralisée en faveur de <",
-        'nosRecieved': "\(combat\) <.*?><b>([0-9]+).*> d'énergie siphonnée aux dépens de <",
-        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transférés à distance par <",
-        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> d'énergie neutralisée aux dépens de <",
-        'nosTaken': "\(combat\) <.*?><b>([0-9]+).*> d'énergie siphonnée en faveur de <",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de blindage transfÃ©rÃ©s Ã  distance Ã  <",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de structure transfÃ©rÃ©s Ã  distance Ã  <",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transfÃ©rÃ©s Ã  distance Ã  <",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de blindage rÃ©parÃ©s Ã  distance par <",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> points de structure rÃ©parÃ©s Ã  distance par <",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> points de boucliers transfÃ©rÃ©s Ã  distance par <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transfÃ©rÃ©s Ã  distance Ã  <",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> d'Ã©nergie neutralisÃ©e en faveur de <",
+        'nosRecieved': "\(combat\) <.*?><b>([0-9]+).*> d'Ã©nergie siphonnÃ©e aux dÃ©pens de <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transfÃ©rÃ©s Ã  distance par <",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> d'Ã©nergie neutralisÃ©e aux dÃ©pens de <",
+        'nosTaken': "\(combat\) <.*?><b>([0-9]+).*> d'Ã©nergie siphonnÃ©e en faveur de <",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     },
     'german': {
-        'character': "(?<=Empfänger: ).*",
+        'character': "(?<=EmpfÃ¤nger: ).*",
         'sessionTime': "(?<=Sitzung gestartet: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>gegen<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>von <",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur zu <",
@@ -106,20 +106,20 @@ _logLanguageRegex = {
         'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur von <",
         'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> Rumpf-Fernreparatur von <",
         'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> Schildfernbooster aktiviert von <",
-        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher übertragen zu <",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher Ã¼bertragen zu <",
         'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> Energie neutralisiert <",
         'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> Energie transferiert von <",
-        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher übertragen von <",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher Ã¼bertragen von <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>\-([0-9]+).*> Energie neutralisiert <",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> Energie transferiert zu <",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     },
     'japanese': {
-        'character': "(?<=傍聴者: ).*",
-        'sessionTime': "(?<=セッション開始: ).*",
-        'pilotAndWeapon': '.*ffffffff>(?:<localized .*?>)?([^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(.*?)(?: \-|<)|.*)',
-        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>対象:<",
-        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>攻撃者:<",
+        'character': "(?<=å‚�è�´è€…: ).*",
+        'sessionTime': "(?<=ã‚»ãƒƒã‚·ãƒ§ãƒ³é–‹å§‹: ).*",
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>å¯¾è±¡:<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>æ”»æ’ƒè€…:<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
         'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <",
         'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <",
@@ -127,14 +127,16 @@ _logLanguageRegex = {
         'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <",
         'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <",
         'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <",
-        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> エネルギーニュートラライズ 対象:<",
-        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> エネルギードレイン 対象:<",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‹ãƒ¥ãƒ¼ãƒˆãƒ©ãƒ©ã‚¤ã‚º å¯¾è±¡:<",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‰ãƒ¬ã‚¤ãƒ³ å¯¾è±¡:<",
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
-        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>のエネルギーが解放されました<",
-        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> エネルギードレイン 攻撃者:<",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>ã�®ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ã�Œè§£æ”¾ã�•ã‚Œã�¾ã�—ã�Ÿ<",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‰ãƒ¬ã‚¤ãƒ³ æ”»æ’ƒè€…:<",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     }
 }
+
+_logReaders = []
 
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
@@ -150,7 +152,7 @@ class CharacterDetector(FileSystemEventHandler):
             self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
         self.menuEntries = []
-        self.logReaders = []
+        self.logReaders = _logReaders
         self.selectedIndex = IntVar()
         self.playbackLogReader = None
         
@@ -179,6 +181,10 @@ class CharacterDetector(FileSystemEventHandler):
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
             self.characterMenu.menu.add_command(label='No EVE installation detected', state=tk.DISABLED)
+
+        self.characterMenu.menu.add_separator()
+        from settings.overviewSettings import OverviewSettingsWindow
+        self.characterMenu.menu.add_command(label='Open overview settings', command=OverviewSettingsWindow)
         
     def on_created(self, event):
         self.addLog(event.src_path)
@@ -213,7 +219,7 @@ class CharacterDetector(FileSystemEventHandler):
         except BadLogException:
             return
         self.logReaders.append(newLogReader)
-        self.characterMenu.menu.add_radiobutton(label=character, variable=self.selectedIndex, 
+        self.characterMenu.menu.insert_radiobutton(0, label=character, variable=self.selectedIndex, 
                                                 value=len(self.menuEntries), command=self.catchupLog)
         self.menuEntries.append(character)
         
@@ -250,12 +256,58 @@ class CharacterDetector(FileSystemEventHandler):
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
         self.mainWindow = mainWindow
+
+    def createOverviewRegex(self, overviewSettings):
+        if overviewSettings:
+            def safeGetIndex(elem, _list):
+                try:
+                    return _list.index(elem)
+                except ValueError:
+                    return 10
+            try:
+                keyLambda = lambda e: safeGetIndex(e[0], overviewSettings['shipLabelOrder'])
+                sortedShipLabels = sorted(overviewSettings['shipLabels'], key=keyLambda)
+                pilotAndWeaponRegex = "(?:(?:.*ffffffff>"
+                for shipLabel in sortedShipLabels[:]:
+                    shipLabel[1] = dict(shipLabel[1])
+                    if not shipLabel[1]['state']:
+                        if shipLabel[1]['type'] in ['pilot name', 'ship type']:
+                            identifier = shipLabel[1]['type'].split()[0]
+                            pilotAndWeaponRegex += '(?P<'+identifier+'>)'
+                        continue
+                    if shipLabel[1]['type'] == None:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        pilotAndWeaponRegex += '(?:'+safePre+')?'
+                    elif shipLabel[1]['type'] in ['alliance', 'corporation', 'ship name']:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        safePost = re.escape(shipLabel[1]['post'])
+                        pilotAndWeaponRegex += '(?:'+safePre+'.*?'+safePost+')?'
+                    elif shipLabel[1]['type'] in ['pilot name', 'ship type']:
+                        safePre = re.escape(shipLabel[1]['pre'])
+                        safePost = re.escape(shipLabel[1]['post'])
+                        identifier = shipLabel[1]['type'].split()[0]
+                        pilotAndWeaponRegex += '(?:'+safePre+'(?:<localized .*?>)?(?P<'+identifier+'>.*?)'+safePost+')'
+                    else:
+                        continue
+                pilotAndWeaponRegex += ".*> \-(?: (?:<localized .*?>)?(?P<weapon>.*?)(?: \-|<)|.*))"
+                pilotAndWeaponRegex += '|' + _logLanguageRegex[self.language]['pilotAndWeapon'] + ')?'
+                return pilotAndWeaponRegex
+            except Exception as e:
+                logging.error('error parsing overview settings: ' + str(e))
+                return None
+        else:
+            return None
         
     def compileRegex(self):
-        pilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
-        self.damageOutRegex = re.compile(_logLanguageRegex[self.language]['damageOut'] + pilotAndWeaponRegex)
+        basicPilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
+        basicPilotAndWeaponRegex += '(?P<pilot>)(?P<ship>)(?P<weapon>)'
+
+        overviewSettings = settings.getOverviewSettings(self.character)
+        pilotAndWeaponRegex = self.createOverviewRegex(overviewSettings) or basicPilotAndWeaponRegex
+
+        self.damageOutRegex = re.compile(_logLanguageRegex[self.language]['damageOut'] + basicPilotAndWeaponRegex)
         
-        self.damageInRegex = re.compile(_logLanguageRegex[self.language]['damageIn'] + pilotAndWeaponRegex)
+        self.damageInRegex = re.compile(_logLanguageRegex[self.language]['damageIn'] + basicPilotAndWeaponRegex)
         
         self.armorRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['armorRepairedOut'] + pilotAndWeaponRegex)
         self.hullRepairedOutRegex = re.compile(_logLanguageRegex[self.language]['hullRepairedOut'] + pilotAndWeaponRegex)
@@ -300,34 +352,34 @@ class BaseLogReader():
     
     def extractValues(self, regex, logData, mining=False):
         returnValue = []
-        group = regex.findall(logData)
+        group = regex.finditer(logData)
         if mining:
-            if group:
-                for amount,type in group:
-                    if amount != 0:
-                        returnGroup = {}
-                        if settings.getMiningM3Setting():
-                            if type in _oreVolume:
-                                returnGroup['amount'] = int(amount) * _oreVolume[type]
-                            else:
-                                returnGroup['amount'] = int(amount)
+            for match in group:
+                amount = match.group(1)
+                _type = match.group(2)
+                if amount != 0:
+                    returnGroup = {}
+                    if settings.getMiningM3Setting():
+                        if _type in _oreVolume:
+                            returnGroup['amount'] = int(amount) * _oreVolume[_type]
                         else:
                             returnGroup['amount'] = int(amount)
-                        returnValue.append(returnGroup)
-            return returnValue
-        if group:
-            for match in group:
-                if match[0] != 0:
-                    returnGroup = {}
-                    returnGroup['amount'] = int(match[0])
-                    returnGroup['pilotName'] = match[1].strip()
-                    returnGroup['shipType'] = match[2]
-                    if returnGroup['shipType'] == '':
-                        returnGroup['shipType'] = returnGroup['pilotName']
-                    returnGroup['weaponType'] = match[3]
-                    if returnGroup['weaponType'] == '':
-                        returnGroup['weaponType'] = 'Unknown'
+                    else:
+                        returnGroup['amount'] = int(amount)
                     returnValue.append(returnGroup)
+            return returnValue
+        for match in group:
+            amount = match.group(1) or 0
+            pilotName = match.group('default_pilot') or match.group('pilot') or '?'
+            shipType = match.group('ship') or match.group('default_ship') or pilotName
+            weaponType = match.group('default_weapon') or match.group('weapon') or 'Unknown'
+            if amount != 0:
+                returnGroup = {}
+                returnGroup['amount'] = int(amount)
+                returnGroup['pilotName'] = pilotName.strip()
+                returnGroup['shipType'] = shipType
+                returnGroup['weaponType'] = weaponType
+                returnValue.append(returnGroup)
         return returnValue
     
 class PlaybackLogReader(BaseLogReader):
@@ -346,7 +398,7 @@ class PlaybackLogReader(BaseLogReader):
             raise BadLogException("not character log")
         characterLine = self.log.readline()
         try:
-            character, self.language = ProcessCharacterLine(characterLine)
+            self.character, self.language = ProcessCharacterLine(characterLine)
         except BadLogException:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
@@ -442,7 +494,7 @@ class LogReader(BaseLogReader):
         self.log.readline()
         self.log.readline()
         characterLine = self.log.readline()
-        character, self.language = ProcessCharacterLine(characterLine)
+        self.character, self.language = ProcessCharacterLine(characterLine)
         logging.info('Log language is ' + self.language)
         self.log.readline()
         self.log.readline()
@@ -450,8 +502,8 @@ class LogReader(BaseLogReader):
         if (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
             collisionCharacter, language = ProcessCharacterLine(self.log.readline())
-            logging.error('Log file collision on characters' + character + " and " + collisionCharacter)
-            messagebox.showerror("Error", "Log file collision on characters:\n\n" + character + " and " + collisionCharacter +
+            logging.error('Log file collision on characters' + self.character + " and " + collisionCharacter)
+            messagebox.showerror("Error", "Log file collision on characters:\n\n" + self.character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
                                 "Please restart the client of the character you want to track to use this program.\n" + 

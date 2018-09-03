@@ -15,6 +15,7 @@ import tkinter as tk
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import logging
+import yaml
 
 class Settings(FileSystemEventHandler):
     defaultProfile = [ {
@@ -485,6 +486,41 @@ class Settings(FileSystemEventHandler):
                 profile["fleetServer"] = value
         self.writeSettings()
 
+    def setOverviewFiles(self, characterDict):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["overviewFiles"] = characterDict
+                self.writeSettings()
+
+    def getOverviewFiles(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if 'overviewFiles' not in profile:
+                    if not hasattr(self, 'overviewNotificaitonShown'):
+                        self.overviewNotificaitonShown = True
+                        from settings.overviewSettings import OverviewNotification
+                        OverviewNotification()
+                    return {}
+                return profile["overviewFiles"]
+
+    def getOverviewFile(self, characterName):
+        overviewFiles = self.getOverviewFiles()
+        if characterName in overviewFiles:
+            return overviewFiles[characterName]
+        else:
+            return overviewFiles["default"] if 'default' in overviewFiles else None
+
+    def getOverviewSettings(self, characterName):
+        overviewFile = self.getOverviewFile(characterName)
+        if not overviewFile:
+            return None
+        try:
+            with open(overviewFile, encoding='utf8') as overviewFileContent:
+                return yaml.safe_load(overviewFileContent.read())
+        except:
+            tk.messagebox.showerror("Error", "Error loading overview settings file:\n"+overviewFile)
+            return None
+    
     def setSettings(self, capDamageIn=None, capDamageOut=None, capRecieved=None, capTransfered=None,
                     dpsIn=None, dpsOut=None, logiIn=None, logiOut=None, mining=None,
                     interval=None, seconds=None,
