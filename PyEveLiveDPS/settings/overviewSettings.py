@@ -6,6 +6,7 @@ import time
 import platform
 import os
 import yaml
+import logging
 
 from logreader import _logReaders
 
@@ -149,11 +150,13 @@ class OverviewSettingsWindow(tk.Toplevel):
             self.image.start()
         except Exception:
             try:
-                self.image = AnimatedGif(canvasFrame, "PyEveLiveDPS\\images\\peld-overview-export.gif")
+                path = os.path.join('PyEveLiveDPS', 'images', 'peld-overview-export.gif')
+                self.image = AnimatedGif(canvasFrame, path)
                 self.image.grid(row="1", column="1")
                 self.image.start()
             except Exception as e:
-                pass
+                logging.exception('Exception playing gif:')
+                logging.exception(e)
 
         pictureLabelText = "NOTE: If you have separate overviews for different characters \n" + \
                            "you will need to export your settings to different files"
@@ -241,6 +244,8 @@ class OverviewSettingsWindow(tk.Toplevel):
         self.settingRow += 1
 
     def processOverviewFile(self, characterName, label, path):
+        if not path:
+            return
         try:
             with open(path, encoding='utf8') as overviewFileContent:
                 overviewSettings = yaml.safe_load(overviewFileContent.read())
@@ -251,12 +256,14 @@ class OverviewSettingsWindow(tk.Toplevel):
                     shipLabel[1] = dict(shipLabel[1])
                     if not shipLabel[1]['state']:
                         if shipLabel[1]['type'] in ['pilot name', 'ship type']:
+                            logging.warning(shipLabel[1]['type'] + " not in "+str(path))
                             tk.messagebox.showerror("Error", "Error: The '"+shipLabel[1]['type']+"' is disabled in these " + \
                               "overview settings.  You need to enable the display of this label for PELD to track properly.\n\n" + \
                               "You can enable it on the 'ships' tab of your overview settings in EVE.\n\n" + \
                               "Don't forget to export your overview settings again!")
         except:
-            tk.messagebox.showerror("Error", "Error processing overview settings file:\n"+path)
+            logging.error("Error processing overview settings file: "+str(path))
+            tk.messagebox.showerror("Error", "Error processing overview settings file:\n"+str(path))
             return
             
         self.overviewFiles[characterName] = path

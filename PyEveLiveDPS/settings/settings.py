@@ -497,6 +497,7 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == "Default"):
                 if 'overviewFiles' not in profile:
                     if not hasattr(self, 'overviewNotificaitonShown'):
+                        logging.info('No overview settings set, showing overview notification for this session...')
                         self.overviewNotificaitonShown = True
                         from settings.overviewSettings import OverviewNotification
                         OverviewNotification()

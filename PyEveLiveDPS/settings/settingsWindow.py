@@ -8,6 +8,7 @@ import tkinter.font as tkFont
 import tkinter.colorchooser as colorchooser
 import sys
 import copy
+import os
 from settings.generalSettingsFrame import GeneralSettingsFrame
 from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
@@ -50,7 +51,8 @@ class SideBar(tk.Frame):
             button.image = image
         except Exception:
             try:
-                image = tk.PhotoImage(file="PyEveLiveDPS\\images\\" + chosenImage)
+                path = os.path.join('PyEveLiveDPS', 'images', chosenImage)
+                image = tk.PhotoImage(file=path)
                 button.configure(image=image)
                 button.image = image
             except Exception as e:

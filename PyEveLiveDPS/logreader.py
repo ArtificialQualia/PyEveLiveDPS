@@ -115,11 +115,11 @@ _logLanguageRegex = {
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     },
     'japanese': {
-        'character': "(?<=å‚�è�´è€…: ).*",
-        'sessionTime': "(?<=ã‚»ãƒƒã‚·ãƒ§ãƒ³é–‹å§‹: ).*",
+        'character': "(?<=傍聴者: ).*",
+        'sessionTime': "(?<=セッション開始: ).*",
         'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
-        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>å¯¾è±¡:<",
-        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>æ”»æ’ƒè€…:<",
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>対象:<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>攻撃者:<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
         'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired to <",
         'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted to <",
@@ -127,11 +127,11 @@ _logLanguageRegex = {
         'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*> remote hull repaired by <",
         'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*> remote shield boosted by <",
         'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted to <",
-        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‹ãƒ¥ãƒ¼ãƒˆãƒ©ãƒ©ã‚¤ã‚º å¯¾è±¡:<",
-        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‰ãƒ¬ã‚¤ãƒ³ å¯¾è±¡:<",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*> エネルギーニュートラライズ 対象:<",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*> エネルギードレイン 対象:<",
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
-        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>ã�®ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ã�Œè§£æ”¾ã�•ã‚Œã�¾ã�—ã�Ÿ<",
-        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> ã‚¨ãƒ�ãƒ«ã‚®ãƒ¼ãƒ‰ãƒ¬ã‚¤ãƒ³ æ”»æ’ƒè€…:<",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>のエネルギーが解放されました<",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> エネルギードレイン 攻撃者:<",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
     }
 }
