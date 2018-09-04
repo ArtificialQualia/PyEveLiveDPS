@@ -518,7 +518,9 @@ class Settings(FileSystemEventHandler):
         try:
             with open(overviewFile, encoding='utf8') as overviewFileContent:
                 return yaml.safe_load(overviewFileContent.read())
-        except:
+        except Exception as e:
+            logging.exception('Exception loading overview settings file: ' + overviewFile)
+            logging.exception(e)
             tk.messagebox.showerror("Error", "Error loading overview settings file:\n"+overviewFile)
             return None
     
