@@ -49,7 +49,7 @@ If you wish to contribute to the project codebase, I accept pull requests.
 If you love the program enough that you feel compelled to donate, ISK donations are welcome to my eve character: **Demogorgon Asmodeous**
 
 ## Running from source
-To run PELD directly from the source code, run the following commands with **Python 3.5**:
+To run PELD directly from the source code, run the following commands with **Python 3.3-3.6**:
 ```
 pip install -r requirements.txt
 python ./PyEveLiveDPS/peld.py
