@@ -8,6 +8,7 @@ import tkinter.font as tkFont
 import tkinter.colorchooser as colorchooser
 import sys
 import copy
+import os
 from settings.generalSettingsFrame import GeneralSettingsFrame
 from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
@@ -50,7 +51,8 @@ class SideBar(tk.Frame):
             button.image = image
         except Exception:
             try:
-                image = tk.PhotoImage(file="PyEveLiveDPS\\images\\" + chosenImage)
+                path = os.path.join('PyEveLiveDPS', 'images', chosenImage)
+                image = tk.PhotoImage(file=path)
                 button.configure(image=image)
                 button.image = image
             except Exception as e:
@@ -129,6 +131,11 @@ class SettingsWindow(tk.Toplevel):
             
         
     def doSettings(self):
+        if settings.lowCPUMode:
+            if not tk.messagebox.askokcancel("Are you sure?", "Applying settings while in 'Low CPU Fleet Mode'" + 
+                                         " will not apply until after you end Fleet Mode.\n\n" + 
+                                         "It will also remove most of your settings."):
+                return
         settingsToApply = {}
         for option, frame in self.options:
             returnValue = frame.doSettings()

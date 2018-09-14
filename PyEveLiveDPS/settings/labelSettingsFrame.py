@@ -158,7 +158,6 @@ class GridEntry(tk.Frame):
         singleLabel.bind("<Button-1>", lambda e:self.dragStart(e, listbox, checkbox))
         
     def dragStart(self, event, listbox, checkbox):
-        event.widget.grid_remove()
         listbox.grid_remove()
         checkbox.grid_remove()
         x = self.winfo_pointerx()-event.x
@@ -168,8 +167,10 @@ class GridEntry(tk.Frame):
         self.x = event.x
         self.y = event.y
         self.floatingWindow.StartMove(event)
+        event.widget.grab_set()
         event.widget.bind("<ButtonRelease-1>", lambda e:self.dragStop(e, listbox, checkbox))
         event.widget.bind("<Motion>", self.dragMove)
+        event.widget.grid_remove()
     
     def dragStop(self, event, listbox, checkbox):
         self.floatingWindow.StopMove(event)
@@ -177,6 +178,7 @@ class GridEntry(tk.Frame):
         self.y = None
         event.widget.unbind("<ButtonRelease-1>")
         event.widget.unbind("<Motion>")
+        event.widget.grab_release()
         
         pointerx = self.winfo_pointerx()
         pointery = self.winfo_pointery()

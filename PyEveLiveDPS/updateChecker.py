@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 import tkinter as tk
 import tkinter.font as tkFont
-from peld import logger
+import logging
 from peld import settings
 import webbrowser
 
@@ -26,14 +26,14 @@ class UpdateChecker(threading.Thread):
         try:
             httpResponse = urllib.request.urlopen("https://api.github.com/repos/ArtificialQualia/PyEveLiveDPS/releases").read()
         except urllib.error.URLError as e:
-            logger.exception('Exception checking for new releases:')
-            logger.exception(e)
+            logging.exception('Exception checking for new releases:')
+            logging.exception(e)
             return
         
         releases = json.loads(httpResponse.decode('utf-8'))
         
-        logger.info('Current version: ' + version.version)
-        logger.info('Latest release: ' + releases[0]['name'])
+        logging.info('Current version: ' + version.version)
+        logging.info('Latest release: ' + releases[0]['name'])
         if releases[0]['name'] != version.version.split('-')[0] and releases[0]['name'] != settings.disableUpdateReminderFor:
             UpdateNotificaitonWindow(releases)
 

@@ -9,7 +9,7 @@ import matplotlib
 import simulator
 import simulationWindow
 from peld import settings
-from peld import logger
+import logging
 
 
 class Animator(threading.Thread):
@@ -32,6 +32,7 @@ class Animator(threading.Thread):
         self.labelHandler = mainWindow.labelHandler
         self.characterDetector = mainWindow.characterDetector
         self.detailsHandler = mainWindow.detailsWindow.detailsHandler
+        self.queue = None
         
         self.slowDown = False
         self.simulationEnabled = False
@@ -41,7 +42,7 @@ class Animator(threading.Thread):
         self.start()
     
     def run(self):
-        logger.info('Starting animator thread')
+        logging.info('Starting animator thread')
         self.run = True
         self.paused = False
         self.time = time.time()
@@ -93,6 +94,9 @@ class Animator(threading.Thread):
             
             # pops old values, adds new values, and passes those to the graph and other handlers
             for category, items in self.categories.items():
+                if self.queue and category != 'mining':
+                    for entry in items["newEntry"]:
+                        self.queue.put({"category": category, "entry": entry})
                 # if items["settings"] is empty, this isn't a category that is being tracked
                 if items["settings"]:
                     # remove old values
@@ -120,7 +124,8 @@ class Animator(threading.Thread):
             #  and label average is needed for detecting when to slow down the animation
             self.highestAverage = 0
             self.highestLabelAverage = 0
-            for i in range(int((self.seconds*1000)/interval)):
+            numberOfValues = len(items.get('yValues', []))
+            for i in range(numberOfValues):
                 for category, items in self.categories.items():
                     if items["settings"] and not items["labelOnly"]:
                         if (items["yValues"][i] > self.highestAverage):
@@ -154,7 +159,7 @@ class Animator(threading.Thread):
                 self.graph.graphFigure.canvas.draw()
             
         except Exception as e:
-            logger.exception(e)
+            logging.exception(e)
         
     def changeSettings(self):
         """This function is called when a user changes settings after the settings are verified"""
@@ -164,9 +169,10 @@ class Animator(threading.Thread):
             self.graph.subplot.clear()
         if self.simulationEnabled:
             self.simulationSettings(enable=False)
-            self.mainWindow.mainMenu.menu.delete(3)
-            self.mainWindow.mainMenu.menu.insert_command(3, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
+            self.mainWindow.mainMenu.menu.delete(5)
+            self.mainWindow.mainMenu.menu.insert_command(5, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
             self.mainWindow.topLabel.grid_remove()
+            self.mainWindow.mainMenu.menu.entryconfig(3, state="normal")
         
         self.slowDown = False
         self.seconds = settings.getSeconds()

@@ -22,7 +22,7 @@ import time
 import platform
 import tkinter as tk
 from peld import settings
-from peld import logger
+import logging
 import data.oreVolume
 _oreVolume = data.oreVolume._oreVolume
 from tkinter import messagebox, IntVar, filedialog
@@ -176,7 +176,7 @@ class CharacterDetector(FileSystemEventHandler):
             self.observer.schedule(self, self.path, recursive=False)
             self.observer.start()
         except FileNotFoundError:
-            logger.error('EVE logs directory not found, path checked: ' + self.path)
+            logging.error('EVE logs directory not found, path checked: ' + self.path)
             messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
@@ -190,7 +190,7 @@ class CharacterDetector(FileSystemEventHandler):
         self.addLog(event.src_path)
         
     def addLog(self, logPath):
-        logger.info('Processing log file: ' + logPath)
+        logging.info('Processing log file: ' + logPath)
         log = open(logPath, 'r', encoding="utf8")
         log.readline()
         log.readline()
@@ -198,7 +198,7 @@ class CharacterDetector(FileSystemEventHandler):
         try:
             character, language = ProcessCharacterLine(characterLine)
         except BadLogException:
-            logger.info("Log " + logPath + " is not a character log.")
+            logging.info("Log " + logPath + " is not a character log.")
             return
         log.close()
         
@@ -228,6 +228,7 @@ class CharacterDetector(FileSystemEventHandler):
         
     def playbackLog(self, logPath):
         try:
+            self.mainWindow.animator.queue = None
             self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
             self.mainWindow.addPlaybackFrame(self.playbackLogReader.startTimeLog, self.playbackLogReader.endTimeLog)
         except BadLogException:
@@ -292,7 +293,7 @@ class BaseLogReader():
                 pilotAndWeaponRegex += '|' + _logLanguageRegex[self.language]['pilotAndWeapon'] + ')?'
                 return pilotAndWeaponRegex
             except Exception as e:
-                logger.error('error parsing overview settings: ' + str(e))
+                logging.error('error parsing overview settings: ' + str(e))
                 return None
         else:
             return None
@@ -384,7 +385,7 @@ class BaseLogReader():
 class PlaybackLogReader(BaseLogReader):
     def __init__(self, logPath, mainWindow):
         super().__init__(logPath, mainWindow)
-        logger.info('Processing playback log file: ' + logPath)
+        logging.info('Processing playback log file: ' + logPath)
         self.mainWindow = mainWindow
         self.paused = False
         self.logPath = logPath
@@ -401,7 +402,7 @@ class PlaybackLogReader(BaseLogReader):
         except BadLogException:
             messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
             raise BadLogException("not character log")
-        logger.info('Log language is ' + self.language)
+        logging.info('Log language is ' + self.language)
         
         startTimeRegex = _logLanguageRegex[self.language]['sessionTime']
         self.startTimeLog = datetime.datetime.strptime(re.search(startTimeRegex, self.log.readline()).group(0), "%Y.%m.%d %X")
@@ -494,14 +495,14 @@ class LogReader(BaseLogReader):
         self.log.readline()
         characterLine = self.log.readline()
         self.character, self.language = ProcessCharacterLine(characterLine)
-        logger.info('Log language is ' + self.language)
+        logging.info('Log language is ' + self.language)
         self.log.readline()
         self.log.readline()
         self.logLine = self.log.readline()
         if (self.logLine == "------------------------------------------------------------\n"):
             self.log.readline()
             collisionCharacter, language = ProcessCharacterLine(self.log.readline())
-            logger.error('Log file collision on characters' + self.character + " and " + collisionCharacter)
+            logging.error('Log file collision on characters' + self.character + " and " + collisionCharacter)
             messagebox.showerror("Error", "Log file collision on characters:\n\n" + self.character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 

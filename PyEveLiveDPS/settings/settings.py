@@ -21,6 +21,7 @@ class Settings(FileSystemEventHandler):
     defaultProfile = [ {
                         "profile": "Default",
                         "logLevel": 20,
+                        "fleetServer": "peld-fleet.com",
                         "profileSettings": 
                             { "windowX": 0, "windowY": 0,
                              "windowHeight": 225, "windowWidth": 350,
@@ -91,11 +92,16 @@ class Settings(FileSystemEventHandler):
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
         self.currentProfile = self.allSettings[0]["profileSettings"]
+
+        self.lowCPUMode = False
         
     def on_moved(self, event):
         if not event.dest_path.endswith('.json'):
             return
-        currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
+        try:
+            currentProfileName = self.allSettings[self.selectedIndex.get()]["profile"]
+        except AttributeError:
+            return
         settingsFile = open(self.fullPath, 'r')
         self.allSettings = json.load(settingsFile)
         settingsFile.close()
@@ -226,30 +232,48 @@ class Settings(FileSystemEventHandler):
         self.currentProfile = self.allSettings[0]["profileSettings"]
     
     def getCapDamageInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capDamageIn"])
     
     def getCapDamageOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capDamageOut"])
     
     def getCapRecievedSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capRecieved"])
     
     def getCapTransferedSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["capTransfered"])
     
     def getDpsInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["dpsIn"])
     
     def getDpsOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["dpsOut"])
     
     def getLogiInSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["logiIn"])
     
     def getLogiOutSettings(self):
+        if self.lowCPUMode:
+            return []
         return copy.deepcopy(self.currentProfile["logiOut"])
     
     def getMiningSettings(self):
+        if self.lowCPUMode:
+            return []
         try:
             return copy.deepcopy(self.currentProfile["mining"])
         except KeyError:
@@ -257,15 +281,21 @@ class Settings(FileSystemEventHandler):
             return copy.deepcopy(self.currentProfile["mining"])
         
     def getMiningM3Setting(self):
+        if self.lowCPUMode:
+            return []
         try:
             return self.currentProfile["mining"][0]["showM3"]
         except KeyError:
             return False
     
     def getInterval(self):
+        if self.lowCPUMode:
+            return 100
         return self.currentProfile["interval"]
     
     def getSeconds(self):
+        if self.lowCPUMode:
+            return 2
         return self.currentProfile["seconds"]
     
     def getWindowHeight(self):
@@ -288,6 +318,8 @@ class Settings(FileSystemEventHandler):
             return self.currentProfile["compactTransparency"]
         
     def getGraphDisabled(self):
+        if self.lowCPUMode:
+            return True
         try:
             return self.currentProfile["graphDisabled"]
         except KeyError:
@@ -322,6 +354,8 @@ class Settings(FileSystemEventHandler):
     
     @property
     def detailsWindowShow(self):
+        if self.lowCPUMode:
+            return False
         if 'detailsWindow' in self.currentProfile and 'show' in self.currentProfile["detailsWindow"]:
             return self.currentProfile["detailsWindow"]["show"]
         else:
@@ -435,6 +469,22 @@ class Settings(FileSystemEventHandler):
     def detailsOrder(self, value):
         self.currentProfile["detailsOrder"] = value
         self.writeSettings()
+        
+    @property
+    def fleetServer(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if not profile.get("fleetServer"):
+                    profile["fleetServer"] = self.defaultProfile[0]["fleetServer"]
+                    self.writeSettings()
+                return profile.get("fleetServer")
+            
+    @fleetServer.setter
+    def fleetServer(self, value):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                profile["fleetServer"] = value
+        self.writeSettings()
 
     def setOverviewFiles(self, characterDict):
         for profile in self.allSettings:
@@ -447,6 +497,7 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == "Default"):
                 if 'overviewFiles' not in profile:
                     if not hasattr(self, 'overviewNotificaitonShown'):
+                        logging.info('No overview settings set, showing overview notification for this session...')
                         self.overviewNotificaitonShown = True
                         from settings.overviewSettings import OverviewNotification
                         OverviewNotification()
@@ -467,7 +518,9 @@ class Settings(FileSystemEventHandler):
         try:
             with open(overviewFile, encoding='utf8') as overviewFileContent:
                 return yaml.safe_load(overviewFileContent.read())
-        except:
+        except Exception as e:
+            logging.exception('Exception loading overview settings file: ' + overviewFile)
+            logging.exception(e)
             tk.messagebox.showerror("Error", "Error loading overview settings file:\n"+overviewFile)
             return None
     
@@ -538,9 +591,8 @@ class Settings(FileSystemEventHandler):
         self.writeSettings()
     
     def writeSettings(self):
-        logger = logging.getLogger('peld')
-        logger.info('New settings:')
-        logger.info(str(self.currentProfile))
+        logging.info('New settings:')
+        logging.info(str(self.currentProfile))
         tempFile = os.path.join(self.path, "PELD_temp.json")
         settingsFile = open(tempFile, 'w')
         json.dump(self.allSettings, settingsFile, indent=4)

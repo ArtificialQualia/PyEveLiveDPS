@@ -19,7 +19,8 @@ import settings.settingsWindow as settingsWindow
 import simulationWindow
 import labelHandler
 import animate
-from peld import logger
+import fleetWindow 
+import logging
 from peld import settings
 from baseWindow import BaseWindow
 from detailsWindow import DetailsWindow
@@ -43,45 +44,22 @@ class MainWindow(tk.Tk):
             except Exception:
                 pass
         
-        # Magic to make the window appear on the windows taskbar
-        try:
-            if (self.platform == "Windows"):
-                self.update_idletasks()
-                GWL_EXSTYLE=-20
-                WS_EX_APPWINDOW=0x00040000
-                WS_EX_TOOLWINDOW=0x00000080
-                hwnd = windll.user32.GetParent(self.winfo_id())
-                try:
-                    style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-                except AttributeError:
-                    style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-                style = style & ~WS_EX_TOOLWINDOW
-                style = style | WS_EX_APPWINDOW
-                try:
-                    res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
-                except AttributeError:
-                    res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
-                # re-assert the new window style
-                self.wm_withdraw()
-                self.wm_deiconify()
-                self.update_idletasks()
-        except Exception as e:
-            logger.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
-            logger.exception(e)
+        self.addToTaskbar()
         
         # label that appears at the top of the window in special modes like simulation and playback modes
         self.topLabel = tk.Label(self, text="Simulation Mode", fg="white", background="black")
         font = tkFont.Font(font=self.topLabel['font'])
         font.config(slant='italic')
         self.topLabel['font'] = font
-        self.topLabel.grid(row="5", column="5", columnspan="10")
+        self.topLabel.grid(row="5", column="5", columnspan="8")
         self.topLabel.grid_remove()
         self.makeDraggable(self.topLabel)
         
         # Other items for setting up the window
         self.addQuitButton()
-        
         self.addCollapseButton(self, row="5", column="17")
+        tk.Frame(self, height=1, width=5, background="black").grid(row="5", column="16")
+        self.addMinimizeButton(self, row="5", column="15")
         
         self.addMenus()
         
@@ -91,6 +69,8 @@ class MainWindow(tk.Tk):
         self.middleFrame.rowconfigure(1, weight=1)
         self.middleFrame.grid(row="10", column="1", columnspan="19", sticky="news")
         self.makeDraggable(self.middleFrame)
+        self.middleFrame.bind("<Map>", self.showEvent)
+        self.protocol("WM_TAKE_FOCUS", lambda: self.showEvent(None))
         
         self.labelHandler = labelHandler.LabelHandler(self.middleFrame, lambda c:self.makeAllChildrenDraggable(c),
                                                        height="10", borderwidth="0", background="black")
@@ -121,10 +101,37 @@ class MainWindow(tk.Tk):
             
         self.labelHandler.lift(self.graphFrame)
         
-        logger.info('main window (and subcomponents) initialized')
+        logging.info('main window (and subcomponents) initialized')
         
     def __getattr__(self, attr):
         return getattr(self.baseWindow, attr)
+
+    def addToTaskbar(self):
+        # Magic to make the window appear on the windows taskbar
+        try:
+            if (self.platform == "Windows"):
+                self.update_idletasks()
+                GWL_EXSTYLE=-20
+                WS_EX_APPWINDOW=0x00040000
+                WS_EX_TOOLWINDOW=0x00000080
+                hwnd = windll.user32.GetParent(self.winfo_id())
+                try:
+                    style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+                except AttributeError:
+                    style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                style = style & ~WS_EX_TOOLWINDOW
+                style = style | WS_EX_APPWINDOW
+                try:
+                    res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+                except AttributeError:
+                    res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+                # re-assert the new window style
+                self.wm_withdraw()
+                self.wm_deiconify()
+                self.update_idletasks()
+        except Exception as e:
+            logging.exception("Error adding PELD to Windows taskbar.  This should never happen, but execution can continue normally.")
+            logging.exception(e)
         
     def addMenus(self):
         # character menu options are added dynamically by CharacterDetector, so we pass this into that
@@ -150,6 +157,8 @@ class MainWindow(tk.Tk):
         settings.initializeMenu(self)
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
+        self.mainMenu.menu.add_separator()
+        self.mainMenu.menu.add_command(label="Fleet Mode", command=lambda: fleetWindow.FleetWindow(self))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
@@ -195,7 +204,7 @@ class MainWindow(tk.Tk):
     def collapseEvent(self, event):
         """ This is called when the collapse icon is clicked
         it also calls the same event on the details window """
-        logger.debug('window collapse event occured')
+        logging.debug('window collapse event occured')
         self.detailsWindow.collapseHandler(self.collapsed)
         if self.collapsed:
             self.wm_attributes("-alpha", 1.0)
@@ -217,6 +226,7 @@ class MainWindow(tk.Tk):
             self.mainMenu.grid()
             self.characterMenu.grid()
             self.quitButton.grid()
+            self.minimizeButton.grid()
             self.collapseButton.destroy()
             self.addCollapseButton(self, row="5", column="17")
             self.collapsed = False
@@ -240,14 +250,69 @@ class MainWindow(tk.Tk):
             self.mainMenu.grid_remove()
             self.characterMenu.grid_remove()
             self.quitButton.grid_remove()
+            self.minimizeButton.grid_remove()
             self.collapseButton.destroy()
             self.addCollapseButton(self.middleFrame, row="0", column="1")
             self.collapsed = True
+
+    def addMinimizeButton(self, parent, row, column):
+        """ darws and places the minimize icon next to the collapse button """
+        self.minimizeButton = tk.Canvas(parent, width=15, height=15, background="black",
+                                    highlightbackground="white", highlightthickness="1")
+        #Boxception
+        self.minimizeButton.create_line(4,10,13,10,fill="white")
+        
+        self.minimizeButton.grid(row=row, column=column, sticky="n")
+        self.minimizeButton.bind("<ButtonPress-1>", self.buttonDimGray)
+        self.minimizeButton.bind("<ButtonRelease-1>", self.minimizeEvent)
+        self.minimizeButton.bind("<Enter>", self.buttonGray25)
+        self.minimizeButton.bind("<Leave>", self.buttonBlack)
+
+    def minimizeEvent(self, event):
+        """ 
+        There are many workarounds here to make this work cross-platform
+        That is why there are so many update()s needed, and why WM_TAKE_FOCUS is used.
+        However, this still isn't perfect on linux platforms, for some reason iconify()
+        takes multiple seconds to complete, and triggers WM_TAKE_FOCUS, so there is a period
+        where the window manager will not respond correctly if the window is restored too quickly.
+        """
+        self.protocol("WM_TAKE_FOCUS", lambda: None)
+        self.middleFrame.unbind("<Map>")
+        self.update()
+        self.overrideredirect(False)
+        self.update()
+        self.withdraw()
+        self.update()
+        self.deiconify()
+        self.update()
+        if settings.detailsWindowShow and hasattr(self, 'detailsWindow'):
+            self.detailsWindow.withdraw()
+        self.iconify()
+        self.update()
+        self.middleFrame.bind("<Map>", self.showEvent)
+        self.protocol("WM_TAKE_FOCUS", lambda: self.showEvent(None))
+
+    def showEvent(self, event):
+        """ Same as minimizeEvent, many workarounds here, almost entirely due to linux """
+        if self.overrideredirect():
+            return
+        self.middleFrame.unbind("<Map>")
+        self.update()
+        self.overrideredirect(True)
+        self.update()
+        self.withdraw()
+        self.update()
+        self.after(100, self.deiconify)
+        if settings.detailsWindowShow and hasattr(self, 'detailsWindow'):
+            self.detailsWindow.deiconify()
+        self.addToTaskbar()
+        self.middleFrame.bind("<Map>", self.showEvent)
     
     def addPlaybackFrame(self, startTime, endTime):
         """ adds the playback frame underneath the graph when in 'playback' mode """
-        self.mainMenu.menu.delete(4)
-        self.mainMenu.menu.insert_command(4, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
+        self.mainMenu.menu.entryconfig(3, state="disabled")
+        self.mainMenu.menu.delete(6)
+        self.mainMenu.menu.insert_command(6, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
         self.topLabel.configure(text="Playback Mode")
         self.topLabel.grid()
         self.playbackFrame = playbackFrame.PlaybackFrame(self, startTime, endTime)
@@ -256,8 +321,9 @@ class MainWindow(tk.Tk):
     def removePlaybackFrame(self):
         """ removes the playback frame when we leave playback mode """
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
-        self.mainMenu.menu.delete(4)
-        self.mainMenu.menu.insert_command(4, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
+        self.mainMenu.menu.entryconfig(3, state="normal")
+        self.mainMenu.menu.delete(6)
+        self.mainMenu.menu.insert_command(6, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.topLabel.grid_remove()
         self.playbackFrame.grid_remove()
         self.animator.catchup()
@@ -279,12 +345,12 @@ class MainWindow(tk.Tk):
         # if the event came from the menu, event will be 'None', otherwise the event location is checked
         # to make sure the user finished their click inside the quit button
         if not event or (event.x >= 0 and event.x <= 16 and event.y >= 0 and event.y <= 16):
-            logger.info('quit event received, saving window geometry and stopping threads')
+            logging.info('quit event received, saving window geometry and stopping threads')
             self.saveWindowGeometry()
             self.animator.stop()
             if hasattr(self, "caracterDetector"):
                 self.characterDetector.stop()
-            logger.info('bye')
+            logging.info('bye')
             self.quit()
             
     def saveWindowGeometry(self):
