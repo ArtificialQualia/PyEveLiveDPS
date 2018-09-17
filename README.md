@@ -1,7 +1,7 @@
 # PyEveLiveDPS
 PyEveLiveDPS (PELD) is a live DPS calculator and grapher for EVE Online
 
-It currently has the ability to track the following:  
+It has the ability to track the following:  
 - Outgoing and Incoming DPS
 - Outgoing and Incoming Shield/Armor/Hull Logistics
 - Outgoing and Incoming Cap transfers
@@ -11,8 +11,13 @@ It currently has the ability to track the following:
 Here is an example of what it looks like in regular mode and compact mode:  
 ![PELD regular](http://i.imgur.com/lCzJGx1.png) ![PELD compact](http://i.imgur.com/MBKb4jo.png)
 
-As of 2.0, PELD now includes a breakdown of values based on pilot and weapon type.  Here are some examples:
+As of 2.0, PELD includes a breakdown of values based on pilot and weapon type.  Here are some examples:  
 ![Breakdown pvp](https://i.imgur.com/Id7wUuE.png) ![Breakdown pve](https://i.imgur.com/GAUtC5a.png)
+
+For FCs, PELD now has a Fleet Mode that allows you to view the combat statistics of your entire fleet when they use PELD.  
+This is facilitated by a new website: https://peld-fleet.com/ ([peld-fleet source code](https://github.com/ArtificialQualia/PELD-Server))  
+The FC view looks like this:  
+![peld-fleet FC view](https://i.imgur.com/B7fP3qx.png)
 
 ## Download and Running
 Download the latest version from here:  
@@ -34,7 +39,7 @@ The packaged release is for Windows.  To run on Linux, run from source.  See bel
 
 There are a number of utilities that analyze your combat logs.  However, almost all of these utilities analyze your logs after the fact, which isn't as useful as getting that data in real time.
 
-There is one other live DPS grapher out there, but it only averages your DPS for the entire duration of the fight.  While that is still useful in its own right, this program provides a moving average of your DPS so you can make adjustments mid-fight and instantly see the results.  This program is also open source, so anyone can modify and improve it as they see fit.
+This tool provides a moving average of your DPS so you can make adjustments mid-fight and instantly see the results.  It also includes many additional features like pilot/weapon breakdowns, log playback, and fleet mode, along with many settings to customize your experience.  This program is also open source, so anyone can modify and improve it as they see fit.
 
 How long of a time period to average your DPS over is a user configurable setting so you can adjust it to your weapon type(s).
 
