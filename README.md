@@ -1,4 +1,4 @@
-# PyEveLiveDPS
+# PyEveLiveDPS <img src="/app.ico" width="40" height="40">
 PyEveLiveDPS (PELD) is a live DPS calculator and grapher for EVE Online
 
 It has the ability to track the following:  
