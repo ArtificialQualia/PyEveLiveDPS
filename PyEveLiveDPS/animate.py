@@ -124,15 +124,15 @@ class Animator(threading.Thread):
             #  and label average is needed for detecting when to slow down the animation
             self.highestAverage = 0
             self.highestLabelAverage = 0
-            numberOfValues = len(items.get('yValues', []))
-            for i in range(numberOfValues):
-                for category, items in self.categories.items():
-                    if items["settings"] and not items["labelOnly"]:
-                        if (items["yValues"][i] > self.highestAverage):
-                            self.highestAverage = items["yValues"][i]
-                    elif items["settings"]:
-                        if (items["yValues"][i] > self.highestAverage):
-                            self.highestLabelAverage = items["yValues"][i]
+            for category, items in self.categories.items():
+                if items["settings"] and not items["labelOnly"]:
+                    for value in items["yValues"]:
+                        if (value > self.highestAverage):
+                            self.highestAverage = value
+                elif items["settings"]:
+                    for value in items["yValues"]:
+                        if (value > self.highestAverage):
+                            self.highestLabelAverage = value
             
             if not self.graphDisabled:
                 if (self.highestAverage < 100):
