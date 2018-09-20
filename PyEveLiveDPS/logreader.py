@@ -57,7 +57,7 @@ _logLanguageRegex = {
     'russian': {
         'character': "(?<=Слушатель: ).*",
         'sessionTime': "(?<=Сеанс начат: ).*",
-        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> наносит удар по <",
         'damageIn': "\(combat\) <.*?><b>Ущерб ([0-9]+).*> удар от <",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса прочности брони отремонтировано <",
@@ -77,7 +77,7 @@ _logLanguageRegex = {
     'french': {
         'character': "(?<=Auditeur: ).*",
         'sessionTime': "(?<=Session commencée: ).*",
-        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>sur<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>de<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> points de blindage transférés à distance à <",
@@ -97,7 +97,7 @@ _logLanguageRegex = {
     'german': {
         'character': "(?<=Empfänger: ).*",
         'sessionTime': "(?<=Sitzung gestartet: ).*",
-        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>gegen<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>von <",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> Panzerungs-Fernreparatur zu <",
@@ -117,7 +117,7 @@ _logLanguageRegex = {
     'japanese': {
         'character': "(?<=傍聴者: ).*",
         'sessionTime': "(?<=セッション開始: ).*",
-        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*)',
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*))',
         'damageOut': "\(combat\) <.*?><b>([0-9]+).*>対象:<",
         'damageIn': "\(combat\) <.*?><b>([0-9]+).*>攻撃者:<",
         'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*> remote armor repaired to <",
