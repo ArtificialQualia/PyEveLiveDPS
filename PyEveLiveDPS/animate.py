@@ -113,10 +113,8 @@ class Animator(threading.Thread):
                     # pass the values to the graph and other handlers
                     if not items["labelOnly"] and not self.graphDisabled:
                         self.graph.animateLine(items["yValues"], items["settings"], items["lines"], zorder=items["zorder"])
-                        self.labelHandler.updateLabel(category, average, matplotlib.colors.to_hex(items["lines"][-1].get_color()))
-                    else:
-                        color = self.findColor(category, average)
-                        self.labelHandler.updateLabel(category, average, color)
+                    color = self.findColor(category, average)
+                    self.labelHandler.updateLabel(category, average, color)
                     self.detailsHandler.updateDetails(category, items["historicalDetails"])
             
             # Find highest average for the y-axis scaling
@@ -204,21 +202,20 @@ class Animator(threading.Thread):
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
+                showPeak = items["settings"][0].get("showPeak", False)
+                self.labelHandler.enablePeak(category, showPeak)
                 self.detailsHandler.enableLabel(category, True)
                 items["historical"] = [0] * int((self.seconds*1000)/self.interval)
                 items["historicalDetails"] = [[]] * int((self.seconds*1000)/self.interval)
                 items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
-                try:
-                    items["labelOnly"] = items["settings"][0]["labelOnly"]
-                except KeyError:
-                    items["settings"][0]["labelOnly"] = False
-                    items["labelOnly"] = items["settings"][0]["labelOnly"]
+                items["labelOnly"] = items["settings"][0].get("labelOnly", False)
                 if not items["labelOnly"]:
                     ySmooth = self.graph.smoothListGaussian(items["yValues"], 5)
                     plotLine, = self.graph.subplot.plot(ySmooth, zorder=items["zorder"])
                     items["lines"] = [plotLine]
             else:
                 self.labelHandler.enableLabel(category, False)
+                self.labelHandler.enablePeak(category, False)
                 self.detailsHandler.enableLabel(category, False)
         
         if not self.graphDisabled:

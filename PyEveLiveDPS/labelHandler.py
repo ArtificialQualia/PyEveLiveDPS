@@ -34,7 +34,7 @@ class LabelHandler(tk.Frame):
                 column = self.labelSettings[index]["column"] + 10
             else:
                 column = self.labelSettings[index]["column"]
-            self.labels[index]["label"].grid(row=self.labelSettings[index]["row"], column=column)
+            self.labels[index]["label"].grid(row=self.labelSettings[index]["row"], column=column, sticky="n")
             self.labels[index]["label"].grid_remove()
             
         self.makeAllChildrenDraggable(self)
@@ -49,6 +49,9 @@ class LabelHandler(tk.Frame):
             self.labels[labelName]["label"].grid()
         else:
             self.labels[labelName]["label"].grid_remove()
+        
+    def enablePeak(self, labelName="", enable=True):
+        self.labels[labelName]["label"].enablePeak(enable)
             
     def updateLabel(self, labelName, number, color):
         self.labels[labelName]["label"].updateLabel(number, color)
@@ -61,19 +64,45 @@ class Label(tk.Frame):
         self.columnconfigure(0, weight="1")
         self.columnconfigure(3, weight="1")
         
-        tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="0")
-        tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="3")
+        tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="0", rowspan="2", sticky="n")
+        tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="3", rowspan="2", sticky="n")
         
         tk.Label(self, text=text, fg="white", background="black").grid(row="0", column="1")
         self.numberLabel = tk.Label(self, text="0.0", fg="white", background="black")
         self.numberLabel.grid(row="0", column="2")
-        
-    def updateLabel(self, number, color):
+
+        self.showPeak = False
+        self.peakValue = 0.0
+        self.peakLabel = tk.Label(self, text="Peak:", fg="white", background="black")
+        self.peakLabel.grid(row="1", column="1")
+        self.peakLabel.grid_remove()
+        self.peakNumberLabel = tk.Label(self, text="0.0", fg="white", background="black")
+        self.peakNumberLabel.grid(row="1", column="2")
+        self.peakNumberLabel.grid_remove()
+
+    def enablePeak(self, enable=True):
+        self.showPeak = enable
+        if enable:
+            self.peakLabel.grid()
+            self.peakNumberLabel.grid()
+        else:
+            self.peakLabel.grid_remove()
+            self.peakNumberLabel.grid_remove()
+
+
+    def convertNumberToStr(self, number):
         decimals = int(self.decimalPlaces)
         if self.inThousands:
             number = number/1000
-            self.numberLabel["text"] = ('%.'+str(decimals)+'f') % (round(number, decimals),) + "K"
+            return ('%.'+str(decimals)+'f') % (round(number, decimals),) + "K"
         else:
-            self.numberLabel["text"] = ('%.'+str(decimals)+'f') % (round(number, decimals),)
+            return ('%.'+str(decimals)+'f') % (round(number, decimals),)
+        
+    def updateLabel(self, number, color):
+        self.numberLabel["text"] = self.convertNumberToStr(number)
         self.numberLabel.configure(fg=color)
+        if self.showPeak and number >= self.peakValue:
+            self.peakValue = number
+            self.peakNumberLabel["text"] = self.convertNumberToStr(number)
+            self.peakNumberLabel.configure(fg=color)
         
