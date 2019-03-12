@@ -97,15 +97,19 @@ class LineSettingsFrame(tk.Frame):
         frame.columnconfigure(1, weight=1)
         innerFrame = tk.Frame(frame, borderwidth=1, relief="sunken", padx="5")
         innerFrame.columnconfigure(0, weight=1)
-        innerFrame.grid(row="2", column="0", columnspan="2", sticky="we")
+        innerFrame.grid(row="2", column="0", columnspan="3", sticky="we")
         lineCheckboxValue = tk.BooleanVar()
         lineCheckbox = tk.Checkbutton(frame, variable=lineCheckboxValue, text="Only show label", state="disabled")
-        lineCheckbox.grid(row="0", column="1", sticky="e")
+        lineCheckbox.grid(row="0", column="2", sticky="w")
         lineCheckbox.var = lineCheckboxValue
+        peakCheckboxValue = tk.BooleanVar()
+        peakCheckbox = tk.Checkbutton(frame, variable=peakCheckboxValue, text="Show peak value", state="disabled")
+        peakCheckbox.grid(row="1", column="2", sticky="e")
+        peakCheckbox.var = peakCheckboxValue
         if mining:
             m3CheckboxValue = tk.BooleanVar()
             m3Checkbox = tk.Checkbutton(frame, variable=m3CheckboxValue, text="Show m3 mined instead of units", state="disabled")
-            m3Checkbox.grid(row="1", column="0", columnspan="2")
+            m3Checkbox.grid(row="1", column="0", columnspan="2", sticky="w")
             m3Checkbox.var = m3CheckboxValue
         else: m3Checkbox = None
         checkboxValue = tk.BooleanVar()
@@ -113,21 +117,20 @@ class LineSettingsFrame(tk.Frame):
             checkboxValue.set(False)
         else:
             checkboxValue.set(True)
-            try:
-                lineCheckboxValue.set(settingsList[0]["labelOnly"])
-                if mining: m3CheckboxValue.set(settingsList[0]["showM3"])
-            except KeyError:
-                pass
-            self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, settingsList, m3Checkbox)
+            lineCheckboxValue.set(settingsList[0].get("labelOnly", False))
+            peakCheckboxValue.set(settingsList[0].get("showPeak", False))
+            if mining: m3CheckboxValue.set(settingsList[0].get("showM3", False))
+            self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, peakCheckbox, settingsList, m3Checkbox)
         sectionCheckbox = tk.Checkbutton(frame, variable=checkboxValue, text=text + " tracking",
-                                         command=lambda:self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, settingsList, m3Checkbox))
+                                         command=lambda:self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox,
+                                                                                         peakCheckbox, settingsList, m3Checkbox))
         font = tkFont.Font(font=sectionCheckbox['font'])
         font.config(weight='bold')
         sectionCheckbox['font'] = font
         sectionCheckbox.grid(row="0", column="0", sticky="w")
         tk.Frame(frame, height="20", width="10").grid(row="1000", column="1", columnspan="5")
     
-    def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, settingsList, m3Checkbox):
+    def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, peakCheckbox, settingsList, m3Checkbox):
         if checkboxValue.get():
             frame.grid()
             innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for this line:")
@@ -146,6 +149,8 @@ class LineSettingsFrame(tk.Frame):
             self.expandCustomizationSettings(innerFrame, settingsList)
             lineCheckbox.configure(state="normal")
             settingsList[0].update({ "labelOnly": lineCheckbox.var })
+            peakCheckbox.configure(state="normal")
+            settingsList[0].update({ "showPeak": peakCheckbox.var })
             if m3Checkbox: 
                 m3Checkbox.configure(state="normal")
                 settingsList[0].update({ "showM3": m3Checkbox.var })
@@ -156,6 +161,8 @@ class LineSettingsFrame(tk.Frame):
             settingsList.clear()
             lineCheckbox.var.set(0)
             lineCheckbox.configure(state="disabled")
+            peakCheckbox.var.set(0)
+            peakCheckbox.configure(state="disabled")
             if m3Checkbox:
                 m3Checkbox.var.set(0)
                 m3Checkbox.configure(state="disabled")
@@ -233,6 +240,7 @@ class LineSettingsFrame(tk.Frame):
         for name, settings in self.settingsCopy.items():
             if len(settings) > 0:
                 settings[0]["labelOnly"] = settings[0]["labelOnly"].get()
+                settings[0]["showPeak"] = settings[0]["showPeak"].get()
                 
         if len(self.settingsCopy["mining"]) > 0:
             self.settingsCopy["mining"][0]["showM3"] = self.settingsCopy["mining"][0]["showM3"].get()
