@@ -1,6 +1,8 @@
 # PyEveLiveDPS <img src="/app.ico" width="40" height="40">
 PyEveLiveDPS (PELD) is a live DPS calculator and grapher for EVE Online
 
+PELD uses EVE's combat logs making it fully compliant with EVE's EULA
+
 It has the ability to track the following:  
 - Outgoing and Incoming DPS
 - Outgoing and Incoming Shield/Armor/Hull Logistics
