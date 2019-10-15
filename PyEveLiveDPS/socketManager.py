@@ -6,8 +6,11 @@ import json
 import uuid
 import webbrowser
 import socketio
+import urllib3
 
 from version import version
+
+urllib3.disable_warnings()
 
 class SocketManager(multiprocessing.Process):
     def __init__(self, server, characterName, loginArgs, loginNotificationQueue):
