@@ -23,14 +23,11 @@ from peld import settings
 import simulator
 
 class DPSGraph(tk.Frame):
-    def __init__(self, parent, labelHandler, **kwargs):
+    def __init__(self, parent, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         
         self.parent = parent
-        self.labelHandler = labelHandler
-        
         self.degree = 5
-        self.windowWidth = settings.getWindowWidth()
         
         self.graphFigure = Figure(figsize=(4,2), dpi=100, facecolor="black")
         
@@ -39,8 +36,8 @@ class DPSGraph(tk.Frame):
         self.subplot.tick_params(axis="x", colors="grey", labelbottom="off", bottom="off")
         
         self.graphFigure.axes[0].get_xaxis().set_ticklabels([])
-        self.graphFigure.subplots_adjust(left=(30/self.windowWidth), bottom=(15/self.windowWidth), 
-                                         right=1, top=(1-15/self.windowWidth), wspace=0, hspace=0)
+        self.graphFigure.subplots_adjust(left=(30/100), bottom=(15/100), 
+                                         right=1, top=(1-15/100), wspace=0, hspace=0)
 
         self.canvas = FigureCanvasTkAgg(self.graphFigure, self)
         self.canvas.get_tk_widget().configure(bg="black")
@@ -48,22 +45,32 @@ class DPSGraph(tk.Frame):
         
         self.canvas.show()
         
-    def readjust(self, windowWidth, highestAverage):
+    def readjust(self, highestAverage):
         """
-        This is for when a user resizes the window, we must change how much room we have to draw numbers
-        on the left-hand side.
+        This is for use during the animation cycle, or when a user resizes the window. 
+        We must change how much room we have to draw numbers on the left-hand side,
+          as well as adjust the y-axis values.
         Annoyingly, we have to use a %, not a number of pixels
         """
-        self.windowWidth = windowWidth
+        self.windowWidth = self.winfo_width()
         if (highestAverage < 900):
             self.graphFigure.subplots_adjust(left=(33/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth))
+                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
         elif (highestAverage < 9000):
             self.graphFigure.subplots_adjust(left=(44/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth))
-        else:
+                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
+        elif (highestAverage < 90000):
             self.graphFigure.subplots_adjust(left=(55/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth))
+                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
+        else:
+            self.graphFigure.subplots_adjust(left=(66/self.windowWidth), top=(1-15/self.windowWidth), 
+                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
+        if (highestAverage < 100):
+            self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
+        else:
+            self.graphFigure.axes[0].set_ylim(bottom=0, top=(highestAverage+highestAverage*0.1))
+        self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
+        self.canvas.draw()
         
     def animateLine(self, yValues, categories, lines, zorder):
         """
@@ -127,6 +134,15 @@ class DPSGraph(tk.Frame):
             self.subplot.lines.remove(lines[lineNumber])
             lines.pop(lineNumber)
             lineNumber += 1
+        
+    def basicLine(self, yValues, color, line, lineStyle='-'):
+        """
+        Basic single color line
+        """
+        smoothed = self.smoothListGaussian(yValues, self.degree)
+        line.set_data(range(0, len(smoothed)), smoothed)
+        line.set_color(color)
+        line.set_linestyle(lineStyle)
         
     def smoothListGaussian(self, list, degree=5):
         """Standard Gaussian (1D) function to smooth out out line

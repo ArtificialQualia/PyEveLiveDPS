@@ -32,7 +32,12 @@ class Animator(threading.Thread):
         self.labelHandler = mainWindow.labelHandler
         self.characterDetector = mainWindow.characterDetector
         self.detailsHandler = mainWindow.detailsWindow.detailsHandler
-        self.queue = None
+        self.dataQueue = None
+        self.dataRecieveQueue = None
+        self.fleetMetadataQueue = None
+        self.errorQueue = None
+        self.fleetData = {}
+        self.fleetMode = False
         
         self.slowDown = False
         self.simulationEnabled = False
@@ -90,13 +95,13 @@ class Animator(threading.Thread):
             self.categories["capDamageOut"]["newEntry"] = newEntries[6]
             self.categories["capDamageIn"]["newEntry"] = newEntries[7]
             self.categories["mining"]["newEntry"] = newEntries[8]
-            interval = settings.getInterval()
+            self.interval = settings.getInterval()
             
             # pops old values, adds new values, and passes those to the graph and other handlers
             for category, items in self.categories.items():
-                if self.queue and category != 'mining':
+                if self.fleetMode and category != 'mining':
                     for entry in items["newEntry"]:
-                        self.queue.put({"category": category, "entry": entry})
+                        self.dataQueue.put({"category": category, "entry": entry})
                 # if items["settings"] is empty, this isn't a category that is being tracked
                 if items["settings"]:
                     # remove old values
@@ -104,11 +109,11 @@ class Animator(threading.Thread):
                     items["historicalDetails"].pop(0)
                     # as values are broken up by weapon, add them together for the non-details views
                     amountSum = sum([entry['amount'] for entry in items["newEntry"]])
-                    items["historical"].insert(len(items["historical"]), amountSum)
-                    items["historicalDetails"].insert(len(items["historicalDetails"]), items["newEntry"])
+                    items["historical"].append(amountSum)
+                    items["historicalDetails"].append(items["newEntry"])
                     # 'yValues' is for the actual DPS at that point in time, as opposed to raw values
                     items["yValues"] = items["yValues"][1:]
-                    average = (np.sum(items["historical"])*(1000/interval))/len(items["historical"])
+                    average = (np.sum(items["historical"])*(1000/self.interval))/self.arrayLength
                     items["yValues"] = np.append(items["yValues"], average)
                     # pass the values to the graph and other handlers
                     if not items["labelOnly"] and not self.graphDisabled:
@@ -124,24 +129,19 @@ class Animator(threading.Thread):
             self.highestLabelAverage = 0
             for category, items in self.categories.items():
                 if items["settings"] and not items["labelOnly"]:
-                    for value in items["yValues"]:
-                        if (value > self.highestAverage):
-                            self.highestAverage = value
+                    highest = max(items["yValues"])
+                    if highest > self.highestAverage:
+                        self.highestAverage = highest
                 elif items["settings"]:
-                    for value in items["yValues"]:
-                        if (value > self.highestAverage):
-                            self.highestLabelAverage = value
+                    highest = max(items["yValues"])
+                    if highest > self.highestLabelAverage:
+                        self.highestLabelAverage = highest
             
             if not self.graphDisabled:
-                if (self.highestAverage < 100):
-                    self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=100)
-                else:
-                    self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=(self.highestAverage+self.highestAverage*0.1))
-                self.graph.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
-                self.graph.readjust(settings.getWindowWidth(), self.highestAverage)
+                self.graph.readjust(self.highestAverage)
             
             # if there are no values coming in to the graph, enable 'slowDown' mode to save CPU
-            if (self.highestAverage == 0 and self.highestLabelAverage == 0):
+            if self.highestAverage == 0 and self.highestLabelAverage == 0 and not self.fleetMode:
                 if not self.slowDown:
                     self.slowDown = True
                     self.interval = 500
@@ -151,13 +151,34 @@ class Animator(threading.Thread):
                     self.interval = settings.getInterval()
             
             # display of pilot details is handled after all values are updated, for sorting and such
-            self.detailsHandler.cleanupAndDisplay(interval, int((self.seconds*1000)/self.interval), lambda x,y: self.findColor(x,y))
-    
-            if not self.graphDisabled:
-                self.graph.graphFigure.canvas.draw()
+            self.detailsHandler.cleanupAndDisplay(self.interval, self.arrayLength, lambda x,y: self.findColor(x,y))
+
+            if self.fleetMode:
+                self.updateFleetWindow(self.mainWindow.fleetWindow)
             
         except Exception as e:
             logging.exception(e)
+    
+    def updateFleetWindow(self, fleetWindow):
+        fleetWindow.processErrorQueue(self.errorQueue)
+        fleetWindow.processMetadataQueue(self.fleetMetadataQueue)
+        if not settings.fleetWindowShow:
+            while not self.dataRecieveQueue.empty():
+                fleetEntry = self.dataRecieveQueue.get(False)
+            return
+        fleetWindow.processRecieveQueue(self.dataRecieveQueue, self.fleetData, self.arrayLength)
+        for category, pilots in self.fleetData.items():
+            toDelete = []
+            for pilot, entries in pilots.items():
+                average = (np.sum(entries["historical"])*(1000/self.interval))/self.arrayLength
+                if category != 'aggregate' and max(entries["yValues"]) == 0 and average == 0 and pilot != 'you':
+                    toDelete.append(pilot)
+                entries["yValues"] = entries["yValues"][1:]
+                entries["yValues"] = np.append(entries["yValues"], average)
+            for pilot in toDelete:
+                del pilots[pilot]
+        fleetWindow.displayFleetData(self.fleetData)
+        fleetWindow.displayAggregate(self.fleetData['aggregate'])
         
     def changeSettings(self):
         """This function is called when a user changes settings after the settings are verified"""
@@ -192,12 +213,22 @@ class Animator(threading.Thread):
             self.graph.grid()
         
         self.labelHandler.redoLabels()
+        self.mainWindow.makeAllChildrenDraggable(self.labelHandler)
         
         if settings.detailsWindowShow:
             self.mainWindow.detailsWindow.deiconify()
         else:
             self.mainWindow.detailsWindow.withdraw()
         
+        if self.fleetMode and settings.fleetWindowShow:
+            self.mainWindow.fleetWindow.deiconify()
+        else:
+            self.mainWindow.fleetWindow.withdraw()
+        
+        self.arrayLength = int((self.seconds*1000)/self.interval)
+        historicalTemplate = [0] * self.arrayLength
+        yValuesTemplate = np.array([0] * self.arrayLength)
+        ySmooth = self.graph.smoothListGaussian(yValuesTemplate, 5)
         # resets all the arrays to contain no values
         for category, items in self.categories.items():
             if items["settings"]:
@@ -205,12 +236,11 @@ class Animator(threading.Thread):
                 showPeak = items["settings"][0].get("showPeak", False)
                 self.labelHandler.enablePeak(category, showPeak)
                 self.detailsHandler.enableLabel(category, True)
-                items["historical"] = [0] * int((self.seconds*1000)/self.interval)
-                items["historicalDetails"] = [[]] * int((self.seconds*1000)/self.interval)
-                items["yValues"] = np.array([0] * int((self.seconds*1000)/self.interval))
+                items["historical"] = historicalTemplate.copy()
+                items["historicalDetails"] = [[]] * self.arrayLength
+                items["yValues"] = yValuesTemplate.copy()
                 items["labelOnly"] = items["settings"][0].get("labelOnly", False)
                 if not items["labelOnly"]:
-                    ySmooth = self.graph.smoothListGaussian(items["yValues"], 5)
                     plotLine, = self.graph.subplot.plot(ySmooth, zorder=items["zorder"])
                     items["lines"] = [plotLine]
             else:
@@ -222,6 +252,45 @@ class Animator(threading.Thread):
             self.graph.subplot.margins(0,0)
             self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=100)
             self.graph.graphFigure.canvas.draw()
+        
+        # reset fleet data
+        if self.dataQueue:
+            self.fleetData = {
+                'aggregate': {
+                    'dpsOut': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    },
+                    'dpsIn': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    },
+                    'logiOut': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    }
+                },
+                'dpsOut': {
+                    'you': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    }
+                },
+                'dpsIn': {
+                    'you': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    }
+                },
+                'logiOut': {
+                    'you': {
+                        'historical': historicalTemplate.copy(),
+                        'yValues': yValuesTemplate.copy()
+                    }
+                }
+            }
+        self.mainWindow.fleetWindow.resetGraphs(ySmooth)
+        self.mainWindow.fleetWindow.changeSettings()
         
         self.paused = False
         
