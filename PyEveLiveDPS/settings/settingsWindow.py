@@ -13,12 +13,15 @@ from settings.generalSettingsFrame import GeneralSettingsFrame
 from settings.lineSettingsFrame import LineSettingsFrame
 from settings.labelSettingsFrame import LabelSettingsFrame
 from settings.detailSettingsFrame import DetailSettingsFrame
+from settings.fleetSettingsFrame import FleetSettingsFrame
 from peld import settings
 
 class SideBar(tk.Frame):
     images = {"Tracking": "lines.png",
               "Labels": "labels.png",
-              "Pilot Breakdown": "pilotDetails.png"}
+              "Pilot Breakdown": "pilotDetails.png",
+              "Fleet Window": "fleet.png"
+             }
     
     def __init__(self, parent, mainWindow, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
@@ -96,7 +99,12 @@ class SettingsWindow(tk.Toplevel):
         detailsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
         detailsFrame.grid_remove()
         
-        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame], ["Pilot Breakdown", detailsFrame]]
+        fleetFrame = FleetSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
+        fleetFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+        fleetFrame.grid_remove()
+        
+        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame],
+                        ["Pilot Breakdown", detailsFrame], ["Fleet Window", fleetFrame]]
         
         self.sideBar = SideBar(self, self.mainWindow, bg="white", width="125", relief="groove", borderwidth=1)
         self.sideBar.grid(row="0", column="0", rowspan="90", sticky="nsew", padx="1", pady="1")

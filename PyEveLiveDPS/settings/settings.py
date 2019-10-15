@@ -62,6 +62,17 @@ class Settings(FileSystemEventHandler):
                                  "height": 250,
                                  "x": 0,
                                  "y": 0
+                                 },
+                             "fleetWindow": {
+                                 "show": 1,
+                                 "width": 600,
+                                 "height": 400,
+                                 "x": 200,
+                                 "y": 200,
+                                 "showAggregate": 1,
+                                 "showDpsOut": 1,
+                                 "showDpsIn": 1,
+                                 "showLogiOut": 1
                                  }
                              }
                         } ]
@@ -113,12 +124,12 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == currentProfileName):
                 self.currentProfile = profile["profileSettings"]
                 self.selectedIndex.set(i)
-                self.mainWindow.animator.changeSettings()
+                self.mainWindow.event_generate('<<ChangeSettings>>')
                 return
             i += 1
         self.currentProfile = self.allSettings[0]["profileSettings"]
         self.selectedIndex.set(0)
-        self.mainWindow.animator.changeSettings()
+        self.mainWindow.event_generate('<<ChangeSettings>>')
         
     def initializeMenu(self, mainWindow):
         self.mainWindow = mainWindow
@@ -485,6 +496,143 @@ class Settings(FileSystemEventHandler):
             if (profile["profile"] == "Default"):
                 profile["fleetServer"] = value
         self.writeSettings()
+        
+    @property
+    def fleetWindowShow(self):
+        if self.lowCPUMode:
+            return False
+        if 'fleetWindow' in self.currentProfile and 'show' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["show"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["show"]
+            
+    @fleetWindowShow.setter
+    def fleetWindowShow(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["show"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["show"] = value
+        
+    @property
+    def fleetWindowWidth(self):
+        if 'fleetWindow' in self.currentProfile and 'width' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["width"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["width"]
+            
+    @fleetWindowWidth.setter
+    def fleetWindowWidth(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["width"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["width"] = value
+        
+    @property
+    def fleetWindowHeight(self):
+        if 'fleetWindow' in self.currentProfile and 'height' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["height"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["height"]
+            
+    @fleetWindowHeight.setter
+    def fleetWindowHeight(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["height"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["height"] = value
+        
+    @property
+    def fleetWindowX(self):
+        if 'fleetWindow' in self.currentProfile and 'x' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["x"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["x"]
+            
+    @fleetWindowX.setter
+    def fleetWindowX(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["x"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["x"] = value
+        
+    @property
+    def fleetWindowY(self):
+        if 'fleetWindow' in self.currentProfile and 'y' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["y"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["y"]
+            
+    @fleetWindowY.setter
+    def fleetWindowY(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["y"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["y"] = value
+        
+    @property
+    def fleetWindowShowAggregate(self):
+        if 'fleetWindow' in self.currentProfile and 'showAggregate' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["showAggregate"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["showAggregate"]
+            
+    @fleetWindowShowAggregate.setter
+    def fleetWindowShowAggregate(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["showAggregate"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["showAggregate"] = value
+        
+    @property
+    def fleetWindowShowDpsOut(self):
+        if 'fleetWindow' in self.currentProfile and 'showDpsOut' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["showDpsOut"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["showDpsOut"]
+            
+    @fleetWindowShowDpsOut.setter
+    def fleetWindowShowDpsOut(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["showDpsOut"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["showDpsOut"] = value
+        
+    @property
+    def fleetWindowShowDpsIn(self):
+        if 'fleetWindow' in self.currentProfile and 'showDpsIn' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["showDpsIn"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["showDpsIn"]
+            
+    @fleetWindowShowDpsIn.setter
+    def fleetWindowShowDpsIn(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["showDpsIn"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["showDpsIn"] = value
+        
+    @property
+    def fleetWindowShowLogiOut(self):
+        if 'fleetWindow' in self.currentProfile and 'showLogiOut' in self.currentProfile["fleetWindow"]:
+            return self.currentProfile["fleetWindow"]["showLogiOut"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["fleetWindow"]["showLogiOut"]
+            
+    @fleetWindowShowLogiOut.setter
+    def fleetWindowShowLogiOut(self, value):
+        if 'fleetWindow' in self.currentProfile:
+            self.currentProfile["fleetWindow"]["showLogiOut"] = value
+        else:
+            self.currentProfile["fleetWindow"] = {}
+            self.currentProfile["fleetWindow"]["showLogiOut"] = value
 
     def setOverviewFiles(self, characterDict):
         for profile in self.allSettings:
@@ -530,6 +678,11 @@ class Settings(FileSystemEventHandler):
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
                     labels=None, labelColumns=None, graphDisabled=None,
                     detailsOrder=None, detailsWindowShow=None):
+        """ 
+        this funciton is dumb, ugly, and deprecated.
+        Settings should be set through properties
+        Some cleanup would be needed to remove it entirely
+        """
         if not capDamageIn == None:
             self.currentProfile["capDamageIn"] = capDamageIn
         if not capDamageOut == None:
@@ -586,7 +739,7 @@ class Settings(FileSystemEventHandler):
         self.mainWindow.detailsWindow.geometry("%sx%s+%s+%s" % (self.detailsWindowWidth, self.detailsWindowHeight, 
                                                 self.detailsWindowX, self.detailsWindowY))
         self.mainWindow.update_idletasks()
-        self.mainWindow.graphFrame.readjust(self.mainWindow.winfo_width(), 0)
+        self.mainWindow.graphFrame.readjust(0)
         self.mainWindow.animator.changeSettings()
         self.writeSettings()
     

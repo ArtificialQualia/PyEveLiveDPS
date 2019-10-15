@@ -13,19 +13,19 @@ class LabelHandler(tk.Frame):
             "capDamageIn": { "text": "Cap Dmg In:" },
             "mining": { "text": "Mining:" }
             }
-    def __init__(self, parent, makeAllChildrenDraggable, **kwargs):
+    def __init__(self, parent, labels=None, labelSettings=None, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
-        self.makeAllChildrenDraggable = makeAllChildrenDraggable
         self.columnconfigure(9, weight="1")
+
+        self.labels = labels or self.labels
+        self.labelSettings = labelSettings or settings.getLabels()
+        self.labelColumns = [1] if labels else settings.getLabelColumns()
         
         tk.Frame(self, width="1", height="1", background="black").grid(row="0", column="9", rowspan="10")
         
         self.initializeLabels()
         
     def initializeLabels(self):
-        self.labelSettings = settings.getLabels()
-        self.labelColumns = settings.getLabelColumns()
-        
         for index in self.labels:
             self.labels[index]["label"] = Label(self, text=self.labels[index]["text"], 
                                                 settings=self.labelSettings[index], background="black")
@@ -37,9 +37,9 @@ class LabelHandler(tk.Frame):
             self.labels[index]["label"].grid(row=self.labelSettings[index]["row"], column=column, sticky="n")
             self.labels[index]["label"].grid_remove()
             
-        self.makeAllChildrenDraggable(self)
-            
     def redoLabels(self):
+        self.labelSettings = settings.getLabels()
+        self.labelColumns = settings.getLabelColumns()
         for item in self.labels:
             self.labels[item]["label"].destroy()
         self.initializeLabels()
@@ -92,11 +92,12 @@ class Label(tk.Frame):
 
     def convertNumberToStr(self, number):
         decimals = int(self.decimalPlaces)
+        formatString = '{:,.'+str(decimals)+'f}'
         if self.inThousands:
             number = number/1000
-            return ('%.'+str(decimals)+'f') % (round(number, decimals),) + "K"
+            return formatString.format(round(number, decimals)) + "K"
         else:
-            return ('%.'+str(decimals)+'f') % (round(number, decimals),)
+            return formatString.format(round(number, decimals))
         
     def updateLabel(self, number, color):
         self.numberLabel["text"] = self.convertNumberToStr(number)

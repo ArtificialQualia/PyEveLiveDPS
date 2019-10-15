@@ -19,11 +19,13 @@ import settings.settingsWindow as settingsWindow
 import simulationWindow
 import labelHandler
 import animate
-import fleetWindow 
+import fleetConnectionWindow
 import logging
 from peld import settings
 from baseWindow import BaseWindow
 from detailsWindow import DetailsWindow
+from collapseWindow import UncollapseWindow
+from fleetWindow import FleetWindow
 if (platform.system() == "Windows"):
     from ctypes import windll
 
@@ -72,8 +74,7 @@ class MainWindow(tk.Tk):
         self.middleFrame.bind("<Map>", self.showEvent)
         self.protocol("WM_TAKE_FOCUS", lambda: self.showEvent(None))
         
-        self.labelHandler = labelHandler.LabelHandler(self.middleFrame, lambda c:self.makeAllChildrenDraggable(c),
-                                                       height="10", borderwidth="0", background="black")
+        self.labelHandler = labelHandler.LabelHandler(self.middleFrame, background="black")
         self.labelHandler.grid(row="0", column="0", sticky="news")
         self.makeDraggable(self.labelHandler)
         
@@ -83,23 +84,27 @@ class MainWindow(tk.Tk):
         self.update_idletasks()
         
         # The hero of our app
-        self.graphFrame = graph.DPSGraph(self.middleFrame, self.labelHandler, background="black", borderwidth="0")
+        self.graphFrame = graph.DPSGraph(self.middleFrame, background="black", borderwidth="0")
         self.graphFrame.grid(row="1", column="0", columnspan="3", sticky="nesw")
         self.makeDraggable(self.graphFrame.canvas.get_tk_widget())
         
         # details window is a child of the main window, but the window will be hidden based on the profile settings
         self.detailsWindow = DetailsWindow(self)
+
+        self.fleetWindow = FleetWindow(self)
         
         # the animator is the main 'loop' of the program
         self.animator = animate.Animator(self)
+        self.bind('<<ChangeSettings>>', lambda e: self.animator.changeSettings())
         
-        self.graphFrame.readjust(self.winfo_width(), 0)
+        self.graphFrame.readjust(0)
         if settings.getGraphDisabled():
             self.graphFrame.grid_remove()
         else:
             self.graphFrame.grid()
             
         self.labelHandler.lift(self.graphFrame)
+        self.makeAllChildrenDraggable(self.labelHandler)
         
         logging.info('main window (and subcomponents) initialized')
         
@@ -158,7 +163,7 @@ class MainWindow(tk.Tk):
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
-        self.mainMenu.menu.add_command(label="Fleet Mode", command=lambda: fleetWindow.FleetWindow(self))
+        self.mainMenu.menu.add_command(label="Fleet Mode", command=lambda: fleetConnectionWindow.FleetWindow(self))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
@@ -206,17 +211,16 @@ class MainWindow(tk.Tk):
         it also calls the same event on the details window """
         logging.debug('window collapse event occured')
         self.detailsWindow.collapseHandler(self.collapsed)
+        self.fleetWindow.collapseHandler(self.collapsed)
         if self.collapsed:
+            if (self.platform == "Windows"):
+                self.uncollapseWindow.destroy()
+                windowsCollapseEvent(self, False)
+                windowsCollapseEvent(self.detailsWindow, False)
+                windowsCollapseEvent(self.fleetWindow, False)
             self.wm_attributes("-alpha", 1.0)
             self.rightSpacerFrame.grid_remove()
-            self.topResizeFrame.grid()
-            self.bottomResizeFrame.grid()
-            self.leftResizeFrame.grid()
-            self.rightResizeFrame.grid()
-            self.topLeftResizeFrame.grid()
-            self.topRightResizeFrame.grid()
-            self.bottomLeftResizeFrame.grid()
-            self.bottomRightResizeFrame.grid()
+            self.showResizeFrames()
             self.makeDraggable(self.topLabel)
             self.makeDraggable(self.mainFrame)
             self.makeDraggable(self.middleFrame)
@@ -232,14 +236,7 @@ class MainWindow(tk.Tk):
             self.collapsed = False
         else:
             self.wm_attributes("-alpha", settings.getCompactTransparency()/100)
-            self.topResizeFrame.grid_remove()
-            self.bottomResizeFrame.grid_remove()
-            self.leftResizeFrame.grid_remove()
-            self.rightResizeFrame.grid_remove()
-            self.topLeftResizeFrame.grid_remove()
-            self.topRightResizeFrame.grid_remove()
-            self.bottomLeftResizeFrame.grid_remove()
-            self.bottomRightResizeFrame.grid_remove()
+            self.hideResizeFrames()
             self.rightSpacerFrame.grid()
             self.unmakeDraggable(self.topLabel)
             self.unmakeDraggable(self.mainFrame)
@@ -253,6 +250,12 @@ class MainWindow(tk.Tk):
             self.minimizeButton.grid_remove()
             self.collapseButton.destroy()
             self.addCollapseButton(self.middleFrame, row="0", column="1")
+            if (self.platform == "Windows"):
+                self.update_idletasks()
+                self.uncollapseWindow = UncollapseWindow(self)
+                windowsCollapseEvent(self, True)
+                windowsCollapseEvent(self.detailsWindow, True)
+                windowsCollapseEvent(self.fleetWindow, True)
             self.collapsed = True
 
     def addMinimizeButton(self, parent, row, column):
@@ -287,6 +290,8 @@ class MainWindow(tk.Tk):
         self.update()
         if settings.detailsWindowShow and hasattr(self, 'detailsWindow'):
             self.detailsWindow.withdraw()
+        if settings.fleetWindowShow and hasattr(self, 'fleetWindow') and self.animator.dataQueue:
+            self.fleetWindow.withdraw()
         self.iconify()
         self.update()
         self.middleFrame.bind("<Map>", self.showEvent)
@@ -305,6 +310,8 @@ class MainWindow(tk.Tk):
         self.after(100, self.deiconify)
         if settings.detailsWindowShow and hasattr(self, 'detailsWindow'):
             self.detailsWindow.deiconify()
+        if settings.fleetWindowShow and hasattr(self, 'fleetWindow') and self.animator.dataQueue:
+            self.fleetWindow.deiconify()
         self.addToTaskbar()
         self.middleFrame.bind("<Map>", self.showEvent)
     
@@ -356,6 +363,31 @@ class MainWindow(tk.Tk):
     def saveWindowGeometry(self):
         """ saves window position and size to the settings file """
         self.detailsWindow.saveWindowGeometry()
+        self.fleetWindow.saveWindowGeometry()
         settings.setSettings(windowX=self.winfo_x(), windowY=self.winfo_y(),
                                    windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
+                                   
+    def stopMove(self):
+        self.update_idletasks()
+        self.graphFrame.readjust(0)
+
+def windowsCollapseEvent(window, collapse):
+    """ windowsOS api magic to allow clicks to not be handled by PELD windows """
+    window.update_idletasks()
+    GWL_EXSTYLE=-20
+    WS_EX_TRANSPARENT=0x00000020
+    hwnd = windll.user32.GetParent(window.winfo_id())
+    try:
+        style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+    except AttributeError:
+        style = windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+    if collapse:
+        style = style | WS_EX_TRANSPARENT
+    else:
+        style = style & ~WS_EX_TRANSPARENT
+    try:
+        res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+    except AttributeError:
+        res = windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+    window.update_idletasks()
     

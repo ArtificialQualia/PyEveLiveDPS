@@ -128,6 +128,26 @@ class BaseWindow():
         widget.bind("<ButtonPress-1>", lambda e: False)
         widget.bind("<ButtonRelease-1>", lambda e: False)
         widget.bind("<B1-Motion>", lambda e: False)
+
+    def showResizeFrames(self):
+        self.childWindow.topResizeFrame.grid()
+        self.childWindow.bottomResizeFrame.grid()
+        self.childWindow.leftResizeFrame.grid()
+        self.childWindow.rightResizeFrame.grid()
+        self.childWindow.topLeftResizeFrame.grid()
+        self.childWindow.topRightResizeFrame.grid()
+        self.childWindow.bottomLeftResizeFrame.grid()
+        self.childWindow.bottomRightResizeFrame.grid()
+
+    def hideResizeFrames(self):
+        self.childWindow.topResizeFrame.grid_remove()
+        self.childWindow.bottomResizeFrame.grid_remove()
+        self.childWindow.leftResizeFrame.grid_remove()
+        self.childWindow.rightResizeFrame.grid_remove()
+        self.childWindow.topLeftResizeFrame.grid_remove()
+        self.childWindow.topRightResizeFrame.grid_remove()
+        self.childWindow.bottomLeftResizeFrame.grid_remove()
+        self.childWindow.bottomRightResizeFrame.grid_remove()
     
     def StartMove(self, event):
         self.childWindow.x = event.x
@@ -137,8 +157,7 @@ class BaseWindow():
         self.childWindow.x = None
         self.childWindow.y = None
         try:
-            if (self.childWindow.graphFrame):
-                self.childWindow.graphFrame.readjust(self.childWindow.winfo_width(), 0)
+            self.childWindow.stopMove()
         except AttributeError:
             pass
         
