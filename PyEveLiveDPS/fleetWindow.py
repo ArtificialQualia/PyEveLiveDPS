@@ -91,7 +91,7 @@ class FleetWindow(tk.Toplevel):
         self.baseWindow = BaseWindow(self)
         self.mainWindow = mainWindow
         self.characterName = None
-        self.minsize(150,100)
+        self.minsize(200,150)
 
         self.mainFrame = tk.Frame(self, background="black")
         self.mainFrame.grid(row="10", column="10", sticky="news")
