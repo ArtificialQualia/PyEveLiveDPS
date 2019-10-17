@@ -6,26 +6,39 @@ also spawns a separate thread to perform the update checker
 
 """
 
-from settings import settings
-settings = settings.Settings()
-
-import threading
 import multiprocessing
 import logging
 from logging.handlers import RotatingFileHandler
 import platform
 import os
+import sys
+
+from PySide2.QtWidgets import QApplication
+
+from settings import settings
+
+try:
+    UI_PATH = os.path.join(sys._MEIPASS, 'PyEveLiveDPS', 'ui', '')
+    IMAGE_PATH = os.path.join(sys._MEIPASS, 'PyEveLiveDPS', 'images', '')
+except AttributeError:
+    UI_PATH = os.path.join('.', 'PyEveLiveDPS', 'ui', '')
+    IMAGE_PATH = os.path.join('.', 'PyEveLiveDPS', 'images', '')
+settings = settings.Settings()
+
 
 class App():
     def __init__(self):
         # imports happen in app init to prevent issues with files importing each other to get logger/settings
         import mainWindow
-        import updateChecker
+        #import updateChecker
         SetupLogger()
-        graphWindow = mainWindow.MainWindow()
-        updateCheckerThread = updateChecker.UpdateChecker()
-        updateCheckerThread.start()
-        graphWindow.mainloop()
+        #graphWindow = mainWindow.MainWindow()
+        #updateCheckerThread = updateChecker.UpdateChecker()
+        #updateCheckerThread.start()
+        #graphWindow.mainloop()
+        app = QApplication()
+        main = mainWindow.MainWindow()
+        app.exec_()
     
 def SetupLogger():
     """
