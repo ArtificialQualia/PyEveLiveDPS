@@ -159,7 +159,12 @@ class FleetWindow(tk.Toplevel):
         self.leftSpacerFrame.grid(row="9", column="0", rowspan="50")
         self.leftSpacerFrame.grid_remove()
 
+        # the window must be temporarily shown so that linux can draw the window properly
+        self.wm_attributes("-alpha", 0.0)
+        self.deiconify()
         self.stopMove()
+        self.withdraw()
+        self.wm_attributes("-alpha", 1.0)
 
         self.makeDraggable(self.mainFrame)
         self.makeAllChildrenDraggable(self.mainFrame)
