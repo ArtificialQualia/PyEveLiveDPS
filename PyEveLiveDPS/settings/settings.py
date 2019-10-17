@@ -308,25 +308,49 @@ class Settings(FileSystemEventHandler):
         if self.lowCPUMode:
             return 2
         return self.currentProfile["seconds"]
-    
-    def getWindowHeight(self):
+
+    @property
+    def windowHeight(self):
         return self.currentProfile["windowHeight"]
+
+    @windowHeight.setter
+    def windowHeight(self, value):
+        self.currentProfile["windowHeight"] = value
     
-    def getWindowWidth(self):
+    @property
+    def windowWidth(self):
         return self.currentProfile["windowWidth"]
+
+    @windowWidth.setter
+    def windowWidth(self, value):
+        self.currentProfile["windowWidth"] = value
     
-    def getWindowX(self):
+    @property
+    def windowX(self):
         return self.currentProfile["windowX"]
+
+    @windowX.setter
+    def windowX(self, value):
+        self.currentProfile["windowX"] = value
     
-    def getWindowY(self):
+    @property
+    def windowY(self):
         return self.currentProfile["windowY"]
+
+    @windowY.setter
+    def windowY(self, value):
+        self.currentProfile["windowY"] = value
     
-    def getCompactTransparency(self):
-        try:
+    @property
+    def compactTransparency(self):
+        if 'compactTransparency' in self.currentProfile:
             return self.currentProfile["compactTransparency"]
-        except KeyError:
-            self.setSettings(compactTransparency=65)
-            return self.currentProfile["compactTransparency"]
+        else:
+            return self.defaultProfile[0]["profileSettings"]["compactTransparency"]
+    
+    @compactTransparency.setter
+    def compactTransparency(self, value):
+        self.currentProfile["compactTransparency"] = value
         
     def getGraphDisabled(self):
         if self.lowCPUMode:

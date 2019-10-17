@@ -10,20 +10,45 @@ DPSGraph:
     
 """
 
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure, Axes
+from vispy import app, scene, plot
 
 import numpy as np
-import tkinter as tk
 import logreader
 import decimal
 from peld import settings
 import simulator
 
-class DPSGraph(tk.Frame):
-    def __init__(self, parent, **kwargs):
+class DPSGraph(scene.SceneCanvas):
+    def __init__(self, **kwargs):
+        scene.SceneCanvas.__init__(self, keys=None)
+
+        # Overwrite vispy native mouse handling to allow dragging the window
+        self.connect(self.on_mouse_press)
+        self.connect(self.on_mouse_move)
+
+        self.create_native()
+
+        x = np.linspace(0, 2*np.pi, num=1000, endpoint=False)
+        y = np.sin(x)
+        self.unfreeze()
+        self.view = self.central_widget.add_view()
+        #self.view.camera = scene.TurntableCamera(up='z', fov=60)
+        self.view.camera = scene.PanZoomCamera()
+
+        #xx, yy = np.arange(-1,1,.02),np.arange(-1,1,.02)
+        #X,Y = np.meshgrid(xx,yy)
+        #R = np.sqrt(X**2+Y**2)
+        #Z = lambda t : 0.1*np.sin(10*R-2*np.pi*t)
+        #surf = scene.visuals.SurfacePlot(xx, yy, Z(0), color=[0.5, 0.5, 0.5], shading='smooth', parent=self.view.scene)
+
+        self.gridLines = scene.visuals.GridLines(scale=(0,1), color=[0.5, 0.5, 0.5, 1], parent=self.view.scene)
+        self.line = scene.visuals.Line(np.array([[0,0], [0.1,0.2],[1,1],[2,2], [0.5,0.5]]), color=[1, 0, 0, 0.5], width=100, method='gl', parent=self.view.scene)
+        self.axis = scene.visuals.Axis(pos=[(0.1,0), (0.1,1)], axis_width=10, axis_color=[0.5, 0.5, 0.5, 0.9], parent=self.view.scene)
+        #self.freeze()
+        import random
+        self.timer = app.Timer(app=self.app, start=True, interval=0.05, connect=lambda e: self.line.set_data(np.array([[0, 0], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()]])))
+
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         
         self.parent = parent
@@ -43,7 +68,13 @@ class DPSGraph(tk.Frame):
         self.canvas.get_tk_widget().configure(bg="black")
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         
-        self.canvas.show()
+        self.canvas.show()"""
+
+    def on_mouse_press(self, event):
+        event.native.setAccepted(False)
+
+    def on_mouse_move(self, event):
+        event.native.setAccepted(False)
         
     def readjust(self, highestAverage):
         """

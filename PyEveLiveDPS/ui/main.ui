@@ -17,7 +17,7 @@
    <bool>false</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow, QMenuBar, QMenuBar, QPushButton { 
+   <string notr="true">QMainWindow, QMenuBar, QMenuBar, QPushButton, QLabel { 
   background: black;
   color: white
 }
@@ -38,37 +38,19 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="6" column="0">
-       <layout class="QGridLayout" name="labelGrid">
-        <item row="1" column="1">
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>DPS Out</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>DPS In</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+     <layout class="QGridLayout" name="mainGrid">
+      <item row="7" column="0">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>GRAPH</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <layout class="QGridLayout" name="topGrid" columnstretch="0,0,0,0,0" columnminimumwidth="0,0,0,0,0">
@@ -136,18 +118,36 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
         </item>
        </layout>
       </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="label">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>GRAPH</string>
-        </property>
-       </widget>
+      <item row="6" column="0">
+       <layout class="QGridLayout" name="labelGrid">
+        <item row="1" column="1">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>DPS Out</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>DPS In</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -170,7 +170,7 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
     </sizepolicy>
    </property>
    <property name="mouseTracking">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="autoFillBackground">
     <bool>false</bool>

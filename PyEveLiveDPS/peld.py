@@ -14,6 +14,7 @@ import os
 import sys
 
 from PySide2.QtWidgets import QApplication
+import vispy.app
 
 from settings import settings
 
@@ -38,7 +39,8 @@ class App():
         #graphWindow.mainloop()
         app = QApplication()
         main = mainWindow.MainWindow()
-        app.exec_()
+        #app.exec_()
+        vispy.app.run() 
     
 def SetupLogger():
     """
