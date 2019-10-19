@@ -2,17 +2,15 @@
 This class handles all the animation for peld
 it is the main loop of PELD, and runs in a separate thread
 """
-import threading
-import time
+from PySide2 import QtCore
 import numpy as np
-import matplotlib
 import simulator
 import simulationWindow
 from peld import settings
 import logging
 
 
-class Animator(threading.Thread):
+class Animator(QtCore.QThread):
     # zorder may be added as a settings in the future
     categories = {
         "dpsIn": { "zorder": 90 },
@@ -24,45 +22,40 @@ class Animator(threading.Thread):
         "capDamageOut": { "zorder": 40 }, 
         "capDamageIn": { "zorder": 30 },
         "mining": { "zorder": 20 }
-        }
+    }
+    queues = {
+        'send': None,
+        'recieve': None,
+        'fleetMetadata': None,
+        'error': None
+    }
     def __init__(self, mainWindow, **kwargs):
-        threading.Thread.__init__(self, name="animator")
+        QtCore.QThread.__init__(self)
+
         self.mainWindow = mainWindow
-        self.graph = mainWindow.graphFrame
-        self.labelHandler = mainWindow.labelHandler
-        self.characterDetector = mainWindow.characterDetector
-        self.detailsHandler = mainWindow.detailsWindow.detailsHandler
-        self.dataQueue = None
-        self.dataRecieveQueue = None
-        self.fleetMetadataQueue = None
-        self.errorQueue = None
+        self.graph = mainWindow.graph
+        #self.labelHandler = mainWindow.labelHandler
+        #self.characterDetector = mainWindow.characterDetector
+        #self.detailsHandler = mainWindow.detailsWindow.detailsHandler
         self.fleetData = {}
         self.fleetMode = False
         
         self.slowDown = False
         self.simulationEnabled = False
-        self.daemon = True
+        self.running = False
         
-        self.changeSettings()
+        logging.info('Starting animator thread')
         self.start()
     
     def run(self):
-        logging.info('Starting animator thread')
-        self.run = True
-        self.paused = False
-        self.time = time.time()
-        while self.run:
-            if not self.paused:
-                self.mainWindow.after(self.interval, self.animate)
-            sleepTime = (self.interval - 1)/1000 - (time.time() - self.time)
-            if (sleepTime > 0):
-                time.sleep(sleepTime)
-            #else: print("Warning, sleep time negative")
-            self.time = time.time()
-            
-    def stop(self):
-        self.run = False
-        self.mainWindow.after_cancel(self.animate)
+        self.timer = QtCore.QTimer()
+        self.timer.setTimerType(QtCore.Qt.PreciseTimer)
+        self.timer.timeout.connect(self.animate)
+        self.changeSettings()
+        # main event loop entered here
+        self.exec_()
+        # this is only executed when thread is quitting
+        self.timer.stop()
         
     def catchup(self):
         """This is just to 'clear' the graph"""
@@ -79,6 +72,9 @@ class Animator(threading.Thread):
     def animate(self):
         """ this function gets called every 'interval', and handles all the tracking data """
         try:
+            self.mainWindow.graph.update()
+            self.mainWindow.graph.readjust(0)
+            """
             # data points are retrieved from either the simulator or the EVE logs
             if self.simulationEnabled:
                 newEntries = self.simulator.simulate()
@@ -155,7 +151,7 @@ class Animator(threading.Thread):
 
             if self.fleetMode:
                 self.updateFleetWindow(self.mainWindow.fleetWindow)
-            
+            """
         except Exception as e:
             logging.exception(e)
     
@@ -182,10 +178,10 @@ class Animator(threading.Thread):
         
     def changeSettings(self):
         """This function is called when a user changes settings after the settings are verified"""
-        if self.is_alive():
-            self.paused = True
-            self.mainWindow.after_cancel(self.animate)
-            self.graph.subplot.clear()
+        if self.running:
+            self.timer.stop()
+            #self.mainWindow.after_cancel(self.animate)
+            #self.graph.subplot.clear()
         if self.simulationEnabled:
             self.simulationSettings(enable=False)
             self.mainWindow.mainMenu.menu.delete(5)
@@ -194,19 +190,20 @@ class Animator(threading.Thread):
             self.mainWindow.mainMenu.menu.entryconfig(3, state="normal")
         
         self.slowDown = False
-        self.seconds = settings.getSeconds()
-        self.interval = settings.getInterval()
-        self.categories["dpsOut"]["settings"] = settings.getDpsOutSettings()
-        self.categories["dpsIn"]["settings"] = settings.getDpsInSettings()
-        self.categories["logiOut"]["settings"] = settings.getLogiOutSettings()
-        self.categories["logiIn"]["settings"] = settings.getLogiInSettings()
-        self.categories["capTransfered"]["settings"] = settings.getCapTransferedSettings()
-        self.categories["capRecieved"]["settings"] = settings.getCapRecievedSettings()
-        self.categories["capDamageOut"]["settings"] = settings.getCapDamageOutSettings()
-        self.categories["capDamageIn"]["settings"] = settings.getCapDamageInSettings()
-        self.categories["mining"]["settings"] = settings.getMiningSettings()
-        self.graphDisabled = settings.getGraphDisabled()
+        self.seconds = settings.seconds
+        self.interval = settings.interval
+        self.categories["dpsOut"]["settings"] = settings.dpsOutSettings
+        self.categories["dpsIn"]["settings"] = settings.dpsInSettings
+        self.categories["logiOut"]["settings"] = settings.logiOutSettings
+        self.categories["logiIn"]["settings"] = settings.logiInSettings
+        self.categories["capTransfered"]["settings"] = settings.capTransferedSettings
+        self.categories["capRecieved"]["settings"] = settings.capRecievedSettings
+        self.categories["capDamageOut"]["settings"] = settings.capDamageOutSettings
+        self.categories["capDamageIn"]["settings"] = settings.capDamageInSettings
+        self.categories["mining"]["settings"] = settings.miningSettings
+        self.graphDisabled = settings.graphDisabled
         
+        """
         if self.graphDisabled:
             self.graph.grid_remove()
         else:
@@ -224,12 +221,14 @@ class Animator(threading.Thread):
             self.mainWindow.fleetWindow.deiconify()
         else:
             self.mainWindow.fleetWindow.withdraw()
+        """
         
         self.arrayLength = int((self.seconds*1000)/self.interval)
         historicalTemplate = [0] * self.arrayLength
         yValuesTemplate = np.array([0] * self.arrayLength)
         ySmooth = self.graph.smoothListGaussian(yValuesTemplate, 5)
         # resets all the arrays to contain no values
+        """
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
@@ -291,8 +290,8 @@ class Animator(threading.Thread):
             }
         self.mainWindow.fleetWindow.resetGraphs(ySmooth)
         self.mainWindow.fleetWindow.changeSettings()
-        
-        self.paused = False
+        """
+        self.timer.start(self.interval)
         
     def findColor(self, category, value):
         """

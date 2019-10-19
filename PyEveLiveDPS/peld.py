@@ -12,9 +12,10 @@ from logging.handlers import RotatingFileHandler
 import platform
 import os
 import sys
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from PySide2.QtWidgets import QApplication
-import vispy.app
 
 from settings import settings
 
@@ -39,8 +40,7 @@ class App():
         #graphWindow.mainloop()
         app = QApplication()
         main = mainWindow.MainWindow()
-        #app.exec_()
-        vispy.app.run() 
+        app.exec_()
     
 def SetupLogger():
     """

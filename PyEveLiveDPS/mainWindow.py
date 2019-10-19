@@ -10,11 +10,12 @@ from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QPushButton
-import vispy.app
 
 from peld import settings, UI_PATH, IMAGE_PATH
 from baseWindow import BaseWindow
 from graph import DPSGraph
+from animate import Animator
+import logreader
 
 class MainWindow(BaseWindow): #add base window
     def __init__(self):
@@ -38,13 +39,15 @@ class MainWindow(BaseWindow): #add base window
         self.addWindowButtons()
         
         self.graph = DPSGraph()
-        self.window.mainGrid.addWidget(self.graph.native, 3, 0)
+        self.window.mainGrid.addWidget(self.graph, 7, 0)
+
+        self.characterDetector = logreader.CharacterDetector(self, self.window.menuCharacter)
         
         #self.detailsWindow = DetailsWindow(self)
         #self.fleetWindow = FleetWindow(self)
         
         # the animator is the main 'loop' of the program
-        #self.animator = animate.Animator(self)
+        self.animator = Animator(self)
         #self.bind('<<ChangeSettings>>', lambda e: self.animator.changeSettings())
         
         #self.graphFrame.readjust(0)
@@ -94,8 +97,7 @@ class MainWindow(BaseWindow): #add base window
         logging.info('quit event received, saving window geometry and stopping threads')
         if hasattr(self, "caracterDetector"):
             self.characterDetector.stop()
-        #self.animator.stop()
-        vispy.app.quit()
+        self.animator.quit()
         self.saveWindowGeometry()
         logging.info('bye')
         self.window.close()

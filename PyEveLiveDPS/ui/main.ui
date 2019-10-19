@@ -17,7 +17,7 @@
    <bool>false</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow, QMenuBar, QMenuBar, QPushButton, QLabel { 
+   <string notr="true">QMainWindow, QMenuBar, QMenuBar, QPushButton, QLabel, QGraphicsView { 
   background: black;
   color: white
 }
@@ -189,6 +189,8 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
     <property name="title">
      <string>Character...</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_Overview_Settings"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCharacter"/>
@@ -196,6 +198,19 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionOpen_Overview_Settings">
+   <property name="text">
+    <string>Open Overview Settings</string>
+   </property>
+  </action>
+  <action name="actionNo_character_logs_detected_for_past_24_hours">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>No character logs detected for past 24 hours</string>
    </property>
   </action>
  </widget>

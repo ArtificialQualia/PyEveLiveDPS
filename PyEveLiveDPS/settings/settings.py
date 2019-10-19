@@ -241,73 +241,129 @@ class Settings(FileSystemEventHandler):
         self.initializeMenu(self.mainWindow)
         self.switchProfile()
         self.currentProfile = self.allSettings[0]["profileSettings"]
-    
-    def getCapDamageInSettings(self):
+
+    @property
+    def capDamageInSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["capDamageIn"])
-    
-    def getCapDamageOutSettings(self):
+
+    @capDamageInSettings.setter
+    def capDamageInSettings(self, value):
+        self.currentProfile["capDamageIn"] = copy.deepcopy(value)
+
+    @property
+    def capDamageOutSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["capDamageOut"])
-    
-    def getCapRecievedSettings(self):
+
+    @capDamageOutSettings.setter
+    def capDamageOutSettings(self, value):
+        self.currentProfile["capDamageOut"] = copy.deepcopy(value)
+
+    @property
+    def capRecievedSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["capRecieved"])
-    
-    def getCapTransferedSettings(self):
+
+    @capRecievedSettings.setter
+    def capRecievedSettings(self, value):
+        self.currentProfile["capRecieved"] = copy.deepcopy(value)
+
+    @property
+    def capTransferedSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["capTransfered"])
-    
-    def getDpsInSettings(self):
+
+    @capTransferedSettings.setter
+    def capTransferedSettings(self, value):
+        self.currentProfile["capTransfered"] = copy.deepcopy(value)
+
+    @property
+    def dpsInSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["dpsIn"])
-    
-    def getDpsOutSettings(self):
+
+    @dpsInSettings.setter
+    def dpsInSettings(self, value):
+        self.currentProfile["dpsIn"] = copy.deepcopy(value)
+
+    @property
+    def dpsOutSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["dpsOut"])
-    
-    def getLogiInSettings(self):
+
+    @dpsOutSettings.setter
+    def dpsOutSettings(self, value):
+        self.currentProfile["dpsOut"] = copy.deepcopy(value)
+
+    @property
+    def logiInSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["logiIn"])
-    
-    def getLogiOutSettings(self):
+
+    @logiInSettings.setter
+    def logiInSettings(self, value):
+        self.currentProfile["logiIn"] = copy.deepcopy(value)
+
+    @property
+    def logiOutSettings(self):
         if self.lowCPUMode:
             return []
         return copy.deepcopy(self.currentProfile["logiOut"])
-    
-    def getMiningSettings(self):
+
+    @logiOutSettings.setter
+    def logiOutSettings(self, value):
+        self.currentProfile["logiOut"] = copy.deepcopy(value)
+
+    @property
+    def miningSettings(self):
         if self.lowCPUMode:
             return []
         try:
             return copy.deepcopy(self.currentProfile["mining"])
         except KeyError:
-            self.setSettings(mining=copy.deepcopy(self.defaultProfile[0]["profileSettings"]["mining"]))
+            self.currentProfile["mining"] = copy.deepcopy(self.defaultProfile[0]["profileSettings"]["mining"])
             return copy.deepcopy(self.currentProfile["mining"])
-        
-    def getMiningM3Setting(self):
+
+    @miningSettings.setter
+    def miningSettings(self, value):
+        self.currentProfile["mining"] = copy.deepcopy(value)
+
+    @property
+    def miningM3Setting(self):
         if self.lowCPUMode:
             return []
         try:
             return self.currentProfile["mining"][0]["showM3"]
         except KeyError:
             return False
-    
-    def getInterval(self):
+
+    @property
+    def interval(self):
         if self.lowCPUMode:
             return 100
         return self.currentProfile["interval"]
-    
-    def getSeconds(self):
+
+    @interval.setter
+    def interval(self, value):
+        self.currentProfile["interval"] = value
+
+    @property
+    def seconds(self):
         if self.lowCPUMode:
             return 2
         return self.currentProfile["seconds"]
+
+    @seconds.setter
+    def seconds(self, value):
+        self.currentProfile["seconds"] = value
 
     @property
     def windowHeight(self):
@@ -351,15 +407,19 @@ class Settings(FileSystemEventHandler):
     @compactTransparency.setter
     def compactTransparency(self, value):
         self.currentProfile["compactTransparency"] = value
-        
-    def getGraphDisabled(self):
+    
+    @property
+    def graphDisabled(self):
         if self.lowCPUMode:
             return True
-        try:
+        if 'graphDisabled' in self.currentProfile:
             return self.currentProfile["graphDisabled"]
-        except KeyError:
-            self.setSettings(graphDisabled=0)
-            return self.currentProfile["graphDisabled"]
+        else:
+            return False
+    
+    @graphDisabled.setter
+    def graphDisabled(self, value):
+        self.currentProfile["graphDisabled"] = value
         
     def getLabels(self):
         try:

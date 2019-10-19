@@ -10,44 +10,47 @@ DPSGraph:
     
 """
 
-from vispy import app, scene, plot
+from PySide2 import QtCore
+
+import pyqtgraph
 
 import numpy as np
 import logreader
 import decimal
 from peld import settings
 import simulator
+from legend import LegendItem, ItemSample
 
-class DPSGraph(scene.SceneCanvas):
+class DPSGraph(pyqtgraph.PlotWidget):
     def __init__(self, **kwargs):
-        scene.SceneCanvas.__init__(self, keys=None)
+        pyqtgraph.PlotWidget.__init__(self, background='222222')
+        self.hideButtons()
+        self.hideAxis('bottom')
+        self.viewBox = self.getPlotItem().getViewBox()
+        self.viewBox.enableAutoRange(enable=False)
+        self.viewBox.setAutoVisible(x=False, y=False)
+        #self.viewBox.setLimits(yMin=0, xMin=0)
+        self.axis = self.getPlotItem().getAxis('left')
 
-        # Overwrite vispy native mouse handling to allow dragging the window
-        self.connect(self.on_mouse_press)
-        self.connect(self.on_mouse_move)
-
-        self.create_native()
+        
+        #self.viewBox.setXRange(0,10)
+        #self.viewBox.setYRange(0,10)
+        #self.getPlotItem().getViewBox().setMouseEnabled(x=False,y=False)
+        self.showGrid(y=True, alpha=0.5)
 
         x = np.linspace(0, 2*np.pi, num=1000, endpoint=False)
-        y = np.sin(x)
-        self.unfreeze()
-        self.view = self.central_widget.add_view()
-        #self.view.camera = scene.TurntableCamera(up='z', fov=60)
-        self.view.camera = scene.PanZoomCamera()
+        y = np.sin(x)+1
+        self.pen = pyqtgraph.mkPen(color='FF0000', width=2)
+        self.line1 = self.plot(x, y, pen=self.pen, name='line1', antialias=True)
+        self.pen = pyqtgraph.mkPen(color='00FF0050', width=2, style=QtCore.Qt.DotLine)
+        self.line2 = self.plot(y, x, pen=self.pen, name='line2', antialias=True)
+        self.legend = LegendItem(offset=(40,10), brush=pyqtgraph.mkBrush(100,100,100,50))
+        self.legend.setParentItem(self.getPlotItem())
+        self.legend.addItem(self.line1, 'linex')
+        self.legend.addItem(self.line2, 'line2')
 
-        #xx, yy = np.arange(-1,1,.02),np.arange(-1,1,.02)
-        #X,Y = np.meshgrid(xx,yy)
-        #R = np.sqrt(X**2+Y**2)
-        #Z = lambda t : 0.1*np.sin(10*R-2*np.pi*t)
-        #surf = scene.visuals.SurfacePlot(xx, yy, Z(0), color=[0.5, 0.5, 0.5], shading='smooth', parent=self.view.scene)
-
-        self.gridLines = scene.visuals.GridLines(scale=(0,1), color=[0.5, 0.5, 0.5, 1], parent=self.view.scene)
-        self.line = scene.visuals.Line(np.array([[0,0], [0.1,0.2],[1,1],[2,2], [0.5,0.5]]), color=[1, 0, 0, 0.5], width=100, method='gl', parent=self.view.scene)
-        self.axis = scene.visuals.Axis(pos=[(0.1,0), (0.1,1)], axis_width=10, axis_color=[0.5, 0.5, 0.5, 0.9], parent=self.view.scene)
-        #self.freeze()
-        import random
-        self.timer = app.Timer(app=self.app, start=True, interval=0.05, connect=lambda e: self.line.set_data(np.array([[0, 0], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()], [random.random(), random.random()]])))
-
+        self.highestAverage = 0
+        self.height = 0
         """
         tk.Frame.__init__(self, parent, **kwargs)
         
@@ -70,38 +73,48 @@ class DPSGraph(scene.SceneCanvas):
         
         self.canvas.show()"""
 
-    def on_mouse_press(self, event):
-        event.native.setAccepted(False)
+    def update(self):
+        import random
+        x = np.linspace(0, 2*np.pi, num=1000, endpoint=False)
+        y = np.sin(x)+1+random.random() * 50
+        self.line1.setData(x,y)
 
-    def on_mouse_move(self, event):
-        event.native.setAccepted(False)
+    def mousePressEvent(self, event):
+        event.setAccepted(False)
+
+    def mouseMoveEvent(self, event):
+        event.setAccepted(False)
+
+    def wheelEvent(self, event):
+        event.setAccepted(False)
         
     def readjust(self, highestAverage):
         """
         This is for use during the animation cycle, or when a user resizes the window. 
         We must change how much room we have to draw numbers on the left-hand side,
-          as well as adjust the y-axis values.
-        Annoyingly, we have to use a %, not a number of pixels
+          as well as adjust the y-axis scaling.
         """
-        self.windowWidth = self.winfo_width()
-        if (highestAverage < 900):
-            self.graphFigure.subplots_adjust(left=(33/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
-        elif (highestAverage < 9000):
-            self.graphFigure.subplots_adjust(left=(44/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
-        elif (highestAverage < 90000):
-            self.graphFigure.subplots_adjust(left=(55/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
-        else:
-            self.graphFigure.subplots_adjust(left=(66/self.windowWidth), top=(1-15/self.windowWidth), 
-                                             bottom=(15/self.windowWidth), wspace=0, hspace=0)
+        height = self.viewBox.screenGeometry().height()
+        if self.highestAverage == highestAverage and self.height == height:
+            return
+
         if (highestAverage < 100):
-            self.graphFigure.axes[0].set_ylim(bottom=0, top=100)
+            self.viewBox.setRange(xRange=(0,100), yRange=(0,100), padding=0.0)
+            self.axis.setWidth(25)
         else:
-            self.graphFigure.axes[0].set_ylim(bottom=0, top=(highestAverage+highestAverage*0.1))
-        self.graphFigure.axes[0].get_yaxis().grid(True, linestyle="-", color="grey", alpha=0.2)
-        self.canvas.draw()
+            self.viewBox.setRange(xRange=(0,100), yRange=(0,highestAverage), padding=0.0)
+        if (highestAverage < 1000):
+            self.axis.setWidth(35)
+        elif (highestAverage < 10000):
+            self.axis.setWidth(45)
+        else:
+            self.axis.setWidth(55)
+        
+        scale = 1 + (15/height)
+        self.viewBox.scaleBy(y=scale)
+
+        self.height = height
+        self.highestAverage = highestAverage
         
     def animateLine(self, yValues, categories, lines, zorder):
         """

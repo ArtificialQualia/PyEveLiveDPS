@@ -20,12 +20,14 @@ import os
 import datetime
 import time
 import platform
-import tkinter as tk
+
+from PySide2.QtWidgets import QMessageBox
+
 from peld import settings
 import logging
 import data.oreVolume
 _oreVolume = data.oreVolume._oreVolume
-from tkinter import messagebox, IntVar, filedialog
+#from tkinter import messagebox, IntVar, filedialog
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -152,9 +154,13 @@ class CharacterDetector(FileSystemEventHandler):
             self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
         self.menuEntries = []
+        self.emptyEntry = None
         self.logReaders = _logReaders
         self.selectedIndex = IntVar()
         self.playbackLogReader = None
+
+        self.emptyEntry = self.characterMenu.addAction('No character logs detected for past 24 hours')
+        self.emptyEntry.setDisabled(True)
         
         try:
             oneDayAgo = datetime.datetime.now() - datetime.timedelta(hours=24)
@@ -167,20 +173,15 @@ class CharacterDetector(FileSystemEventHandler):
                     continue
                 if (fileTime >= oneDayAgo):
                     self.addLog(self.path + filename)
-        
-            self.selectedIndex.set(0)
-            
-            if len(self.menuEntries) == 0:
-                self.characterMenu.menu.add_command(label='No character logs detected for past 24 hours', state=tk.DISABLED)
             
             self.observer.schedule(self, self.path, recursive=False)
             self.observer.start()
         except FileNotFoundError:
             logging.error('EVE logs directory not found, path checked: ' + self.path)
-            messagebox.showerror("Error", "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
+        QMessageBox.warning(self.mainWindow, "Error",
+                                 "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
-            self.characterMenu.menu.add_command(label='No EVE installation detected', state=tk.DISABLED)
 
         self.characterMenu.menu.add_separator()
         from settings.overviewSettings import OverviewSettingsWindow
@@ -219,6 +220,9 @@ class CharacterDetector(FileSystemEventHandler):
         except BadLogException:
             return
         self.logReaders.append(newLogReader)
+        if self.emptyEntry:
+            self.characterMenu.removeAction(self.emptyEntry)
+            self.emptyEntry = None
         self.characterMenu.menu.insert_radiobutton(0, label=character, variable=self.selectedIndex, 
                                                 value=len(self.menuEntries), command=self.catchupLog)
         self.menuEntries.append(character)
