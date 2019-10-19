@@ -171,7 +171,7 @@ class Animator(threading.Thread):
             toDelete = []
             for pilot, entries in pilots.items():
                 average = (np.sum(entries["historical"])*(1000/self.interval))/self.arrayLength
-                if category != 'aggregate' and max(entries["yValues"]) == 0 and average == 0 and pilot != 'you':
+                if category != 'aggregate' and max(entries["yValues"]) == 0 and average == 0 and pilot != fleetWindow.characterName:
                     toDelete.append(pilot)
                 entries["yValues"] = entries["yValues"][1:]
                 entries["yValues"] = np.append(entries["yValues"], average)
@@ -254,6 +254,7 @@ class Animator(threading.Thread):
             self.graph.graphFigure.canvas.draw()
         
         # reset fleet data
+        characterName = self.mainWindow.fleetWindow.characterName
         if self.dataQueue:
             self.fleetData = {
                 'aggregate': {
@@ -271,19 +272,19 @@ class Animator(threading.Thread):
                     }
                 },
                 'dpsOut': {
-                    'you': {
+                    characterName: {
                         'historical': historicalTemplate.copy(),
                         'yValues': yValuesTemplate.copy()
                     }
                 },
                 'dpsIn': {
-                    'you': {
+                    characterName: {
                         'historical': historicalTemplate.copy(),
                         'yValues': yValuesTemplate.copy()
                     }
                 },
                 'logiOut': {
-                    'you': {
+                    characterName: {
                         'historical': historicalTemplate.copy(),
                         'yValues': yValuesTemplate.copy()
                     }

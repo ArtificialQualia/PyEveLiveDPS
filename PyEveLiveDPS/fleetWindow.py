@@ -90,7 +90,7 @@ class FleetWindow(tk.Toplevel):
         tk.Toplevel.__init__(self)
         self.baseWindow = BaseWindow(self)
         self.mainWindow = mainWindow
-        self.characterName = None
+        self.characterName = ''
         self.minsize(200,150)
 
         self.mainFrame = tk.Frame(self, background="black")
@@ -301,8 +301,6 @@ class FleetWindow(tk.Toplevel):
             entryType = fleetEntry['category']
             amount = fleetEntry['entry']['amount']
             pilot = fleetEntry['entry']['owner']
-            if pilot == self.characterName:
-                pilot = 'you'
             #enemy = fleetEntry['entry']['pilotName']
             fleetData['aggregate'][entryType]['historical'][-1] += amount
             if pilot not in fleetData[entryType]:
@@ -329,7 +327,7 @@ class FleetWindow(tk.Toplevel):
                 line = lines[rank]
                 color = self.calculateColor(categoryColor, rank)
 
-                if pilot == 'you':
+                if pilot == self.characterName:
                     # remove special 'you' line
                     youTopThree = True
                     graph.basicLine(yValues, categoryColor, lines[3], '')
@@ -339,9 +337,9 @@ class FleetWindow(tk.Toplevel):
                 if highest > highestAverage:
                     highestAverage = highest
             if not youTopThree:
-                yValues = fleetData[category]['you']['yValues']
+                yValues = fleetData[category][self.characterName]['yValues']
                 graph.basicLine(yValues, categoryColor+'70', lines[3], ':')
-                tops.append('you')
+                tops.append(self.characterName)
             graph.subplot.legend(lines, tops, loc='upper left', fontsize='x-small', framealpha=0.5).set_zorder(100)
             graph.readjust(highestAverage)
             topValue = fleetData[category][tops[0]]['yValues'][-1]

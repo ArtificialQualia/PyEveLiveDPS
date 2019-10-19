@@ -55,6 +55,7 @@ class SocketManager(multiprocessing.Process):
                 logger.info('Connected websocket to ' + _sockMgr.server)
 
             def on_disconnect(self):
+                _sockMgr.socket.disconnect()
                 logger.info('Websocket disconnected from ' + _sockMgr.server)
 
             def on_client_registered(self, *args):
@@ -77,6 +78,7 @@ class SocketManager(multiprocessing.Process):
         webbrowser.open(self.server + self.loginArgs)
         while self.running:
             try:
+                self.registered = False
                 self.socket = socketio.Client(ssl_verify=False)
                 self.socket.register_namespace(Namespace('/client'))
                 self.socket.connect(self.server, namespaces=['/client'])
