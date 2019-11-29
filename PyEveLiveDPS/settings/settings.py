@@ -717,27 +717,24 @@ class Settings(FileSystemEventHandler):
         else:
             self.currentProfile["fleetWindow"] = {}
             self.currentProfile["fleetWindow"]["showLogiOut"] = value
+            
+    @property
+    def overviewFiles(self):
+        for profile in self.allSettings:
+            if (profile["profile"] == "Default"):
+                if 'overviewFiles' not in profile:
+                    return {}
+                return copy.deepcopy(profile["overviewFiles"])
 
-    def setOverviewFiles(self, characterDict):
+    @overviewFiles.setter
+    def overviewFiles(self, characterDict):
         for profile in self.allSettings:
             if (profile["profile"] == "Default"):
                 profile["overviewFiles"] = characterDict
                 self.writeSettings()
 
-    def getOverviewFiles(self):
-        for profile in self.allSettings:
-            if (profile["profile"] == "Default"):
-                if 'overviewFiles' not in profile:
-                    if not hasattr(self, 'overviewNotificaitonShown'):
-                        logging.info('No overview settings set, showing overview notification for this session...')
-                        self.overviewNotificaitonShown = True
-                        from settings.overviewSettings import OverviewNotification
-                        OverviewNotification()
-                    return {}
-                return profile["overviewFiles"]
-
     def getOverviewFile(self, characterName):
-        overviewFiles = self.getOverviewFiles()
+        overviewFiles = self.overviewFiles
         if characterName in overviewFiles:
             return overviewFiles[characterName]
         else:

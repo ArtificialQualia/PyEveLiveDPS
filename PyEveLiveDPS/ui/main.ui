@@ -17,17 +17,16 @@
    <bool>false</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow, QMenuBar, QMenuBar, QPushButton, QLabel, QGraphicsView { 
+   <string notr="true">QMainWindow, QMenuBar, QStatusBar, QLabel, QGraphicsView { 
   background: black;
-  color: white
+  color: white;
 }
-QPushButton {
-  padding:2px 0px 2px 0px;
-  border-style: none;
-}
-QPushButton:hover { background: rgb(60, 60, 60) }
-QPushButton:pressed { background: rgb(85, 85, 85) }
-QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
+QStatusBar::item { border: none; }
+QMenuBar::item:selected { background: rgb(60, 60, 60) }
+QMessageBox QLabel {
+  color: black;
+  background: white;
+}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -35,6 +34,17 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+  background: black;
+  color: white;
+  padding:2px 0px 2px 0px;
+  border-style: none;
+}
+QPushButton:hover { background: rgb(60, 60, 60) }
+QPushButton:pressed { background: rgb(85, 85, 85) }
+</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
@@ -135,6 +145,9 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_2">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="text">
            <string>DPS Out</string>
           </property>
@@ -182,6 +195,23 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
     <property name="title">
      <string>File...</string>
     </property>
+    <widget class="QMenu" name="menuProfiles">
+     <property name="title">
+      <string>Profiles</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionAdd_New_Profile"/>
+     <addaction name="actionDuplicate_Current_Profile"/>
+     <addaction name="actionRename_Current_Profile"/>
+     <addaction name="actionDelete_Current_Profile"/>
+    </widget>
+    <addaction name="actionEditSettings"/>
+    <addaction name="menuProfiles"/>
+    <addaction name="separator"/>
+    <addaction name="actionFleetMode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSimulateInput"/>
+    <addaction name="actionPlaybackLog"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -189,8 +219,9 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
     <property name="title">
      <string>Character...</string>
     </property>
+    <addaction name="actionNoCharacters"/>
     <addaction name="separator"/>
-    <addaction name="actionOpen_Overview_Settings"/>
+    <addaction name="actionOverviewSettings"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCharacter"/>
@@ -200,7 +231,7 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
     <string>Quit</string>
    </property>
   </action>
-  <action name="actionOpen_Overview_Settings">
+  <action name="actionOverviewSettings">
    <property name="text">
     <string>Open Overview Settings</string>
    </property>
@@ -211,6 +242,54 @@ QMenuBar::item:selected { background: rgb(60, 60, 60) }</string>
    </property>
    <property name="text">
     <string>No character logs detected for past 24 hours</string>
+   </property>
+  </action>
+  <action name="actionNoCharacters">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>No character logs detected for past 24 hours</string>
+   </property>
+  </action>
+  <action name="actionEditSettings">
+   <property name="text">
+    <string>Edit Profile Settings</string>
+   </property>
+  </action>
+  <action name="actionAdd_New_Profile">
+   <property name="text">
+    <string>Add New Profile</string>
+   </property>
+  </action>
+  <action name="actionDuplicate_Current_Profile">
+   <property name="text">
+    <string>Duplicate Current Profile</string>
+   </property>
+  </action>
+  <action name="actionRename_Current_Profile">
+   <property name="text">
+    <string>Rename Current Profile</string>
+   </property>
+  </action>
+  <action name="actionDelete_Current_Profile">
+   <property name="text">
+    <string>Delete Current Profile</string>
+   </property>
+  </action>
+  <action name="actionFleetMode">
+   <property name="text">
+    <string>Fleet Mode</string>
+   </property>
+  </action>
+  <action name="actionSimulateInput">
+   <property name="text">
+    <string>Simulate Input</string>
+   </property>
+  </action>
+  <action name="actionPlaybackLog">
+   <property name="text">
+    <string>Playback Log</string>
    </property>
   </action>
  </widget>

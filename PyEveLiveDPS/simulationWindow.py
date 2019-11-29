@@ -117,14 +117,14 @@ class SimulationWindow(tk.Toplevel):
         self.mainWindow.topLabel.configure(text="Simulation Mode")
         self.mainWindow.topLabel.grid()
         
-        self.mainWindow.characterDetector.catchupLog()
+        self.mainWindow.characterDetector.changeCharacter()
         self.animator.simulationSettings(enable=True, values=valuesCopy)
         
         self.destroy()
         
     def stopSimulation(self):
         self.animator.simulationSettings(enable=False)
-        self.mainWindow.characterDetector.catchupLog()
+        self.mainWindow.characterDetector.changeCharacter()
         self.mainWindow.mainMenu.menu.delete(5)
         self.mainWindow.mainMenu.menu.insert_command(5, label="Simulate Input", command=lambda: SimulationWindow(self.mainWindow))
         self.mainWindow.mainMenu.menu.entryconfig(3, state="normal")

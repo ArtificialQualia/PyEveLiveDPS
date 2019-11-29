@@ -23,20 +23,27 @@ from legend import LegendItem, ItemSample
 
 class DPSGraph(pyqtgraph.PlotWidget):
     def __init__(self, **kwargs):
-        pyqtgraph.PlotWidget.__init__(self, background='222222')
+        pyqtgraph.PlotWidget.__init__(self)
         self.hideButtons()
         self.hideAxis('bottom')
         self.viewBox = self.getPlotItem().getViewBox()
         self.viewBox.enableAutoRange(enable=False)
         self.viewBox.setAutoVisible(x=False, y=False)
+        self.viewBox.setBackgroundColor('333333')
+        self.viewBox.setZValue(0)
+        self.viewBox.setBorder(pyqtgraph.mkPen(color='333333'))
         #self.viewBox.setLimits(yMin=0, xMin=0)
         self.axis = self.getPlotItem().getAxis('left')
+        self.axis.setPen(pyqtgraph.mkPen(color='5F5F5F'))
+        self.axis.setZValue(10)
+
+        self.getPlotItem().setContentsMargins(0,4,0,4)
 
         
         #self.viewBox.setXRange(0,10)
         #self.viewBox.setYRange(0,10)
         #self.getPlotItem().getViewBox().setMouseEnabled(x=False,y=False)
-        self.showGrid(y=True, alpha=0.5)
+        self.showGrid(y=True, alpha=1.0)
 
         x = np.linspace(0, 2*np.pi, num=1000, endpoint=False)
         y = np.sin(x)+1
@@ -50,7 +57,8 @@ class DPSGraph(pyqtgraph.PlotWidget):
         self.legend.addItem(self.line2, 'line2')
 
         self.highestAverage = 0
-        self.height = 0
+        self.viewBox.setRange(xRange=(0,100), yRange=(0,100), padding=0.0)
+        self.axis.setWidth(25)
         """
         tk.Frame.__init__(self, parent, **kwargs)
         
@@ -75,7 +83,7 @@ class DPSGraph(pyqtgraph.PlotWidget):
 
     def update(self):
         import random
-        x = np.linspace(0, 2*np.pi, num=1000, endpoint=False)
+        x = np.linspace(0, 30*np.pi, num=1000, endpoint=False)
         y = np.sin(x)+1+random.random() * 50
         self.line1.setData(x,y)
 
@@ -83,6 +91,9 @@ class DPSGraph(pyqtgraph.PlotWidget):
         event.setAccepted(False)
 
     def mouseMoveEvent(self, event):
+        event.setAccepted(False)
+
+    def mouseReleaseEvent(self, event):
         event.setAccepted(False)
 
     def wheelEvent(self, event):
@@ -94,8 +105,7 @@ class DPSGraph(pyqtgraph.PlotWidget):
         We must change how much room we have to draw numbers on the left-hand side,
           as well as adjust the y-axis scaling.
         """
-        height = self.viewBox.screenGeometry().height()
-        if self.highestAverage == highestAverage and self.height == height:
+        if self.highestAverage == highestAverage:
             return
 
         if (highestAverage < 100):
@@ -110,10 +120,6 @@ class DPSGraph(pyqtgraph.PlotWidget):
         else:
             self.axis.setWidth(55)
         
-        scale = 1 + (15/height)
-        self.viewBox.scaleBy(y=scale)
-
-        self.height = height
         self.highestAverage = highestAverage
         
     def animateLine(self, yValues, categories, lines, zorder):

@@ -21,13 +21,13 @@ import datetime
 import time
 import platform
 
-from PySide2.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QMessageBox, QActionGroup, QAction
 
 from peld import settings
+from settings.overviewSettings import OverviewSettingsWindow, OverviewNotification
 import logging
 import data.oreVolume
 _oreVolume = data.oreVolume._oreVolume
-#from tkinter import messagebox, IntVar, filedialog
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -138,12 +138,11 @@ _logLanguageRegex = {
     }
 }
 
-_logReaders = []
-
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
         self.mainWindow = mainWindow
         self.characterMenu = characterMenu
+        self.emptyEntry = self.mainWindow.window.actionNoCharacters
         self.observer = Observer()
         
         if (platform.system() == "Windows"):
@@ -153,14 +152,10 @@ class CharacterDetector(FileSystemEventHandler):
         else:
             self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
         
-        self.menuEntries = []
-        self.emptyEntry = None
-        self.logReaders = _logReaders
-        self.selectedIndex = IntVar()
+        self.characterEntries = QActionGroup(self.characterMenu)
+        self.characterEntries.triggered.connect(self.changeCharacter)
+        self.currentLogReader = None
         self.playbackLogReader = None
-
-        self.emptyEntry = self.characterMenu.addAction('No character logs detected for past 24 hours')
-        self.emptyEntry.setDisabled(True)
         
         try:
             oneDayAgo = datetime.datetime.now() - datetime.timedelta(hours=24)
@@ -178,14 +173,17 @@ class CharacterDetector(FileSystemEventHandler):
             self.observer.start()
         except FileNotFoundError:
             logging.error('EVE logs directory not found, path checked: ' + self.path)
-        QMessageBox.warning(self.mainWindow, "Error",
+            QMessageBox.warning(self.mainWindow.window, "Error",
                                  "Can't find the EVE logs directory.  Do you have EVE installed?  \n\n" +
                                  "Path checked: " + self.path + "\n\n" +
                                  "PELD will continue to run, but will not track EVE data.")
 
-        self.characterMenu.menu.add_separator()
-        from settings.overviewSettings import OverviewSettingsWindow
-        self.characterMenu.menu.add_command(label='Open overview settings', command=OverviewSettingsWindow)
+        def openOverviewSettings():
+            self.overviewSettings = OverviewSettingsWindow(self)
+        self.mainWindow.window.actionOverviewSettings.triggered.connect(openOverviewSettings)
+        if settings.overviewFiles == {}:
+            logging.info('No overview settings set, showing overview notification for this session...')
+            self.overviewNotify = OverviewNotification(self)
         
     def on_created(self, event):
         self.addLog(event.src_path)
@@ -203,29 +201,33 @@ class CharacterDetector(FileSystemEventHandler):
             return
         log.close()
         
-        if len(self.menuEntries) == 0:
-            self.characterMenu.menu.delete(0)
-        
-        for i in range(len(self.menuEntries)):
-            if (character == self.menuEntries[i]):
+        characters = self.characterEntries.actions()
+        for i in range(len(characters)):
+            if (character == characters[i].text()):
                 try:
                     newLogReader = LogReader(logPath, self.mainWindow)
                 except BadLogException:
                     return
-                self.logReaders[i] = newLogReader
+                characters[i].logReader = newLogReader
                 return
         
         try:
             newLogReader = LogReader(logPath, self.mainWindow)
         except BadLogException:
             return
-        self.logReaders.append(newLogReader)
+        action = QAction(character)
+        action.logReader = newLogReader
+        action.setActionGroup(self.characterEntries)
+        action.setCheckable(True)
+
         if self.emptyEntry:
+            self.characterMenu.insertAction(self.emptyEntry, action)
             self.characterMenu.removeAction(self.emptyEntry)
             self.emptyEntry = None
-        self.characterMenu.menu.insert_radiobutton(0, label=character, variable=self.selectedIndex, 
-                                                value=len(self.menuEntries), command=self.catchupLog)
-        self.menuEntries.append(character)
+            action.trigger()
+        else:
+            top = characters[0]
+            self.characterMenu.insertAction(top, action)
         
     def stop(self):
         self.observer.stop()
@@ -243,19 +245,27 @@ class CharacterDetector(FileSystemEventHandler):
         self.mainWindow.removePlaybackFrame()
         
     def readLog(self):
-        if (self.playbackLogReader):
+        if self.playbackLogReader:
             return self.playbackLogReader.readLog()
-        elif (len(self.menuEntries) > 0):
-            return self.logReaders[self.selectedIndex.get()].readLog()
+        elif self.currentAction:
+            return self.currentAction.logReader.readLog()
         else:
             return _emptyResult
-    
-    def catchupLog(self):
-        self.mainWindow.animator.catchup()
-        try:
-            self.logReaders[self.selectedIndex.get()].catchup()
-        except IndexError:
-            pass
+
+    def changeCharacter(self, action=None):
+        if action:
+            action.setChecked(True)
+            self.currentAction = action
+            self.mainWindow.statusLabel.setText('Tracking: ' + action.text())
+        if self.currentAction:
+            self.currentAction.logReader.catchup()
+        self.mainWindow.animator.changeSettings()
+
+    def getLogReaders(self):
+        logReaders = []
+        for action in self.characterEntries.actions():
+            logReaders.append(action.logReader)
+        return logReaders
         
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
@@ -398,13 +408,13 @@ class PlaybackLogReader(BaseLogReader):
             self.log.readline()
             self.log.readline()
         except:
-            messagebox.showerror("Error", "This doesn't appear to be a EVE log file.\nPlease select a different file.")
+            QMessageBox.warning(self.mainWindow.window, "Error", "This doesn't appear to be a EVE log file.\nPlease select a different file.")
             raise BadLogException("not character log")
         characterLine = self.log.readline()
         try:
             self.character, self.language = ProcessCharacterLine(characterLine)
         except BadLogException:
-            messagebox.showerror("Error", "This doesn't appear to be a EVE combat log.\nPlease select a different file.")
+            QMessageBox.warning(self.mainWindow.window, "Error", "This doesn't appear to be a EVE log file.\nPlease select a different file.")
             raise BadLogException("not character log")
         logging.info('Log language is ' + self.language)
         
@@ -507,7 +517,7 @@ class LogReader(BaseLogReader):
             self.log.readline()
             collisionCharacter, language = ProcessCharacterLine(self.log.readline())
             logging.error('Log file collision on characters' + self.character + " and " + collisionCharacter)
-            messagebox.showerror("Error", "Log file collision on characters:\n\n" + self.character + " and " + collisionCharacter +
+            QMessageBox.warning(self.mainWindow.window, "Error", "Log file collision on characters:\n\n" + self.character + " and " + collisionCharacter +
                                 "\n\nThis happens when both characters log in at exactly the same second.\n" + 
                                 "This makes it impossible to know which character owns which log.\n\n" + 
                                 "Please restart the client of the character you want to track to use this program.\n" + 

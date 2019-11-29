@@ -9,8 +9,7 @@ import simulationWindow
 from peld import settings
 import logging
 
-
-class Animator(QtCore.QThread):
+class Animator():
     # zorder may be added as a settings in the future
     categories = {
         "dpsIn": { "zorder": 90 },
@@ -30,7 +29,6 @@ class Animator(QtCore.QThread):
         'error': None
     }
     def __init__(self, mainWindow, **kwargs):
-        QtCore.QThread.__init__(self)
 
         self.mainWindow = mainWindow
         self.graph = mainWindow.graph
@@ -44,22 +42,16 @@ class Animator(QtCore.QThread):
         self.simulationEnabled = False
         self.running = False
         
-        logging.info('Starting animator thread')
-        self.start()
-    
-    def run(self):
+        logging.info('Starting animator timer')
+
         self.timer = QtCore.QTimer()
         self.timer.setTimerType(QtCore.Qt.PreciseTimer)
         self.timer.timeout.connect(self.animate)
+
         self.changeSettings()
-        # main event loop entered here
-        self.exec_()
-        # this is only executed when thread is quitting
-        self.timer.stop()
         
-    def catchup(self):
-        """This is just to 'clear' the graph"""
-        self.changeSettings()
+    def stop(self):
+        self.timer.stop()
         
     def simulationSettings(self, enable=False, values=None):
         if enable:
@@ -291,6 +283,7 @@ class Animator(QtCore.QThread):
         self.mainWindow.fleetWindow.resetGraphs(ySmooth)
         self.mainWindow.fleetWindow.changeSettings()
         """
+        self.running = True
         self.timer.start(self.interval)
         
     def findColor(self, category, value):
