@@ -93,10 +93,10 @@ class FleetWindow(tk.Toplevel):
         cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.logout)
         cancelButton.grid(row="0", column="2")
 
-        self.mainWindow.mainMenu.menu.delete(3)
-        self.mainWindow.mainMenu.menu.insert_command(3, label="End Fleet Mode", command=self.logout)
-        self.mainWindow.mainMenu.menu.entryconfig(5, state=tk.DISABLED)
-        self.mainWindow.mainMenu.menu.entryconfig(6, state=tk.DISABLED)
+        self.mainWindow.mainMenu.menu.delete(5)
+        self.mainWindow.mainMenu.menu.insert_command(5, label="End Fleet Mode", command=self.logout)
+        self.mainWindow.mainMenu.menu.entryconfig(7, state=tk.DISABLED)
+        self.mainWindow.mainMenu.menu.entryconfig(8, state=tk.DISABLED)
         self.mainWindow.characterMenu.configure(state=tk.DISABLED)
         
     def login(self):
@@ -152,10 +152,10 @@ class FleetWindow(tk.Toplevel):
             self.mainWindow.animator.dataRecieveQueue = None
             self.mainWindow.animator.errorQueue = None
             self.mainWindow.topLabel.grid_remove()
-        self.mainWindow.mainMenu.menu.delete(3)
-        self.mainWindow.mainMenu.menu.insert_command(3, label="Fleet Mode", command=lambda: FleetWindow(self.mainWindow))
-        self.mainWindow.mainMenu.menu.entryconfig(5, state="normal")
-        self.mainWindow.mainMenu.menu.entryconfig(6, state="normal")
+        self.mainWindow.mainMenu.menu.delete(5)
+        self.mainWindow.mainMenu.menu.insert_command(5, label="Fleet Mode", command=lambda: FleetWindow(self.mainWindow))
+        self.mainWindow.mainMenu.menu.entryconfig(7, state="normal")
+        self.mainWindow.mainMenu.menu.entryconfig(8, state="normal")
         self.mainWindow.characterMenu.configure(state="normal")
         self.destroy()
         

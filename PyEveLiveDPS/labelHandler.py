@@ -52,9 +52,19 @@ class LabelHandler(tk.Frame):
         
     def enablePeak(self, labelName="", enable=True):
         self.labels[labelName]["label"].enablePeak(enable)
+        
+    def enableTotal(self, labelName, findColor, enable=True):
+        self.labels[labelName]["label"].enableTotal(findColor, enable)
+            
+    def updateTotal(self, labelName, number):
+        self.labels[labelName]["label"].updateTotal(number)
             
     def updateLabel(self, labelName, number, color):
         self.labels[labelName]["label"].updateLabel(number, color)
+    
+    def clearValues(self, findColor):
+        for item in self.labels:
+            self.labels[item]["label"].clearValues(findColor(item, 0))
         
 class Label(tk.Frame):
     def __init__(self, parent, text, settings, **kwargs):
@@ -80,6 +90,17 @@ class Label(tk.Frame):
         self.peakNumberLabel.grid(row="1", column="2")
         self.peakNumberLabel.grid_remove()
 
+        self.showTotal = False
+        self.totalValue = 0.0
+        self.totalLabel = tk.Label(self, text="Total:", fg="white", background="black")
+        self.totalLabel.grid(row="2", column="1")
+        self.totalLabel.grid_remove()
+        self.totalNumberLabel = tk.Label(self, text="0.0", fg="white", background="black")
+        self.totalNumberLabel.grid(row="2", column="2")
+        self.totalNumberLabel.grid_remove()
+
+        self.findColor = None
+
     def enablePeak(self, enable=True):
         self.showPeak = enable
         if enable:
@@ -89,6 +110,17 @@ class Label(tk.Frame):
             self.peakLabel.grid_remove()
             self.peakNumberLabel.grid_remove()
 
+    def enableTotal(self, findColor, enable=True):
+        self.showTotal = enable
+        self.findColor = findColor
+        if enable:
+            color = self.findColor(self.totalValue)
+            self.totalNumberLabel.configure(fg=color)
+            self.totalLabel.grid()
+            self.totalNumberLabel.grid()
+        else:
+            self.totalLabel.grid_remove()
+            self.totalNumberLabel.grid_remove()
 
     def convertNumberToStr(self, number):
         decimals = int(self.decimalPlaces)
@@ -98,6 +130,12 @@ class Label(tk.Frame):
             return formatString.format(round(number, decimals)) + "K"
         else:
             return formatString.format(round(number, decimals))
+
+    def updateTotal(self, number):
+        self.totalValue += number
+        color = self.findColor(self.totalValue)
+        self.totalNumberLabel["text"] = self.convertNumberToStr(self.totalValue)
+        self.totalNumberLabel.configure(fg=color)
         
     def updateLabel(self, number, color):
         self.numberLabel["text"] = self.convertNumberToStr(number)
@@ -105,5 +143,15 @@ class Label(tk.Frame):
         if self.showPeak and number >= self.peakValue:
             self.peakValue = number
             self.peakNumberLabel["text"] = self.convertNumberToStr(number)
+            self.peakNumberLabel.configure(fg=color)
+    
+    def clearValues(self, color):
+        if self.totalValue:
+            self.totalValue = 0
+            self.totalNumberLabel["text"] = self.convertNumberToStr(0)
+            self.totalNumberLabel.configure(fg=color)
+        if self.peakValue:
+            self.peakValue = 0
+            self.peakNumberLabel["text"] = self.convertNumberToStr(0)
             self.peakNumberLabel.configure(fg=color)
         

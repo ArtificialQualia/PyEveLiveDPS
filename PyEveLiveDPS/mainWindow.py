@@ -163,6 +163,8 @@ class MainWindow(tk.Tk):
         
         self.mainMenu.menu.add_cascade(label="Profile", menu=self.profileMenu)
         self.mainMenu.menu.add_separator()
+        self.mainMenu.menu.add_command(label="Clear Total/Peak Values", state=tk.DISABLED)
+        self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Fleet Mode", command=lambda: fleetConnectionWindow.FleetWindow(self))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self))
@@ -170,6 +172,12 @@ class MainWindow(tk.Tk):
         self.mainMenu.menu.add_command(label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.mainMenu.menu.add_separator()
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
+    
+    def showClearMenuOption(self, show, command):
+        if show:
+            self.mainMenu.menu.entryconfig(3, state=tk.NORMAL, command=command)
+        else:
+            self.mainMenu.menu.entryconfig(3, state=tk.DISABLED)
     
     def addQuitButton(self):
         """ draws and places the quit icon on the main window """
@@ -317,9 +325,9 @@ class MainWindow(tk.Tk):
     
     def addPlaybackFrame(self, startTime, endTime):
         """ adds the playback frame underneath the graph when in 'playback' mode """
-        self.mainMenu.menu.entryconfig(3, state="disabled")
-        self.mainMenu.menu.delete(6)
-        self.mainMenu.menu.insert_command(6, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
+        self.mainMenu.menu.entryconfig(5, state="disabled")
+        self.mainMenu.menu.delete(8)
+        self.mainMenu.menu.insert_command(8, label="Stop Log Playback", command=self.characterDetector.stopPlayback)
         self.topLabel.configure(text="Playback Mode")
         self.topLabel.grid()
         self.playbackFrame = playbackFrame.PlaybackFrame(self, startTime, endTime)
@@ -328,9 +336,9 @@ class MainWindow(tk.Tk):
     def removePlaybackFrame(self):
         """ removes the playback frame when we leave playback mode """
         getLogFilePath = lambda: tk.filedialog.askopenfilename(initialdir=self.characterDetector.path, title="Select log file")
-        self.mainMenu.menu.entryconfig(3, state="normal")
-        self.mainMenu.menu.delete(6)
-        self.mainMenu.menu.insert_command(6, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
+        self.mainMenu.menu.entryconfig(5, state="normal")
+        self.mainMenu.menu.delete(8)
+        self.mainMenu.menu.insert_command(8, label="Playback Log", command=lambda: self.characterDetector.playbackLog(getLogFilePath()))
         self.topLabel.grid_remove()
         self.playbackFrame.grid_remove()
         self.animator.catchup()
