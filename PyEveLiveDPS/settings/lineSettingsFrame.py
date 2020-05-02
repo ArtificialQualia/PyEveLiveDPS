@@ -106,6 +106,10 @@ class LineSettingsFrame(tk.Frame):
         peakCheckbox = tk.Checkbutton(frame, variable=peakCheckboxValue, text="Show peak value", state="disabled")
         peakCheckbox.grid(row="1", column="2", sticky="e")
         peakCheckbox.var = peakCheckboxValue
+        totalCheckboxValue = tk.BooleanVar()
+        totalCheckbox = tk.Checkbutton(frame, variable=totalCheckboxValue, text="Show total value", state="disabled")
+        totalCheckbox.grid(row="1", column="0", columnspan="2", sticky="e")
+        totalCheckbox.var = totalCheckboxValue
         if mining:
             m3CheckboxValue = tk.BooleanVar()
             m3Checkbox = tk.Checkbutton(frame, variable=m3CheckboxValue, text="Show m3 mined instead of units", state="disabled")
@@ -119,18 +123,19 @@ class LineSettingsFrame(tk.Frame):
             checkboxValue.set(True)
             lineCheckboxValue.set(settingsList[0].get("labelOnly", False))
             peakCheckboxValue.set(settingsList[0].get("showPeak", False))
+            totalCheckboxValue.set(settingsList[0].get("showTotal", False))
             if mining: m3CheckboxValue.set(settingsList[0].get("showM3", False))
-            self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, peakCheckbox, settingsList, m3Checkbox)
+            self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox, peakCheckbox, totalCheckbox, settingsList, m3Checkbox)
         sectionCheckbox = tk.Checkbutton(frame, variable=checkboxValue, text=text + " tracking",
                                          command=lambda:self.addLineCustomizationSection(innerFrame, text, checkboxValue, lineCheckbox,
-                                                                                         peakCheckbox, settingsList, m3Checkbox))
+                                                                                         peakCheckbox, totalCheckbox, settingsList, m3Checkbox))
         font = tkFont.Font(font=sectionCheckbox['font'])
         font.config(weight='bold')
         sectionCheckbox['font'] = font
         sectionCheckbox.grid(row="0", column="0", sticky="w")
         tk.Frame(frame, height="20", width="10").grid(row="1000", column="1", columnspan="5")
     
-    def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, peakCheckbox, settingsList, m3Checkbox):
+    def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, peakCheckbox, totalCheckbox, settingsList, m3Checkbox):
         if checkboxValue.get():
             frame.grid()
             innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for this line:")
@@ -151,6 +156,8 @@ class LineSettingsFrame(tk.Frame):
             settingsList[0].update({ "labelOnly": lineCheckbox.var })
             peakCheckbox.configure(state="normal")
             settingsList[0].update({ "showPeak": peakCheckbox.var })
+            totalCheckbox.configure(state="normal")
+            settingsList[0].update({ "showTotal": totalCheckbox.var })
             if m3Checkbox: 
                 m3Checkbox.configure(state="normal")
                 settingsList[0].update({ "showM3": m3Checkbox.var })
@@ -163,6 +170,8 @@ class LineSettingsFrame(tk.Frame):
             lineCheckbox.configure(state="disabled")
             peakCheckbox.var.set(0)
             peakCheckbox.configure(state="disabled")
+            totalCheckbox.var.set(0)
+            totalCheckbox.configure(state="disabled")
             if m3Checkbox:
                 m3Checkbox.var.set(0)
                 m3Checkbox.configure(state="disabled")
@@ -241,6 +250,7 @@ class LineSettingsFrame(tk.Frame):
             if len(settings) > 0:
                 settings[0]["labelOnly"] = settings[0]["labelOnly"].get()
                 settings[0]["showPeak"] = settings[0]["showPeak"].get()
+                settings[0]["showTotal"] = settings[0]["showTotal"].get()
                 
         if len(self.settingsCopy["mining"]) > 0:
             self.settingsCopy["mining"][0]["showM3"] = self.settingsCopy["mining"][0]["showM3"].get()

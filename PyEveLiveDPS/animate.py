@@ -111,6 +111,9 @@ class Animator(threading.Thread):
                     amountSum = sum([entry['amount'] for entry in items["newEntry"]])
                     items["historical"].append(amountSum)
                     items["historicalDetails"].append(items["newEntry"])
+                    # update totals if necessary
+                    if items["settings"][0].get("showTotal", False) and amountSum > 0:
+                        self.labelHandler.updateTotal(category, amountSum)
                     # 'yValues' is for the actual DPS at that point in time, as opposed to raw values
                     items["yValues"] = items["yValues"][1:]
                     average = (np.sum(items["historical"])*(1000/self.interval))/self.arrayLength
@@ -188,10 +191,10 @@ class Animator(threading.Thread):
             self.graph.subplot.clear()
         if self.simulationEnabled:
             self.simulationSettings(enable=False)
-            self.mainWindow.mainMenu.menu.delete(5)
-            self.mainWindow.mainMenu.menu.insert_command(5, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
+            self.mainWindow.mainMenu.menu.delete(7)
+            self.mainWindow.mainMenu.menu.insert_command(7, label="Simulate Input", command=lambda: simulationWindow.SimulationWindow(self.mainWindow))
             self.mainWindow.topLabel.grid_remove()
-            self.mainWindow.mainMenu.menu.entryconfig(3, state="normal")
+            self.mainWindow.mainMenu.menu.entryconfig(5, state="normal")
         
         self.slowDown = False
         self.seconds = settings.getSeconds()
@@ -230,11 +233,16 @@ class Animator(threading.Thread):
         yValuesTemplate = np.array([0] * self.arrayLength)
         ySmooth = self.graph.smoothListGaussian(yValuesTemplate, 5)
         # resets all the arrays to contain no values
+        showAnyPeakOrTotal = False
         for category, items in self.categories.items():
             if items["settings"]:
                 self.labelHandler.enableLabel(category, True)
                 showPeak = items["settings"][0].get("showPeak", False)
                 self.labelHandler.enablePeak(category, showPeak)
+                showTotal = items["settings"][0].get("showTotal", False)
+                findColor = lambda x, category=category: self.findColor(category, x)
+                showAnyPeakOrTotal = showAnyPeakOrTotal or showPeak or showTotal
+                self.labelHandler.enableTotal(category, findColor, showTotal)
                 self.detailsHandler.enableLabel(category, True)
                 items["historical"] = historicalTemplate.copy()
                 items["historicalDetails"] = [[]] * self.arrayLength
@@ -247,6 +255,8 @@ class Animator(threading.Thread):
                 self.labelHandler.enableLabel(category, False)
                 self.labelHandler.enablePeak(category, False)
                 self.detailsHandler.enableLabel(category, False)
+
+        self.mainWindow.showClearMenuOption(showAnyPeakOrTotal, lambda: self.labelHandler.clearValues(self.findColor))
         
         if not self.graphDisabled:
             self.graph.subplot.margins(0,0)
