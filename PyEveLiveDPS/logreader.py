@@ -133,7 +133,27 @@ _logLanguageRegex = {
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>のエネルギーが解放されました<",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> エネルギードレイン 攻撃者:<",
         'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
-    }
+    },
+    'chinese':{
+        'character': "(?<=收听者: ).*",
+        'sessionTime': "(?<=进程开始: ).*",
+        'pilotAndWeapon': '(?:.*ffffffff>(?:<localized .*?>)?(?P<default_pilot>[^\(\)<>]*)(?:\[.*\((?:<localized .*?>)?(?P<default_ship>.*)\)<|<)/b.*> \-(?: (?:<localized .*?>)?(?P<default_weapon>.*?)(?: \-|<)|.*))',
+        'damageOut': "\(combat\) <.*?><b>([0-9]+).*>对<",
+        'damageIn': "\(combat\) <.*?><b>([0-9]+).*>来自<",
+        'armorRepairedOut': "\(combat\) <.*?><b>([0-9]+).*>远程装甲维修量至<",
+        'hullRepairedOut': "\(combat\) <.*?><b>([0-9]+).*>远程结构维修量至<",
+        'shieldBoostedOut': "\(combat\) <.*?><b>([0-9]+).*>远程护盾回充增量至<",
+        'armorRepairedIn': "\(combat\) <.*?><b>([0-9]+).*>远程装甲维修量由<",
+        'hullRepairedIn': "\(combat\) <.*?><b>([0-9]+).*>远程结构维修量由<",
+        'shieldBoostedIn': "\(combat\) <.*?><b>([0-9]+).*>远程护盾回充增量由<",
+        'capTransferedOut': "\(combat\) <.*?><b>([0-9]+).*>远程电容传输至<",
+        'capNeutralizedOut': "\(combat\) <.*?ff7fffff><b>([0-9]+).*>能量中和<",
+        'nosRecieved': "\(combat\) <.*?><b>\+([0-9]+).*>被从<",
+        'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*>远程电容传输量由<",
+        'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>能量中和<",
+        'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*>被吸取到<",
+        'mined': "\(mining\) .*<b><.*?><.*?>([0-9]+).*>个单位的.*<b>(.+)</b>"
+        }
 }
 
 _logReaders = []
