@@ -152,8 +152,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*>远程电容传输量由<",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>能量中和<",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*>被吸取到<",
-        # This regex meets a problem. Log reader can't identify mining logs.
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*>个单位的.*<b>(.+)</b>"
+        'mined': "\(mining\) .*<b><.*?><.*?>([0-9]+).*>个单位的.*<b>(.+)</b>"
         }
 }
 
