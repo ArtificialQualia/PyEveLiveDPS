@@ -12,9 +12,9 @@ import tkinter as tk
 from peld import settings
 
                 
-class UncollapseWindow(tk.Tk):
+class UncollapseWindow(tk.Toplevel):
     def __init__(self, mainWindow):
-        tk.Tk.__init__(self)
+        tk.Toplevel.__init__(self)
         self.minsize(5,5)
         self.overrideredirect(True)
         self.wm_attributes("-topmost", True)
