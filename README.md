@@ -37,7 +37,7 @@ You can run multiple copies to track different characters at the same time.  You
 
 The packaged release is for Windows.  To run on Linux, run from source.  See below about how to run from source.  Other OSes are untested.
 
-## Why another DPS grapher?
+## Why a live DPS grapher?
 
 There are a number of utilities that analyze your combat logs.  However, almost all of these utilities analyze your logs after the fact, which isn't as useful as getting that data in real time.
 
@@ -46,6 +46,12 @@ This tool provides a moving average of your DPS so you can make adjustments mid-
 How long of a time period to average your DPS over is a user configurable setting so you can adjust it to your weapon type(s).
 
 Note that since it is a moving average, you will see peaks and valleys as hits fall 'off' the graph, and new ones are added.  You can increase the time period (up to 10 minutes) of the moving average to minimize this effect, but then it will be harder to see how much of an effect each hit is having.
+
+## Why does PELD need my overview settings?
+
+If you are using an overview pack that changes the display of your in-game DPS messages from the defaults that EVE uses, you must export your overview settings for PELD to use.  These overview settings are needed because the configuration of your overview changes the actual content of the text log messages that PELD monitors.  In order to properly parse the combat logs and extract information like weapon types, targets, etc., the overview settings are required.
+
+PELD will ask you for your overview settings the first time you run it.  You can change the overview settings PELD uses at anytime in the 'Character' menu.
 
 ## Problems?  Feedback?
 
