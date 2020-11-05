@@ -14,6 +14,15 @@ class LabelHandler(tk.Frame):
             "mining": { "text": "Mining:" }
             }
     def __init__(self, parent, labels=None, labelSettings=None, **kwargs):
+        """
+        Initialize a widget.
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            labels: (dict): write your description
+            labelSettings: (dict): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.columnconfigure(9, weight="1")
 
@@ -26,6 +35,12 @@ class LabelHandler(tk.Frame):
         self.initializeLabels()
         
     def initializeLabels(self):
+        """
+        Initializes the label
+
+        Args:
+            self: (todo): write your description
+        """
         for index in self.labels:
             self.labels[index]["label"] = Label(self, text=self.labels[index]["text"], 
                                                 settings=self.labelSettings[index], background="black")
@@ -38,6 +53,12 @@ class LabelHandler(tk.Frame):
             self.labels[index]["label"].grid_remove()
             
     def redoLabels(self):
+        """
+        Updates the label label.
+
+        Args:
+            self: (todo): write your description
+        """
         self.labelSettings = settings.getLabels()
         self.labelColumns = settings.getLabelColumns()
         for item in self.labels:
@@ -45,29 +66,87 @@ class LabelHandler(tk.Frame):
         self.initializeLabels()
         
     def enableLabel(self, labelName="", enable=True):
+        """
+        Enable the label for a label
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            enable: (bool): write your description
+        """
         if enable:
             self.labels[labelName]["label"].grid()
         else:
             self.labels[labelName]["label"].grid_remove()
         
     def enablePeak(self, labelName="", enable=True):
+        """
+        Enables the label.
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            enable: (bool): write your description
+        """
         self.labels[labelName]["label"].enablePeak(enable)
         
     def enableTotal(self, labelName, findColor, enable=True):
+        """
+        Enables or disables the labelname.
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            findColor: (bool): write your description
+            enable: (bool): write your description
+        """
         self.labels[labelName]["label"].enableTotal(findColor, enable)
             
     def updateTotal(self, labelName, number):
+        """
+        Updates a label
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            number: (int): write your description
+        """
         self.labels[labelName]["label"].updateTotal(number)
             
     def updateLabel(self, labelName, number, color):
+        """
+        Updates the label
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            number: (int): write your description
+            color: (str): write your description
+        """
         self.labels[labelName]["label"].updateLabel(number, color)
     
     def clearValues(self, findColor):
+        """
+        Clears the values for this item.
+
+        Args:
+            self: (todo): write your description
+            findColor: (str): write your description
+        """
         for item in self.labels:
             self.labels[item]["label"].clearValues(findColor(item, 0))
         
 class Label(tk.Frame):
     def __init__(self, parent, text, settings, **kwargs):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            text: (str): write your description
+            settings: (dict): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.decimalPlaces = settings["decimalPlaces"]
         self.inThousands = settings["inThousands"]
@@ -102,6 +181,13 @@ class Label(tk.Frame):
         self.findColor = None
 
     def enablePeak(self, enable=True):
+        """
+        Enable grid
+
+        Args:
+            self: (todo): write your description
+            enable: (bool): write your description
+        """
         self.showPeak = enable
         if enable:
             self.peakLabel.grid()
@@ -111,6 +197,14 @@ class Label(tk.Frame):
             self.peakNumberLabel.grid_remove()
 
     def enableTotal(self, findColor, enable=True):
+        """
+        Displays the color
+
+        Args:
+            self: (todo): write your description
+            findColor: (bool): write your description
+            enable: (bool): write your description
+        """
         self.showTotal = enable
         self.findColor = findColor
         if enable:
@@ -123,6 +217,13 @@ class Label(tk.Frame):
             self.totalNumberLabel.grid_remove()
 
     def convertNumberToStr(self, number):
+        """
+        Convert a number to a number.
+
+        Args:
+            self: (todo): write your description
+            number: (int): write your description
+        """
         decimals = int(self.decimalPlaces)
         formatString = '{:,.'+str(decimals)+'f}'
         if self.inThousands:
@@ -132,12 +233,27 @@ class Label(tk.Frame):
             return formatString.format(round(number, decimals))
 
     def updateTotal(self, number):
+        """
+        Updates the total number
+
+        Args:
+            self: (todo): write your description
+            number: (int): write your description
+        """
         self.totalValue += number
         color = self.findColor(self.totalValue)
         self.totalNumberLabel["text"] = self.convertNumberToStr(self.totalValue)
         self.totalNumberLabel.configure(fg=color)
         
     def updateLabel(self, number, color):
+        """
+        Updates the number
+
+        Args:
+            self: (todo): write your description
+            number: (int): write your description
+            color: (str): write your description
+        """
         self.numberLabel["text"] = self.convertNumberToStr(number)
         self.numberLabel.configure(fg=color)
         if self.showPeak and number >= self.peakValue:
@@ -146,6 +262,13 @@ class Label(tk.Frame):
             self.peakNumberLabel.configure(fg=color)
     
     def clearValues(self, color):
+        """
+        Clears the values for this widget.
+
+        Args:
+            self: (todo): write your description
+            color: (str): write your description
+        """
         if self.totalValue:
             self.totalValue = 0
             self.totalNumberLabel["text"] = self.convertNumberToStr(0)

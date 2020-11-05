@@ -9,6 +9,15 @@ from matplotlib.figure import Figure, Axes
 
 class PlaybackFrame(tk.Frame):
     def __init__(self, parent, startTime, endTime, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            startTime: (int): write your description
+            endTime: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.mainWindow = parent
         self.columnconfigure(2, weight=1)
@@ -40,6 +49,12 @@ class PlaybackFrame(tk.Frame):
         self.makeGraph()
         
     def makeTimeSlider(self):
+        """
+        Make the widget.
+
+        Args:
+            self: (todo): write your description
+        """
         self.timeSlider = tk.Scale(self, from_=self.startValue, to=self.endValue, orient=tk.constants.HORIZONTAL, 
                                    showvalue=0, command=self.timeChanged, bigincrement=60)
         self.timeSlider.configure(background="black", foreground="white", sliderrelief=tk.constants.FLAT, troughcolor="white", 
@@ -51,12 +66,25 @@ class PlaybackFrame(tk.Frame):
         #self.timeSlider.bind("<ButtonRelease-1>", lambda e: True if not self.mainWindow.characterDetector.playbackLogReader.paused else self.pauseButtonRelease(e))
         
     def timeChanged(self, newValue):
+        """
+        Called when a new time has changed
+
+        Args:
+            self: (todo): write your description
+            newValue: (todo): write your description
+        """
         self.timeLine.set_data([newValue, newValue], [0, self.highestValue])
         self.graphFigure.canvas.draw()
         self.logtime = self.startTime + datetime.timedelta(seconds=int(newValue))
         self.timeVariable.set(self.logtime.strftime("%H:%M:%S"))
         
     def makeTimeLabel(self):
+        """
+        Create a time series
+
+        Args:
+            self: (todo): write your description
+        """
         self.timeVariable = tk.StringVar()
         self.timeVariable.set("00:00:00")
         self.timeLabel = tk.Label(self, textvariable=self.timeVariable)
@@ -65,6 +93,12 @@ class PlaybackFrame(tk.Frame):
         self.mainWindow.makeDraggable(self.timeLabel)
         
     def makePauseButton(self):
+        """
+        Make the button button.
+
+        Args:
+            self: (todo): write your description
+        """
         self.pauseButton = tk.Canvas(self, width=17, height=16, background="black", borderwidth=2,
                                     highlightthickness="0", relief=tk.constants.RAISED, selectbackground="black")
         self.pauseRectLeft = self.pauseButton.create_rectangle(4,2,9,16, fill="yellow")
@@ -77,9 +111,23 @@ class PlaybackFrame(tk.Frame):
         self.pauseButton.grid(row="1", column="0")
         
     def pauseButtonPress(self, e):
+        """
+        Pauses the link.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.pauseButton.configure(relief=tk.constants.SUNKEN)
         
     def pauseButtonRelease(self, e):
+        """
+        Disconnect button.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.pauseButton.configure(relief=tk.constants.RAISED)
         if self.mainWindow.characterDetector.playbackLogReader.paused:
             self.pauseButton.delete(self.playTriangle)
@@ -94,12 +142,32 @@ class PlaybackFrame(tk.Frame):
             self.mainWindow.animator.catchup()
         
     def pauseButtonEnter(self, e):
+        """
+        Pause the button.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.pauseButton.configure(background="gray25")
         
     def pauseButtonLeave(self, e):
+        """
+        Pause the button.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.pauseButton.configure(background="black")
         
     def makeStopButton(self):
+        """
+        Make the button.
+
+        Args:
+            self: (todo): write your description
+        """
         self.stopButton = tk.Canvas(self, width=13, height=13, background="red", borderwidth=3,
                                     highlightthickness="0", relief=tk.constants.RAISED)
         self.stopButton.create_rectangle(0,0,16,16, fill="red", activefill="orange red")
@@ -110,16 +178,43 @@ class PlaybackFrame(tk.Frame):
         self.stopButton.grid(row="1", column="4")
         
     def stopButtonPress(self, e):
+        """
+        Stops the link.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.stopButton.configure(relief=tk.constants.SUNKEN)
         
     def stopButtonRelease(self, e):
+        """
+        Stops the main window.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.stopButton.configure(relief=tk.constants.RAISED)
         self.mainWindow.characterDetector.stopPlayback()
     
     def stopButtonLeave(self, e):
+        """
+        Stops the button.
+
+        Args:
+            self: (todo): write your description
+            e: (todo): write your description
+        """
         self.stopButton.configure(relief=tk.constants.RAISED)
         
     def makeGraph(self):
+        """
+        Make graph
+
+        Args:
+            self: (todo): write your description
+        """
         self.graphFigure = Figure(figsize=(1,0.1), dpi=50, facecolor="black")
         
         self.subplot = self.graphFigure.add_subplot(1,1,1, facecolor=(0.3, 0.3, 0.3))

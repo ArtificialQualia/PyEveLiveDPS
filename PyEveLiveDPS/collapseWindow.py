@@ -14,6 +14,13 @@ from peld import settings
                 
 class UncollapseWindow(tk.Toplevel):
     def __init__(self, mainWindow):
+        """
+        Initialize main widget
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Toplevel.__init__(self)
         self.minsize(5,5)
         self.overrideredirect(True)

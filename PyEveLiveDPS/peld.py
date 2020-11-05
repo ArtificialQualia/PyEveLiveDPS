@@ -18,6 +18,12 @@ import os
 
 class App():
     def __init__(self):
+        """
+        Create the main window
+
+        Args:
+            self: (todo): write your description
+        """
         # imports happen in app init to prevent issues with files importing each other to get logger/settings
         import mainWindow
         import updateChecker

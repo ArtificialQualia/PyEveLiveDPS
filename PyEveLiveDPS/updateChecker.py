@@ -19,10 +19,22 @@ import webbrowser
 
 class UpdateChecker(threading.Thread):
     def __init__(self):
+        """
+        Initialize the thread.
+
+        Args:
+            self: (todo): write your description
+        """
         threading.Thread.__init__(self, daemon=True)
         self.name = "UpdateChecker"
 
     def run(self):
+        """
+        Main entry point.
+
+        Args:
+            self: (todo): write your description
+        """
         try:
             httpResponse = urllib.request.urlopen("https://api.github.com/repos/ArtificialQualia/PyEveLiveDPS/releases").read()
         except urllib.error.URLError as e:
@@ -39,6 +51,13 @@ class UpdateChecker(threading.Thread):
 
 class UpdateNotificaitonWindow(tk.Toplevel):
     def __init__(self, releases):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            releases: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         self.releases = releases
         self.wm_attributes("-topmost", True)
@@ -116,12 +135,24 @@ class UpdateNotificaitonWindow(tk.Toplevel):
         tk.Frame(self, height="10", width="1").grid(row="101", column="0")
         
     def downloadAction(self):
+        """
+        Download the browser
+
+        Args:
+            self: (todo): write your description
+        """
         webbrowser.open("https://github.com/ArtificialQualia/PyEveLiveDPS/releases", autoraise=True)
         if self.reminderCheckbox.var.get():
             settings.disableUpdateReminderFor = self.releases[0]['name']
         self.destroy()
         
     def okAction(self):
+        """
+        Called when a task is removed.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.reminderCheckbox.var.get():
             settings.disableUpdateReminderFor = self.releases[0]['name']
         self.destroy()

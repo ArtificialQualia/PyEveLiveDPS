@@ -24,6 +24,13 @@ import simulator
 
 class DPSGraph(tk.Frame):
     def __init__(self, parent, **kwargs):
+        """
+        Initialize a widget
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         
         self.parent = parent

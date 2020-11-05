@@ -17,6 +17,13 @@ from peld import settings
 
 class DetailsHandler(tk.Frame):
     def __init__(self, parent, **kwargs):
+        """
+        Initialize the parent.
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.columnconfigure(0, weight=1)
         self.pilots = []
@@ -92,6 +99,14 @@ class DetailsHandler(tk.Frame):
             pilot['detailFrame'].updateLabels(pilot['weaponGroups'])
             
     def enableLabel(self, labelName, enable):
+        """
+        Enables or disables the label for the inputed label. : param labelname | <str >
+
+        Args:
+            self: (todo): write your description
+            labelName: (str): write your description
+            enable: (bool): write your description
+        """
         if labelName in self.enabledLabels:
             if not enable:
                 self.enabledLabels.remove(labelName)
@@ -102,6 +117,14 @@ class DetailsHandler(tk.Frame):
 
 class DetailFrame(tk.Frame):
     def __init__(self, parent, pilot, **kwargs):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            pilot: (todo): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.columnconfigure(1, weight=1)
         #self.decimalPlaces = settings["decimalPlaces"]

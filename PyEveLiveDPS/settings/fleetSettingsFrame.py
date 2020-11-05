@@ -8,6 +8,14 @@ from peld import settings
 
 class FleetSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.parent = parent
         self.mainWindow = mainWindow
@@ -24,6 +32,15 @@ class FleetSettingsFrame(tk.Frame):
         self.logiOutGraph = self.makeCheckbox(settings.fleetWindowShowLogiOut, "Show Top 3 Logi Out Graph")
 
     def makeCheckbox(self, initValue, boxText, description=None):
+        """
+        Create a checkbox box.
+
+        Args:
+            self: (todo): write your description
+            initValue: (todo): write your description
+            boxText: (str): write your description
+            description: (str): write your description
+        """
         checkboxValue = tk.BooleanVar()
         checkboxValue.set(initValue)
         checkbox = tk.Checkbutton(self, text=boxText, variable=checkboxValue)
@@ -40,6 +57,12 @@ class FleetSettingsFrame(tk.Frame):
         return checkbox
                         
     def doSettings(self):
+        """
+        Displays the window settings *
+
+        Args:
+            self: (todo): write your description
+        """
         settings.fleetWindowShow = self.windowDisabled.var.get()
         settings.fleetWindowShowAggregate = self.aggregateGraph.var.get()
         settings.fleetWindowShowDpsOut = self.dpsOutGraph.var.get()

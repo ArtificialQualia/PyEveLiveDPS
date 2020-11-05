@@ -10,6 +10,13 @@ import threading
 
 class FleetWindow(tk.Toplevel):
     def __init__(self, mainWindow):
+        """
+        Initialize main window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.mainWindow = mainWindow
@@ -100,6 +107,12 @@ class FleetWindow(tk.Toplevel):
         self.mainWindow.characterMenu.configure(state=tk.DISABLED)
         
     def login(self):
+        """
+        Perform a login. login.
+
+        Args:
+            self: (todo): write your description
+        """
         self.loginNotificationQueue = multiprocessing.Queue()
         #settings.fleetServer = self.serverVar.get()
         requestArgs = "/sso/login?read_fleet=esi-fleets.read_fleet.v1"
@@ -115,6 +128,12 @@ class FleetWindow(tk.Toplevel):
         self.loginWindowThread.start()
 
     def waitForLogin(self):
+        """
+        Wait for login to complete
+
+        Args:
+            self: (todo): write your description
+        """
         loginWindow = SocketNotificationWindow(self.loginNotificationQueue)
         if loginWindow.loginStatus:
             if self.lowCPUVar.get():
@@ -133,6 +152,12 @@ class FleetWindow(tk.Toplevel):
             self.destroy()
         
     def logout(self):
+        """
+        Configure login
+
+        Args:
+            self: (todo): write your description
+        """
         if hasattr(self, 'loginWindowThread') and self.loginWindowThread.is_alive():
             self.sockMgr.terminate()
             self.sockMgr = None
@@ -160,6 +185,15 @@ class FleetWindow(tk.Toplevel):
         self.destroy()
         
     def addEntrySetting(self, var, labelText, descriptorText):
+        """
+        Add a new variable
+
+        Args:
+            self: (todo): write your description
+            var: (todo): write your description
+            labelText: (str): write your description
+            descriptorText: (todo): write your description
+        """
         centerFrame = tk.Frame(self)
         centerFrame.grid(row=self.counter, column="1", columnspan="2", sticky="w")
         label = tk.Label(centerFrame, text=labelText)
@@ -176,6 +210,13 @@ class FleetWindow(tk.Toplevel):
 
 class SocketNotificationWindow(tk.Toplevel):
     def __init__(self, loginQueue):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+            loginQueue: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.configure(pady=10, padx=20)

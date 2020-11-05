@@ -24,6 +24,14 @@ class SideBar(tk.Frame):
              }
     
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.mainWindow = mainWindow
         self.update_idletasks()
@@ -32,6 +40,14 @@ class SideBar(tk.Frame):
         self.counter = 0
         
     def addOption(self, title, function):
+        """
+        Add a new widget
+
+        Args:
+            self: (todo): write your description
+            title: (str): write your description
+            function: (todo): write your description
+        """
         button = tk.Radiobutton(self, text=title, command=lambda:function(title), 
                                 indicatoron=0, value=self.counter,
                                 selectcolor="#00FFFF", bg="#FFFFFF",
@@ -65,6 +81,13 @@ class SideBar(tk.Frame):
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, mainWindow):
+        """
+        Initialize main window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.mainWindow = mainWindow
@@ -124,6 +147,13 @@ class SettingsWindow(tk.Toplevel):
         tk.Frame(self, height="20", width="10").grid(row="101", column="1", columnspan="5")
         
     def switchTab(self, title):
+        """
+        Switch the grid to the given title.
+
+        Args:
+            self: (todo): write your description
+            title: (str): write your description
+        """
         for option, frame in self.options:
             if option == title:
                 frame.grid()
@@ -139,6 +169,12 @@ class SettingsWindow(tk.Toplevel):
             
         
     def doSettings(self):
+        """
+        Closes the current settings.
+
+        Args:
+            self: (todo): write your description
+        """
         if settings.lowCPUMode:
             if not tk.messagebox.askokcancel("Are you sure?", "Applying settings while in 'Low CPU Fleet Mode'" + 
                                          " will not apply until after you end Fleet Mode.\n\n" + 

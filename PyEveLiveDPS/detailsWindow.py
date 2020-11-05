@@ -12,6 +12,13 @@ import detailsHandler
 
 class DetailsWindow(tk.Toplevel):
     def __init__(self, mainWindow):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Toplevel.__init__(self)
         self.baseWindow = BaseWindow(self)
         self.mainWindow = mainWindow
@@ -44,9 +51,22 @@ class DetailsWindow(tk.Toplevel):
         tk.Frame(self, highlightthickness="1", highlightbackground="dim gray", background="black").grid(row="6", column="5", sticky="we", columnspan="10")
 
     def __getattr__(self, attr):
+        """
+        Return the value of an attribute
+
+        Args:
+            self: (todo): write your description
+            attr: (str): write your description
+        """
         return getattr(self.baseWindow, attr)
     
     def saveWindowGeometry(self):
+        """
+        Reimplemented window window.
+
+        Args:
+            self: (todo): write your description
+        """
         settings.detailsWindowX = self.winfo_x()
         settings.detailsWindowY = self.winfo_y()
         settings.detailsWindowWidth = self.winfo_width()

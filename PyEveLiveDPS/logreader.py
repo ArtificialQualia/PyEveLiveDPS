@@ -160,6 +160,14 @@ _logReaders = []
 
 class CharacterDetector(FileSystemEventHandler):
     def __init__(self, mainWindow, characterMenu):
+        """
+        Init menu
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+            characterMenu: (int): write your description
+        """
         self.mainWindow = mainWindow
         self.characterMenu = characterMenu
         self.observer = Observer()
@@ -207,9 +215,23 @@ class CharacterDetector(FileSystemEventHandler):
         self.characterMenu.menu.add_command(label='Open overview settings', command=OverviewSettingsWindow)
         
     def on_created(self, event):
+        """
+        Called when a file is created directory.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.addLog(event.src_path)
         
     def addLog(self, logPath):
+        """
+        * add log lines *
+
+        Args:
+            self: (todo): write your description
+            logPath: (str): write your description
+        """
         logging.info('Processing log file: ' + logPath)
         log = open(logPath, 'r', encoding="utf8")
         log.readline()
@@ -244,9 +266,22 @@ class CharacterDetector(FileSystemEventHandler):
         self.menuEntries.append(character)
         
     def stop(self):
+        """
+        Stop the observer.
+
+        Args:
+            self: (todo): write your description
+        """
         self.observer.stop()
         
     def playbackLog(self, logPath):
+        """
+        Play a playback
+
+        Args:
+            self: (todo): write your description
+            logPath: (str): write your description
+        """
         try:
             self.mainWindow.animator.dataQueue = None
             self.playbackLogReader = PlaybackLogReader(logPath, self.mainWindow)
@@ -255,10 +290,22 @@ class CharacterDetector(FileSystemEventHandler):
             self.playbackLogReader = None
             
     def stopPlayback(self):
+        """
+        Stop the main window.
+
+        Args:
+            self: (todo): write your description
+        """
         self.playbackLogReader = None
         self.mainWindow.removePlaybackFrame()
         
     def readLog(self):
+        """
+        Reads the next menu
+
+        Args:
+            self: (todo): write your description
+        """
         if (self.playbackLogReader):
             return self.playbackLogReader.readLog()
         elif (len(self.menuEntries) > 0):
@@ -267,6 +314,12 @@ class CharacterDetector(FileSystemEventHandler):
             return _emptyResult
     
     def catchupLog(self):
+        """
+        Called when the main window is selected
+
+        Args:
+            self: (todo): write your description
+        """
         self.mainWindow.animator.catchup()
         try:
             self.logReaders[self.selectedIndex.get()].catchup()
@@ -275,11 +328,33 @@ class CharacterDetector(FileSystemEventHandler):
         
 class BaseLogReader():
     def __init__(self, logPath, mainWindow):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            logPath: (str): write your description
+            mainWindow: (int): write your description
+        """
         self.mainWindow = mainWindow
 
     def createOverviewRegex(self, overviewSettings):
+        """
+        Creates the regex for the overview
+
+        Args:
+            self: (todo): write your description
+            overviewSettings: (todo): write your description
+        """
         if overviewSettings:
             def safeGetIndex(elem, _list):
+                """
+                Returns the index of the first element.
+
+                Args:
+                    elem: (str): write your description
+                    _list: (list): write your description
+                """
                 try:
                     return _list.index(elem)
                 except ValueError:
@@ -319,6 +394,12 @@ class BaseLogReader():
             return None
         
     def compileRegex(self):
+        """
+        Compile the regex *
+
+        Args:
+            self: (todo): write your description
+        """
         basicPilotAndWeaponRegex = _logLanguageRegex[self.language]['pilotAndWeapon']
         basicPilotAndWeaponRegex += '(?P<pilot>)(?P<ship>)(?P<weapon>)'
 
@@ -351,6 +432,13 @@ class BaseLogReader():
         self.minedRegex = re.compile(_logLanguageRegex[self.language]['mined'])
         
     def readLog(self, logData):
+        """
+        Extracts the log
+
+        Args:
+            self: (todo): write your description
+            logData: (todo): write your description
+        """
         damageOut = self.extractValues(self.damageOutRegex, logData)
         damageIn = self.extractValues(self.damageInRegex, logData)
         logisticsOut = self.extractValues(self.armorRepairedOutRegex, logData)
@@ -371,6 +459,15 @@ class BaseLogReader():
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mined
     
     def extractValues(self, regex, logData, mining=False):
+        """
+        Extract group values from the input text *
+
+        Args:
+            self: (todo): write your description
+            regex: (todo): write your description
+            logData: (todo): write your description
+            mining: (float): write your description
+        """
         returnValue = []
         group = regex.finditer(logData)
         if mining:
@@ -404,6 +501,14 @@ class BaseLogReader():
     
 class PlaybackLogReader(BaseLogReader):
     def __init__(self, logPath, mainWindow):
+        """
+        * start the main window
+
+        Args:
+            self: (todo): write your description
+            logPath: (str): write your description
+            mainWindow: (int): write your description
+        """
         super().__init__(logPath, mainWindow)
         logging.info('Processing playback log file: ' + logPath)
         self.mainWindow = mainWindow
@@ -474,6 +579,13 @@ class PlaybackLogReader(BaseLogReader):
         
         
     def newStartTime(self, newTime):
+        """
+        Starts a new time
+
+        Args:
+            self: (todo): write your description
+            newTime: (todo): write your description
+        """
         self.log.close()
         self.log = open(self.logPath, 'r', encoding="utf8")
         self.startTimeDelta = datetime.datetime.utcnow() - newTime
@@ -488,6 +600,12 @@ class PlaybackLogReader(BaseLogReader):
             self.nextLine = line
         
     def readLog(self):
+        """
+        Read log log
+
+        Args:
+            self: (todo): write your description
+        """
         if self.paused:
             return _emptyResult
         logData = ""
@@ -509,6 +627,14 @@ class PlaybackLogReader(BaseLogReader):
         
 class LogReader(BaseLogReader):
     def __init__(self, logPath, mainWindow):
+        """
+        Initialize the main window *
+
+        Args:
+            self: (todo): write your description
+            logPath: (str): write your description
+            mainWindow: (int): write your description
+        """
         super().__init__(logPath, mainWindow)
         self.log = open(logPath, 'r', encoding="utf8")
         self.log.readline()
@@ -533,16 +659,34 @@ class LogReader(BaseLogReader):
         self.compileRegex()
             
     def readLog(self):
+        """
+        Reads the next log message * log.
+
+        Args:
+            self: (todo): write your description
+        """
         logData = self.log.read()
         return super().readLog(logData)
     
     def catchup(self):
+        """
+        Called by the readup () method.
+
+        Args:
+            self: (todo): write your description
+        """
         self.log.read()
     
 class BadLogException(Exception):
     pass
 
 def ProcessCharacterLine(characterLine):
+    """
+    Checks if the given character matches the given character code.
+
+    Args:
+        characterLine: (int): write your description
+    """
     for language, regex in _logLanguageRegex.items():
         character = re.search(regex['character'], characterLine)
         if character:

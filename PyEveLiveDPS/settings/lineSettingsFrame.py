@@ -7,6 +7,14 @@ from peld import settings
 
 class LineSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.mainWindow = mainWindow
         
@@ -70,29 +78,80 @@ class LineSettingsFrame(tk.Frame):
         self.addLineSection(miningFrame, "Mining", self.miningSettings, mining=True)
         
     def bindMousewheel(self, event):
+        """
+        Bind the mouse wheel.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.bind_all("<MouseWheel>",self.MouseWheelHandler)
         self.scrollableCanvas.bind_all("<Button-4>",self.MouseWheelHandler)
         self.scrollableCanvas.bind_all("<Button-5>",self.MouseWheelHandler)
         
     def unbindMousewheel(self, event):
+        """
+        Unbind the : meth.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.unbind_all("<MouseWheel>")
         self.scrollableCanvas.unbind_all("<Button-4>")
         self.scrollableCanvas.unbind_all("<Button-5>")
         
     def MouseWheelHandler(self, event):
+        """
+        Reimplemented to handle the canvas.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         def delta(event):
+            """
+            Return the delta of an event.
+
+            Args:
+                event: (todo): write your description
+            """
             if event.num == 5 or event.delta < 0:
                 return -1 
             return 1 
         self.scrollableCanvas.yview_scroll(-1*delta(event), "units")
         
     def onCanvasResize(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.itemconfig(self.canvas_frame, width=event.width)
         
     def onLineFrameConfigure(self, event):
+        """
+        Configure scrollable event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.configure(scrollregion=self.scrollableCanvas.bbox("all"))
         
     def addLineSection(self, frame, text, settingsList, mining=False):
+        """
+        Add a new line to the figure.
+
+        Args:
+            self: (todo): write your description
+            frame: (todo): write your description
+            text: (str): write your description
+            settingsList: (todo): write your description
+            mining: (todo): write your description
+        """
         #frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
         innerFrame = tk.Frame(frame, borderwidth=1, relief="sunken", padx="5")
@@ -136,6 +195,20 @@ class LineSettingsFrame(tk.Frame):
         tk.Frame(frame, height="20", width="10").grid(row="1000", column="1", columnspan="5")
     
     def addLineCustomizationSection(self, frame, text, checkboxValue, lineCheckbox, peakCheckbox, totalCheckbox, settingsList, m3Checkbox):
+        """
+        Add a line numbers.
+
+        Args:
+            self: (todo): write your description
+            frame: (todo): write your description
+            text: (str): write your description
+            checkboxValue: (dict): write your description
+            lineCheckbox: (todo): write your description
+            peakCheckbox: (todo): write your description
+            totalCheckbox: (todo): write your description
+            settingsList: (todo): write your description
+            m3Checkbox: (todo): write your description
+        """
         if checkboxValue.get():
             frame.grid()
             innerLabel = tk.Label(frame, text="Color and threshold (when to change colors) for this line:")
@@ -177,6 +250,14 @@ class LineSettingsFrame(tk.Frame):
                 m3Checkbox.configure(state="disabled")
         
     def expandCustomizationSettings(self, frame, settingsList):
+        """
+        Expand the settings in the settings.
+
+        Args:
+            self: (todo): write your description
+            frame: (todo): write your description
+            settingsList: (list): write your description
+        """
         index = 0
         for setting in settingsList:
             removeButton = tk.Button(frame, text="X", command=lambda i=index:self.removeLine(i, settingsList, frame))
@@ -204,6 +285,14 @@ class LineSettingsFrame(tk.Frame):
         addLineButton.grid(row="100", column="1")
             
     def addLine(self, settingsList, dpsFrame):
+        """
+        Adds a new line to grid * settings *
+
+        Args:
+            self: (todo): write your description
+            settingsList: (list): write your description
+            dpsFrame: (todo): write your description
+        """
         lineNumber = len(settingsList)
         settingsList.append({"transitionValue": "", "color": "#FFFFFF"})
         settingsList[lineNumber]["transitionValue"] = tk.StringVar()
@@ -226,16 +315,39 @@ class LineSettingsFrame(tk.Frame):
         colorButton.grid(row=lineNumber, column="4")
         
     def removeLine(self, index, settingsList, dpsFrame):
+        """
+        Removes the specified settings *
+
+        Args:
+            self: (todo): write your description
+            index: (int): write your description
+            settingsList: (list): write your description
+            dpsFrame: (todo): write your description
+        """
         settingsList.pop(index)
         for child in dpsFrame.winfo_children():
             child.destroy()
         self.expandCustomizationSettings(dpsFrame, settingsList)
         
     def colorWindow(self, settingsListValue, button):
+        """
+        Updates the value for window
+
+        Args:
+            self: (todo): write your description
+            settingsListValue: (list): write your description
+            button: (todo): write your description
+        """
         x,settingsListValue["color"] = colorchooser.askcolor()
         button.configure(bg=settingsListValue["color"])
           
     def doSettings(self):
+        """
+        Perform the settings of the settings of the current settings *
+
+        Args:
+            self: (todo): write your description
+        """
         self.settingsCopy = {"dpsIn": copy.copy(self.dpsInSettings),
                              "dpsOut": copy.copy(self.dpsOutSettings),
                              "logiIn": copy.copy(self.logiInSettings),

@@ -19,6 +19,14 @@ class LabelSettingsFrame(tk.Frame):
             "capDamageIn": "Cap Dmg In:",
             "mining": "Mining:"}
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize main window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.parent = parent
         self.mainWindow = mainWindow
@@ -45,6 +53,12 @@ class LabelSettingsFrame(tk.Frame):
         self.makeGrids()
         
     def makeGrids(self):
+        """
+        Generate the grids
+
+        Args:
+            self: (todo): write your description
+        """
         self.gridFrameLeft = tk.Frame(self)
         self.gridListLeft = [[self.makeGridBlock(self.gridFrameLeft, row, i) for row in range(8)] for i in range(self.gridColumns[0])]
         self.gridFrameLeft.grid(row="5", column="1", padx="10")
@@ -66,6 +80,12 @@ class LabelSettingsFrame(tk.Frame):
                             title, entries["decimalPlaces"], entries["inThousands"])
         
     def makeArrowButtons(self):
+        """
+        Creates a visual layout of the grid.
+
+        Args:
+            self: (todo): write your description
+        """
         leftButton = tk.Canvas(self, width=15, height=15)
         leftButton.create_polygon(1,1,15,8,1,15, fill="black")
         leftButton.grid(row="4", column="1", sticky="e")
@@ -77,6 +97,13 @@ class LabelSettingsFrame(tk.Frame):
         rightButton.bind("<Button-1>", self.moveRowLeft)
         
     def moveRowRight(self, event):
+        """
+        Moves the selected row
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         if len(self.gridListLeft) == 0:
             return
         self.gridColumns[0] -= 1
@@ -87,6 +114,13 @@ class LabelSettingsFrame(tk.Frame):
         self.makeGrids()
         
     def moveRowLeft(self, event):
+        """
+        Moves the grid of rows.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         if len(self.gridListRight) == 0:
             return
         self.gridColumns[0] += 1
@@ -97,6 +131,12 @@ class LabelSettingsFrame(tk.Frame):
         self.makeGrids()
         
     def saveLabels(self):
+        """
+        Save all the grid labels in the grid.
+
+        Args:
+            self: (todo): write your description
+        """
         columnAdder = 0
         for gridFrame in [self.gridListLeft, self.gridListRight]:
             for column, gridColumn in enumerate(gridFrame):
@@ -113,12 +153,32 @@ class LabelSettingsFrame(tk.Frame):
             columnAdder += len(gridFrame)
         
     def makeGridBlock(self, parent, row, column):
+        """
+        Create a grid from a grid
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            row: (int): write your description
+            column: (str): write your description
+        """
         frame = tk.Frame(parent, width="100", height="25", relief="ridge", borderwidth=1)
         frame.columnconfigure(0,weight=1)
         frame.grid(row=row, column=column, sticky="news")
         return frame
         
     def moveGridEntry(self, title, decimalPlaces, inThousands, gridBox, parent):
+        """
+        Moves a grid to the given title.
+
+        Args:
+            self: (todo): write your description
+            title: (str): write your description
+            decimalPlaces: (todo): write your description
+            inThousands: (todo): write your description
+            gridBox: (todo): write your description
+            parent: (todo): write your description
+        """
         oldBox = self._nametowidget(parent.winfo_parent())
         if len(gridBox.winfo_children()) > 0 and not gridBox.winfo_children()[0] == parent:
             #this means we need to swap boxes
@@ -132,12 +192,28 @@ class LabelSettingsFrame(tk.Frame):
         GridEntry(gridBox, title, decimalPlaces, inThousands)
                         
     def doSettings(self):
+        """
+        Returns a dictionary of cells for each grid.
+
+        Args:
+            self: (todo): write your description
+        """
         self.saveLabels()
         labelColumns = [len(self.gridListLeft), len(self.gridListRight)]
         return {"labels": self.labels, "labelColumns": labelColumns}
     
 class GridEntry(tk.Frame):
     def __init__(self, parent=None, title="", decimalPlaces=0, inThousands=0, *args, **kwargs):
+        """
+        Initialize widget.
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            title: (str): write your description
+            decimalPlaces: (str): write your description
+            inThousands: (todo): write your description
+        """
         tk.Frame.__init__(self, parent, *args, **kwargs)
         gridFrame = self._nametowidget(parent.winfo_parent())
         self.parent = self._nametowidget(gridFrame.winfo_parent())
@@ -158,6 +234,15 @@ class GridEntry(tk.Frame):
         singleLabel.bind("<Button-1>", lambda e:self.dragStart(e, listbox, checkbox))
         
     def dragStart(self, event, listbox, checkbox):
+        """
+        Handle drag drag events.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+            listbox: (todo): write your description
+            checkbox: (todo): write your description
+        """
         listbox.grid_remove()
         checkbox.grid_remove()
         x = self.winfo_pointerx()-event.x
@@ -173,6 +258,15 @@ class GridEntry(tk.Frame):
         event.widget.grid_remove()
     
     def dragStop(self, event, listbox, checkbox):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+            listbox: (todo): write your description
+            checkbox: (bool): write your description
+        """
         self.floatingWindow.StopMove(event)
         self.x = None
         self.y = None
@@ -197,6 +291,13 @@ class GridEntry(tk.Frame):
         checkbox.grid()
         
     def dragMove(self, event):
+        """
+        Clicks the mouse press event.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         event.x = event.x - self.x
         event.y = event.y - self.y
         self.x += event.x
@@ -204,16 +305,42 @@ class GridEntry(tk.Frame):
         self.floatingWindow.OnMotion(event)
         
     def getLabelText(self):
+        """
+        Get the label
+
+        Args:
+            self: (todo): write your description
+        """
         return self.singleLabel["text"]
     
     def getListboxValue(self):
+        """
+        Returns : class : class :.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.listbox.get()
     
     def getCheckboxValue(self):
+        """
+        Returns the checkbox value
+
+        Args:
+            self: (todo): write your description
+        """
         return self.checkbox.var.get()
     
 class FloatingWindow(tk.Toplevel):
     def __init__(self, gridEntry=None, width=100, *args, **kwargs):
+        """
+        Initialize the widgets
+
+        Args:
+            self: (todo): write your description
+            gridEntry: (todo): write your description
+            width: (int): write your description
+        """
         tk.Toplevel.__init__(self, *args, **kwargs)
         self.overrideredirect(True)
         self.wm_attributes("-topmost", True)
@@ -225,15 +352,36 @@ class FloatingWindow(tk.Toplevel):
         self.geometry("%sx%s" % (width, self.winfo_height()))
 
     def StartMove(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.x = event.x
         self.y = event.y
 
     def StopMove(self, event):
+        """
+        Destroy the cursor.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.x = None
         self.y = None
         self.destroy()
 
     def OnMotion(self, event):
+        """
+        Geometry
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         x = self.winfo_x() + event.x
         y = self.winfo_y() + event.y
         self.geometry("+%s+%s" % (x, y))

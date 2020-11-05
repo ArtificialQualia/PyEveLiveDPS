@@ -87,6 +87,13 @@ class FleetWindow(tk.Toplevel):
     }
     
     def __init__(self, mainWindow):
+        """
+        Initialize main window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Toplevel.__init__(self)
         self.baseWindow = BaseWindow(self)
         self.mainWindow = mainWindow
@@ -171,9 +178,22 @@ class FleetWindow(tk.Toplevel):
 
 
     def __getattr__(self, attr):
+        """
+        Return the value of an attribute
+
+        Args:
+            self: (todo): write your description
+            attr: (str): write your description
+        """
         return getattr(self.baseWindow, attr)
     
     def saveWindowGeometry(self):
+        """
+        Sets the window to window.
+
+        Args:
+            self: (todo): write your description
+        """
         settings.fleetWindowX = self.winfo_x()
         settings.fleetWindowY = self.winfo_y()
         settings.fleetWindowWidth = self.winfo_width()
@@ -197,17 +217,37 @@ class FleetWindow(tk.Toplevel):
             self.unmakeAllChildrenDraggable(self.mainFrame)
                                    
     def stopMove(self):
+        """
+        Stop the graph
+
+        Args:
+            self: (todo): write your description
+        """
         self.update_idletasks()
         for key, entry in self.graphs.items():
             entry['graph'].readjust(0)
 
     def calculateColor(self, color, rank):
+        """
+        Calculate the color based on the given color.
+
+        Args:
+            self: (todo): write your description
+            color: (str): write your description
+            rank: (int): write your description
+        """
         if rank == 0:
             return color
         else:
             return color + str(100-(10*rank))
 
     def changeSettings(self):
+        """
+        Updates the grid settings
+
+        Args:
+            self: (todo): write your description
+        """
         self.mainFrame.columnconfigure(10, weight=1)
         self.mainFrame.columnconfigure(12, weight=1)
         self.mainFrame.rowconfigure(10, weight=1)
@@ -249,6 +289,13 @@ class FleetWindow(tk.Toplevel):
             self.mainFrame.columnconfigure(12, weight=1)
 
     def resetGraphs(self, ySmooth):
+        """
+        Reset the graph and subplots.
+
+        Args:
+            self: (todo): write your description
+            ySmooth: (todo): write your description
+        """
         combined = self.graphs['combined']
         combined['graph'].subplot.clear()
         combined['lines']['dpsOut'], = combined['graph'].subplot.plot(ySmooth, zorder=10)
@@ -268,15 +315,35 @@ class FleetWindow(tk.Toplevel):
             entry['graph'].subplot.margins(0,0)
 
     def getConnectedLabel(self):
+        """
+        Returns a list of connected nodes.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.graphs['combined']['labelHandler'].labels['fleetConnected']['label'].numberLabel
     
     def processErrorQueue(self, errorQueue):
+        """
+        Process a queue.
+
+        Args:
+            self: (todo): write your description
+            errorQueue: (todo): write your description
+        """
         while not errorQueue.empty():
             error = errorQueue.get(False)
             if error == 'Character is not in a fleet':
                 self.topLabel['text'] = "Fleet Stats (You are not in a fleet)"
     
     def processMetadataQueue(self, metadataQueue):
+        """
+        Process metadatametadatametadata
+
+        Args:
+            self: (todo): write your description
+            metadataQueue: (todo): write your description
+        """
         while not metadataQueue.empty():
             fleetMetadata = metadataQueue.get(False)
             if fleetMetadata['client_access']:
@@ -292,6 +359,15 @@ class FleetWindow(tk.Toplevel):
             connectedLabel['text'] = peldText
     
     def processRecieveQueue(self, recieveQueue, fleetData, arrayLength):
+        """
+        Process a list of entries.
+
+        Args:
+            self: (todo): write your description
+            recieveQueue: (todo): write your description
+            fleetData: (dict): write your description
+            arrayLength: (int): write your description
+        """
         for category, pilots in fleetData.items():
             for pilot, entries in pilots.items():
                 entries["historical"].pop(0)
@@ -311,6 +387,13 @@ class FleetWindow(tk.Toplevel):
             fleetData[entryType][pilot]['historical'][-1] += amount
     
     def displayFleetData(self, fleetData):
+        """
+        Displays the data in the display.
+
+        Args:
+            self: (todo): write your description
+            fleetData: (todo): write your description
+        """
         for category in ['dpsOut', 'dpsIn', 'logiOut']:
             if not self.graphs[category]['show']:
                 continue
@@ -346,6 +429,13 @@ class FleetWindow(tk.Toplevel):
             self.graphs[category]['labelHandler'].updateLabel('top', topValue, categoryColor)
 
     def displayAggregate(self, aggregateData):
+        """
+        Display the graph aggregated graph
+
+        Args:
+            self: (todo): write your description
+            aggregateData: (dict): write your description
+        """
         if not self.graphs['combined']['show']:
             return
         highestAverage = 0

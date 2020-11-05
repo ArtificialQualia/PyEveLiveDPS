@@ -2,11 +2,25 @@ import random
 
 class Simulator():
     def __init__(self, values, interval):
+        """
+        Initialize the interval.
+
+        Args:
+            self: (todo): write your description
+            values: (todo): write your description
+            interval: (int): write your description
+        """
         self.values = values
         self.interval = interval
         self.timesRun = 0
         
     def simulate(self):
+        """
+        Simulates a simulation.
+
+        Args:
+            self: (todo): write your description
+        """
         try: damageOut = self.simulateValue(self.values["dpsOut"])
         except KeyError: damageOut = []
         try: logisticsOut = self.simulateValue(self.values["logiOut"])
@@ -31,6 +45,13 @@ class Simulator():
         return damageOut, damageIn, logisticsOut, logisticsIn, capTransfered, capRecieved, capDamageDone, capDamageRecieved, mining
     
     def simulateValue(self, value):
+        """
+        Simulate a single value
+
+        Args:
+            self: (todo): write your description
+            value: (todo): write your description
+        """
         returnValue = []
         returnGroup = {}
         if ((self.timesRun*self.interval)%(value["cycle"]*1000) == 0):

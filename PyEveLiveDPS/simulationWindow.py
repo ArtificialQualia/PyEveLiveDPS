@@ -4,6 +4,13 @@ from peld import settings
 
 class SimulationWindow(tk.Toplevel):
     def __init__(self, mainWindow):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.mainWindow = mainWindow
@@ -72,6 +79,14 @@ class SimulationWindow(tk.Toplevel):
         cancelButton.grid(row="0", column="2")
         
     def addRow(self, prefix, row):
+        """
+        Adds a new row
+
+        Args:
+            self: (todo): write your description
+            prefix: (str): write your description
+            row: (int): write your description
+        """
         self.values[prefix] = {}
         self.values[prefix]["floor"] = tk.Entry(self.innerFrame, width=7)
         self.values[prefix]["floor"].grid(row=row, column="1")
@@ -89,6 +104,12 @@ class SimulationWindow(tk.Toplevel):
         self.update_idletasks()
         
     def doSimulation(self):
+        """
+        Configure menu
+
+        Args:
+            self: (todo): write your description
+        """
         valuesCopy = {}
         for value in self.values:
             valuesCopy[value] = {}
@@ -123,6 +144,12 @@ class SimulationWindow(tk.Toplevel):
         self.destroy()
         
     def stopSimulation(self):
+        """
+        Stop the main window
+
+        Args:
+            self: (todo): write your description
+        """
         self.animator.simulationSettings(enable=False)
         self.mainWindow.characterDetector.catchupLog()
         self.mainWindow.mainMenu.menu.delete(7)

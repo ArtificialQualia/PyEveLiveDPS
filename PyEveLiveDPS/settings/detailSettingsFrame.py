@@ -16,6 +16,14 @@ class DetailSettingsFrame(tk.Frame):
             "capDamageOut": "Cap Dmg Out",
             "capDamageIn": "Cap Dmg In"}
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.parent = parent
         self.mainWindow = mainWindow
@@ -34,6 +42,12 @@ class DetailSettingsFrame(tk.Frame):
         self.makeListBox()
         
     def makeListBox(self):
+        """
+        Create a list of items in the list
+
+        Args:
+            self: (todo): write your description
+        """
         tk.Label(self, text="Order priority for pilots and weapons in the breakdown").grid(row="3", column="1")
         descriptor = tk.Label(self, text="drag and drop entries to order them")
         font = tkFont.Font(font=descriptor['font'])
@@ -46,6 +60,12 @@ class DetailSettingsFrame(tk.Frame):
         self.displayOrder.grid(row="5", column="1")
                         
     def doSettings(self):
+        """
+        Returns a list of items that are currently displayed in this widget.
+
+        Args:
+            self: (todo): write your description
+        """
         detailsOrder = []
         for orderItem in self.displayOrder.get(0, tk.END):
             for orderType in self.text:
@@ -59,6 +79,14 @@ class DDList(tk.Listbox):
     from: https://www.safaribooksonline.com/library/view/python-cookbook-2nd/0596007973/ch11s05.html
     """
     def __init__(self, master, **kw):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+            master: (todo): write your description
+            kw: (todo): write your description
+        """
         kw['selectmode'] = tk.SINGLE
         kw['activestyle'] = 'none'
         kw['height'] = '0'
@@ -67,8 +95,22 @@ class DDList(tk.Listbox):
         self.bind('<B1-Motion>', self.shiftSelection)
         self.curIndex = None
     def setCurrent(self, event):
+        """
+        Sets the current position.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.curIndex = self.nearest(event.y)
     def shiftSelection(self, event):
+        """
+        Shift the selected location
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         i = self.nearest(event.y)
         if i < self.curIndex:
             x = self.get(i)

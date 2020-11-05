@@ -32,6 +32,12 @@ if (platform.system() == "Windows"):
 
 class MainWindow(tk.Tk):
     def __init__(self):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+        """
         tk.Tk.__init__(self)
         self.baseWindow = BaseWindow(self)
         self.minsize(175,50)
@@ -109,9 +115,22 @@ class MainWindow(tk.Tk):
         logging.info('main window (and subcomponents) initialized')
         
     def __getattr__(self, attr):
+        """
+        Return the value of an attribute
+
+        Args:
+            self: (todo): write your description
+            attr: (str): write your description
+        """
         return getattr(self.baseWindow, attr)
 
     def addToTaskbar(self):
+        """
+        Add a task to window
+
+        Args:
+            self: (todo): write your description
+        """
         # Magic to make the window appear on the windows taskbar
         try:
             if (self.platform == "Windows"):
@@ -139,6 +158,12 @@ class MainWindow(tk.Tk):
             logging.exception(e)
         
     def addMenus(self):
+        """
+        Add the main menu.
+
+        Args:
+            self: (todo): write your description
+        """
         # character menu options are added dynamically by CharacterDetector, so we pass this into that
         self.characterMenu = tk.Menubutton(text="Character...", background="black", fg="white", borderwidth="1",
                                       highlightbackground="black", highlightthickness="1",
@@ -174,6 +199,14 @@ class MainWindow(tk.Tk):
         self.mainMenu.menu.add_command(label="Quit", command=self.quitEvent)
     
     def showClearMenuOption(self, show, command):
+        """
+        Show the main window.
+
+        Args:
+            self: (todo): write your description
+            show: (bool): write your description
+            command: (str): write your description
+        """
         if show:
             self.mainMenu.menu.entryconfig(3, state=tk.NORMAL, command=command)
         else:
@@ -344,15 +377,42 @@ class MainWindow(tk.Tk):
         self.animator.catchup()
     
     def getGraph(self):
+        """
+        Returns the graph of the graph
+
+        Args:
+            self: (todo): write your description
+        """
         return self.graphFrame
 
     def buttonGray25(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         event.widget.configure(background="gray25")
         
     def buttonDimGray(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         event.widget.configure(background="dim gray")
         
     def buttonBlack(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         event.widget.configure(background="black")
         
     def quitEvent(self, event=None):
@@ -376,6 +436,12 @@ class MainWindow(tk.Tk):
                                    windowWidth=self.winfo_width(), windowHeight=self.winfo_height())
                                    
     def stopMove(self):
+        """
+        Stop the graph
+
+        Args:
+            self: (todo): write your description
+        """
         self.update_idletasks()
         self.graphFrame.readjust(0)
 

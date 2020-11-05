@@ -39,6 +39,12 @@ class AnimatedGif(tk.Label):
         self.stop = True
 
     def _animate(self):
+        """
+        Configure the image.
+
+        Args:
+            self: (todo): write your description
+        """
         try:
             self.gif = tk.PhotoImage(file=self.gif_file, format='gif -index {}'.format(self._num))  # Looping through the frames
             self.configure(image=self.gif)
@@ -51,6 +57,12 @@ class AnimatedGif(tk.Label):
 class OverviewNotification(tk.Toplevel):
     
     def __init__(self):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.wm_attributes("-topmost", True)
@@ -88,16 +100,34 @@ class OverviewNotification(tk.Toplevel):
         tk.Frame(self, height="20", width="10").grid(row="101", column="1", columnspan="5")
 
     def openSettings(self):
+        """
+        Creates the user to open the application.
+
+        Args:
+            self: (todo): write your description
+        """
         OverviewSettingsWindow()
         self.destroy()
 
     def useDefault(self):
+        """
+        Closes the application.
+
+        Args:
+            self: (todo): write your description
+        """
         settings.setOverviewFiles({'default': None})
         self.destroy()
 
 
 class OverviewSettingsWindow(tk.Toplevel):
     def __init__(self):
+        """
+        Initialize widget
+
+        Args:
+            self: (todo): write your description
+        """
         tk.Toplevel.__init__(self)
         
         self.wm_attributes("-topmost", True)
@@ -198,6 +228,15 @@ class OverviewSettingsWindow(tk.Toplevel):
         tk.Frame(self, height="20", width="10").grid(row="101", column="0")
             
     def addSetting(self, settingsFrame, characterName, default=None):
+        """
+        Add a new widget to the editor.
+
+        Args:
+            self: (todo): write your description
+            settingsFrame: (todo): write your description
+            characterName: (str): write your description
+            default: (todo): write your description
+        """
         innerFrame = tk.Frame(settingsFrame)
         innerFrame.grid(row=self.settingRow, column="0", sticky="w")
         innerFrame.columnconfigure(3, weight=1)
@@ -244,6 +283,15 @@ class OverviewSettingsWindow(tk.Toplevel):
         self.settingRow += 1
 
     def processOverviewFile(self, characterName, label, path):
+        """
+        Function to process a file.
+
+        Args:
+            self: (todo): write your description
+            characterName: (str): write your description
+            label: (todo): write your description
+            path: (str): write your description
+        """
         if not path:
             return
         try:
@@ -270,37 +318,100 @@ class OverviewSettingsWindow(tk.Toplevel):
         label.configure(text=path)
 
     def revertPELDDefault(self, characterName, label):
+        """
+        Reorders the character name.
+
+        Args:
+            self: (todo): write your description
+            characterName: (str): write your description
+            label: (todo): write your description
+        """
         self.overviewFiles[characterName] = "Using PELD default overview setting"
         label.configure(text=self.overviewFiles[characterName])
 
     def revertEVEDefault(self, characterName, label):
+        """
+        Recompute the epoch
+
+        Args:
+            self: (todo): write your description
+            characterName: (str): write your description
+            label: (todo): write your description
+        """
         self.overviewFiles[characterName] = "Using default EVE overview settings"
         label.configure(text=self.overviewFiles[characterName])
         
     def bindMousewheel(self, event):
+        """
+        Bind the mouse wheel.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.bind_all("<MouseWheel>",self.MouseWheelHandler)
         self.scrollableCanvas.bind_all("<Button-4>",self.MouseWheelHandler)
         self.scrollableCanvas.bind_all("<Button-5>",self.MouseWheelHandler)
         
     def unbindMousewheel(self, event):
+        """
+        Unbind the : meth.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.unbind_all("<MouseWheel>")
         self.scrollableCanvas.unbind_all("<Button-4>")
         self.scrollableCanvas.unbind_all("<Button-5>")
         
     def MouseWheelHandler(self, event):
+        """
+        Reimplemented to handle the canvas.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         def delta(event):
+            """
+            Return the delta of an event.
+
+            Args:
+                event: (todo): write your description
+            """
             if event.num == 5 or event.delta < 0:
                 return -1 
             return 1 
         self.scrollableCanvas.yview_scroll(-1*delta(event), "units")
         
     def onCanvasResize(self, event):
+        """
+        Reimplement qt method
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.itemconfig(self.canvas_frame, width=event.width)
         
     def onFrameConfigure(self, event):
+        """
+        Configure scrollable event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.scrollableCanvas.configure(scrollregion=self.scrollableCanvas.bbox("all"))   
         
     def doSettings(self):
+        """
+        * remove the settings from the settings file *
+
+        Args:
+            self: (todo): write your description
+        """
         for characterName, settingsFile in self.overviewFiles.items():
             if settingsFile == "Using PELD default overview setting":
                 del self.overviewFiles[characterName]

@@ -14,6 +14,16 @@ urllib3.disable_warnings()
 
 class SocketManager(multiprocessing.Process):
     def __init__(self, server, characterName, loginArgs, loginNotificationQueue):
+        """
+        Initialize the queue.
+
+        Args:
+            self: (todo): write your description
+            server: (todo): write your description
+            characterName: (str): write your description
+            loginArgs: (dict): write your description
+            loginNotificationQueue: (todo): write your description
+        """
         multiprocessing.Process.__init__(self)
         if server.startswith("http://") or server.startswith("https://"):
             self.server = server
@@ -40,6 +50,12 @@ class SocketManager(multiprocessing.Process):
         lt.start()
 
     def run(self):
+        """
+        Main handler.
+
+        Args:
+            self: (todo): write your description
+        """
         qh = logging.handlers.QueueHandler(self.logging_queue)
         logger = logging.getLogger()
         logger.setLevel(self.loggerLevel)
@@ -52,27 +68,66 @@ class SocketManager(multiprocessing.Process):
 
         class Namespace(socketio.ClientNamespace):
             def on_connect(self):
+                """
+                Called when the connection to reconnecting.
+
+                Args:
+                    self: (todo): write your description
+                """
                 logger.info('Connected websocket to ' + _sockMgr.server)
 
             def on_disconnect(self):
+                """
+                Called when the server.
+
+                Args:
+                    self: (todo): write your description
+                """
                 _sockMgr.socket.disconnect()
                 logger.info('Websocket disconnected from ' + _sockMgr.server)
 
             def on_client_registered(self, *args):
+                """
+                Called when the client.
+
+                Args:
+                    self: (todo): write your description
+                """
                 logger.info('Websocket client registered with server')
                 _sockMgr.loginNotificationQueue.put(True)
                 _sockMgr.registered = True
             
             def on_peld_check(self, data):
+                """
+                Called by pika.
+
+                Args:
+                    self: (todo): write your description
+                    data: (array): write your description
+                """
                 data = json.loads(data)
                 _sockMgr.fleetMetadataQueue.put(data)
             
             def on_peld_data(self, data):
+                """
+                Process a peld command
+
+                Args:
+                    self: (todo): write your description
+                    data: (array): write your description
+                """
                 data = json.loads(data)
                 if data['category'] in ['dpsOut', 'dpsIn', 'logiOut']:
                     _sockMgr.dataRecieveQueue.put(data)
             
             def on_peld_error(self, data):
+                """
+                Receive data.
+
+                Args:
+                    self: (todo): write your description
+                    data: (array): write your description
+                """
                 _sockMgr.errorQueue.put(data)
 
         webbrowser.open(self.server + self.loginArgs)
@@ -103,6 +158,12 @@ class SocketManager(multiprocessing.Process):
                 logger.critical('baseException')
 
 def LoggerThread(q):
+    """
+    Records to logger.
+
+    Args:
+        q: (dict): write your description
+    """
     while True:
         record = q.get()
         if record is None:

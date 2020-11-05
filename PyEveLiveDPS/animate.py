@@ -26,6 +26,13 @@ class Animator(threading.Thread):
         "mining": { "zorder": 20 }
         }
     def __init__(self, mainWindow, **kwargs):
+        """
+        Initialize main window
+
+        Args:
+            self: (todo): write your description
+            mainWindow: (int): write your description
+        """
         threading.Thread.__init__(self, name="animator")
         self.mainWindow = mainWindow
         self.graph = mainWindow.graphFrame
@@ -47,6 +54,12 @@ class Animator(threading.Thread):
         self.start()
     
     def run(self):
+        """
+        The main loop.
+
+        Args:
+            self: (todo): write your description
+        """
         logging.info('Starting animator thread')
         self.run = True
         self.paused = False
@@ -61,6 +74,12 @@ class Animator(threading.Thread):
             self.time = time.time()
             
     def stop(self):
+        """
+        Stop the main window.
+
+        Args:
+            self: (todo): write your description
+        """
         self.run = False
         self.mainWindow.after_cancel(self.animate)
         
@@ -69,6 +88,14 @@ class Animator(threading.Thread):
         self.changeSettings()
         
     def simulationSettings(self, enable=False, values=None):
+        """
+        Sets the settings for this widget to the inputed simulation | <int >
+
+        Args:
+            self: (todo): write your description
+            enable: (bool): write your description
+            values: (todo): write your description
+        """
         if enable:
             self.simulationEnabled = True
             self.simulator = simulator.Simulator(values, settings.getInterval())
@@ -163,6 +190,13 @@ class Animator(threading.Thread):
             logging.exception(e)
     
     def updateFleetWindow(self, fleetWindow):
+        """
+        Updates the window with the window window.
+
+        Args:
+            self: (todo): write your description
+            fleetWindow: (todo): write your description
+        """
         fleetWindow.processErrorQueue(self.errorQueue)
         fleetWindow.processMetadataQueue(self.fleetMetadataQueue)
         if not settings.fleetWindowShow:

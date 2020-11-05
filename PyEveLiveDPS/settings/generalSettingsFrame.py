@@ -4,6 +4,14 @@ from peld import settings
 
 class GeneralSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
+        """
+        Initialize window
+
+        Args:
+            self: (todo): write your description
+            parent: (todo): write your description
+            mainWindow: (int): write your description
+        """
         tk.Frame.__init__(self, parent, **kwargs)
         self.mainWindow = mainWindow
         
@@ -44,6 +52,15 @@ class GeneralSettingsFrame(tk.Frame):
         
         
     def addSetting(self, var, labelText, descriptorText):
+        """
+        Add a new variable
+
+        Args:
+            self: (todo): write your description
+            var: (todo): write your description
+            labelText: (str): write your description
+            descriptorText: (str): write your description
+        """
         centerFrame = tk.Frame(self)
         centerFrame.grid(row=self.counter, column="1", columnspan="2")
         label = tk.Label(centerFrame, text=labelText)
@@ -59,6 +76,12 @@ class GeneralSettingsFrame(tk.Frame):
         self.counter += 3
         
     def doSettings(self):
+        """
+        Prompt the user to perform a number of seconds.
+
+        Args:
+            self: (todo): write your description
+        """
         try:
             secondsSetting = int(self.secondsVar.get())
         except ValueError:

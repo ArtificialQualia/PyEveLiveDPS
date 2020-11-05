@@ -18,6 +18,13 @@ import platform
 # it does assume whatever is inheriting it has all the tkinter functions though
 class BaseWindow():
     def __init__(self, child):
+        """
+        Initialize all child widgets
+
+        Args:
+            self: (todo): write your description
+            child: (todo): write your description
+        """
         self.childWindow = child
         self.childWindow.overrideredirect(True)
         self.childWindow.wm_attributes("-topmost", True)
@@ -40,6 +47,12 @@ class BaseWindow():
         
         
     def addDraggableEdges(self):
+        """
+        Add all child edges
+
+        Args:
+            self: (todo): write your description
+        """
         self.childWindow.topResizeFrame = tk.Frame(self.childWindow, height=5, background="black", cursor="sb_v_double_arrow")
         self.childWindow.topResizeFrame.grid(row="0", column="1", columnspan="50", sticky="ew")
         self.childWindow.topResizeFrame.bind("<ButtonPress-1>", self.StartMove)
@@ -65,6 +78,12 @@ class BaseWindow():
         self.childWindow.rightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeXRight)
     
     def addDraggableCorners(self):
+        """
+        Add all the vertices to the grid.
+
+        Args:
+            self: (todo): write your description
+        """
         if (self.childWindow.platform == "Windows"):
             self.childWindow.topLeftResizeFrame = tk.Frame(self.childWindow, width=5, height=5, background="black", cursor="size_nw_se")
         else:
@@ -102,6 +121,13 @@ class BaseWindow():
         self.childWindow.bottomRightResizeFrame.bind("<B1-Motion>", self.OnMotionResizeSe)
     
     def makeAllChildrenDraggable(self, widget):
+        """
+        Makes all children
+
+        Args:
+            self: (todo): write your description
+            widget: (todo): write your description
+        """
         children = widget.winfo_children()
         if len(children) > 0:
             for child in children:
@@ -111,6 +137,13 @@ class BaseWindow():
                 self.makeAllChildrenDraggable(child)
                 
     def unmakeAllChildrenDraggable(self, widget):
+        """
+        Unmake all children of the given widget.
+
+        Args:
+            self: (todo): write your description
+            widget: (todo): write your description
+        """
         children = widget.winfo_children()
         if len(children) > 0:
             for child in children:
@@ -120,16 +153,36 @@ class BaseWindow():
                 self.unmakeAllChildrenDraggable(child)
     
     def makeDraggable(self, widget):
+        """
+        Create the aggregate widget.
+
+        Args:
+            self: (todo): write your description
+            widget: (todo): write your description
+        """
         widget.bind("<ButtonPress-1>", self.StartMove)
         widget.bind("<ButtonRelease-1>", self.StopMove)
         widget.bind("<B1-Motion>", self.OnMotionMove)
         
     def unmakeDraggable(self, widget):
+        """
+        Unmake the unmakeable widget.
+
+        Args:
+            self: (todo): write your description
+            widget: (todo): write your description
+        """
         widget.bind("<ButtonPress-1>", lambda e: False)
         widget.bind("<ButtonRelease-1>", lambda e: False)
         widget.bind("<B1-Motion>", lambda e: False)
 
     def showResizeFrames(self):
+        """
+        Moves the grid.
+
+        Args:
+            self: (todo): write your description
+        """
         self.childWindow.topResizeFrame.grid()
         self.childWindow.bottomResizeFrame.grid()
         self.childWindow.leftResizeFrame.grid()
@@ -140,6 +193,12 @@ class BaseWindow():
         self.childWindow.bottomRightResizeFrame.grid()
 
     def hideResizeFrames(self):
+        """
+        Hide the grid and resizing the grid.
+
+        Args:
+            self: (todo): write your description
+        """
         self.childWindow.topResizeFrame.grid_remove()
         self.childWindow.bottomResizeFrame.grid_remove()
         self.childWindow.leftResizeFrame.grid_remove()
@@ -150,10 +209,24 @@ class BaseWindow():
         self.childWindow.bottomRightResizeFrame.grid_remove()
     
     def StartMove(self, event):
+        """
+        Reimplemented from the window.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.childWindow.x = event.x
         self.childWindow.y = event.y
 
     def StopMove(self, event):
+        """
+        Stop the window.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         self.childWindow.x = None
         self.childWindow.y = None
         try:
@@ -162,6 +235,13 @@ class BaseWindow():
             pass
         
     def OnMotionMove(self, event):
+        """
+        Called when the window
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltax = event.x - self.childWindow.x
         deltay = event.y - self.childWindow.y
         x = self.childWindow.winfo_x() + deltax
@@ -169,6 +249,13 @@ class BaseWindow():
         self.childWindow.geometry("+%s+%s" % (x, y))
         
     def OnMotionResizeSe(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         x1 = self.childWindow.winfo_pointerx()
         y1 = self.childWindow.winfo_pointery()
         x0 = self.childWindow.winfo_rootx()
@@ -176,6 +263,13 @@ class BaseWindow():
         self.childWindow.geometry("%sx%s" % ((x1-x0),(y1-y0)))
         
     def OnMotionResizeSw(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltax = event.x - self.childWindow.x
         xpos = self.childWindow.winfo_x() + deltax
         xsize = self.childWindow.winfo_width() - deltax
@@ -184,6 +278,13 @@ class BaseWindow():
         self.childWindow.geometry("%sx%s+%s+%s" % (xsize, (y1-y0), xpos, self.childWindow.winfo_y()))
         
     def OnMotionResizeNw(self, event):
+        """
+        Reimplements the canvas.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltax = event.x - self.childWindow.x
         deltay = event.y - self.childWindow.y
         xpos = self.childWindow.winfo_x() + deltax
@@ -193,6 +294,13 @@ class BaseWindow():
         self.childWindow.geometry("%sx%s+%s+%s" % (xsize, ysize, xpos, ypos))
         
     def OnMotionResizeNe(self, event):
+        """
+        Clicks the : meth.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltay = event.y - self.childWindow.y
         ypos = self.childWindow.winfo_y() + deltay
         ysize = self.childWindow.winfo_height() - deltay
@@ -201,24 +309,52 @@ class BaseWindow():
         self.childWindow.geometry("%sx%s+%s+%s" % ((x1-x0), ysize, self.childWindow.winfo_x(), ypos))
         
     def OnMotionResizeYBottom(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         x = self.childWindow.winfo_width()
         y1 = self.childWindow.winfo_pointery()
         y0 = self.childWindow.winfo_rooty()
         self.childWindow.geometry("%sx%s" % (x,(y1-y0)))
         
     def OnMotionResizeYTop(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltay = event.y - self.childWindow.y
         ypos = self.childWindow.winfo_y() + deltay
         ysize = self.childWindow.winfo_height() - deltay
         self.childWindow.geometry("%sx%s+%s+%s" % (self.childWindow.winfo_width(), ysize, self.childWindow.winfo_x(), ypos))
         
     def OnMotionResizeXLeft(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         deltax = event.x - self.childWindow.x
         xpos = self.childWindow.winfo_x() + deltax
         xsize = self.childWindow.winfo_width() - deltax
         self.childWindow.geometry("%sx%s+%s+%s" % (xsize, self.childWindow.winfo_height(), xpos, self.childWindow.winfo_y()))
         
     def OnMotionResizeXRight(self, event):
+        """
+        Motion event handler
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         y = self.childWindow.winfo_height()
         x1 = self.childWindow.winfo_pointerx()
         x0 = self.childWindow.winfo_rootx()
