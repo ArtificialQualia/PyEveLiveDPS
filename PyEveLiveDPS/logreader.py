@@ -180,7 +180,7 @@ class CharacterDetector(FileSystemEventHandler):
             oneDayAgo = datetime.datetime.now() - datetime.timedelta(hours=24)
             fileList = sorted(os.listdir(self.path), key=lambda file: os.stat(os.path.join(self.path, file)).st_mtime)
             for filename in fileList:
-                timeString = filename.strip(".txt")
+                timeString = re.sub(r'_[0-9]*\.txt$', '', filename)
                 try:
                     fileTime = datetime.datetime.strptime(timeString, "%Y%m%d_%H%M%S")
                 except ValueError:
