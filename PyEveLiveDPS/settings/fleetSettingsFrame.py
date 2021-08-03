@@ -5,6 +5,8 @@
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
+from localization import tr
+
 
 class FleetSettingsFrame(tk.Frame):
     def __init__(self, parent, mainWindow, **kwargs):
@@ -12,16 +14,25 @@ class FleetSettingsFrame(tk.Frame):
         self.parent = parent
         self.mainWindow = mainWindow
         self.columnconfigure(1, weight=1)
-        
-        tk.Frame(self, height="20", width="10").grid(row="0", column="1", columnspan="2")
+
+        tk.Frame(self, height="20", width="10").grid(row="0",
+                                                     column="1",
+                                                     columnspan="2")
 
         self.row = 1
-        
-        self.windowDisabled = self.makeCheckbox(settings.fleetWindowShow, "Show Fleet Window", "Fleet Window is only available when PELD is in Fleet Mode")
-        self.aggregateGraph = self.makeCheckbox(settings.fleetWindowShowAggregate, "Show Aggregate Stats Graph")
-        self.dpsOutGraph = self.makeCheckbox(settings.fleetWindowShowDpsOut, "Show Top 3 DPS Out Graph")
-        self.dpsInGrpah = self.makeCheckbox(settings.fleetWindowShowDpsIn, "Show Top 3 DPS In Graph")
-        self.logiOutGraph = self.makeCheckbox(settings.fleetWindowShowLogiOut, "Show Top 3 Logi Out Graph")
+
+        self.windowDisabled = self.makeCheckbox(
+            settings.fleetWindowShow, tr("Show Fleet Window"),
+            tr("Fleet Window is only available when PELD is in Fleet Mode"))
+        self.aggregateGraph = self.makeCheckbox(
+            settings.fleetWindowShowAggregate,
+            tr("Show Aggregate Stats Graph"))
+        self.dpsOutGraph = self.makeCheckbox(settings.fleetWindowShowDpsOut,
+                                             tr("Show Top 3 DPS Out Graph"))
+        self.dpsInGrpah = self.makeCheckbox(settings.fleetWindowShowDpsIn,
+                                            tr("Show Top 3 DPS In Graph"))
+        self.logiOutGraph = self.makeCheckbox(settings.fleetWindowShowLogiOut,
+                                              tr("Show Top 3 Logi Out Graph"))
 
     def makeCheckbox(self, initValue, boxText, description=None):
         checkboxValue = tk.BooleanVar()
@@ -38,7 +49,7 @@ class FleetSettingsFrame(tk.Frame):
             descriptor.grid(row=self.row, column="1", columnspan="2")
             self.row += 1
         return checkbox
-                        
+
     def doSettings(self):
         settings.fleetWindowShow = self.windowDisabled.var.get()
         settings.fleetWindowShowAggregate = self.aggregateGraph.var.get()

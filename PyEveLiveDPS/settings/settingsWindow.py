@@ -16,25 +16,34 @@ from settings.detailSettingsFrame import DetailSettingsFrame
 from settings.fleetSettingsFrame import FleetSettingsFrame
 from peld import settings
 
+from localization import tr
+
+
 class SideBar(tk.Frame):
-    images = {"Tracking": "lines.png",
-              "Labels": "labels.png",
-              "Pilot Breakdown": "pilotDetails.png",
-              "Fleet Window": "fleet.png"
-             }
-    
+    images = {
+        "Tracking": "lines.png",
+        "Labels": "labels.png",
+        "Pilot Breakdown": "pilotDetails.png",
+        "Fleet Window": "fleet.png"
+    }
+
     def __init__(self, parent, mainWindow, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         self.mainWindow = mainWindow
         self.update_idletasks()
-        tk.Frame(self, height="0", width=self.winfo_reqwidth()).grid(row="0", column="0")
-        
+        tk.Frame(self, height="0",
+                 width=self.winfo_reqwidth()).grid(row="0", column="0")
+
         self.counter = 0
-        
+
     def addOption(self, title, function):
-        button = tk.Radiobutton(self, text=title, command=lambda:function(title), 
-                                indicatoron=0, value=self.counter,
-                                selectcolor="#00FFFF", bg="#FFFFFF",
+        button = tk.Radiobutton(self,
+                                text=title,
+                                command=lambda: function(title),
+                                indicatoron=0,
+                                value=self.counter,
+                                selectcolor="#00FFFF",
+                                bg="#FFFFFF",
                                 compound="top")
         font = tkFont.Font(font=button['font'])
         font.config(weight='bold')
@@ -42,14 +51,15 @@ class SideBar(tk.Frame):
         button.grid(row=self.counter, column="0", sticky="ew")
         if self.counter == 0:
             button.select()
-            
+
         try:
             chosenImage = self.images[title]
         except KeyError:
             chosenImage = "gear.png"
-            
+
         try:
-            image = tk.PhotoImage(file=sys._MEIPASS + '\\images\\' + chosenImage)
+            image = tk.PhotoImage(file=sys._MEIPASS + '\\images\\' +
+                                  chosenImage)
             button.configure(image=image)
             button.image = image
         except Exception:
@@ -60,18 +70,19 @@ class SideBar(tk.Frame):
                 button.image = image
             except Exception as e:
                 pass
-                
+
         self.counter += 1
+
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, mainWindow):
         tk.Toplevel.__init__(self)
-        
+
         self.mainWindow = mainWindow
         self.graph = mainWindow.getGraph()
-        
+
         self.wm_attributes("-topmost", True)
-        self.wm_title("PyEveLiveDPS Settings")
+        self.wm_title(tr("PyEveLiveDPS Settings"))
         try:
             self.iconbitmap(sys._MEIPASS + '\\app.ico')
         except Exception:
@@ -83,46 +94,102 @@ class SettingsWindow(tk.Toplevel):
         self.update_idletasks()
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
-        
-        generalFrame = GeneralSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
-        generalFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
-        
-        linesFrame = LineSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
-        linesFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+
+        generalFrame = GeneralSettingsFrame(self,
+                                            self.mainWindow,
+                                            relief="groove",
+                                            borderwidth=1)
+        generalFrame.grid(row="0",
+                          column="1",
+                          columnspan="10",
+                          rowspan="90",
+                          sticky="wens")
+
+        linesFrame = LineSettingsFrame(self,
+                                       self.mainWindow,
+                                       relief="groove",
+                                       borderwidth=1)
+        linesFrame.grid(row="0",
+                        column="1",
+                        columnspan="10",
+                        rowspan="90",
+                        sticky="wens")
         linesFrame.grid_remove()
-        
-        labelsFrame = LabelSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
-        labelsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+
+        labelsFrame = LabelSettingsFrame(self,
+                                         self.mainWindow,
+                                         relief="groove",
+                                         borderwidth=1)
+        labelsFrame.grid(row="0",
+                         column="1",
+                         columnspan="10",
+                         rowspan="90",
+                         sticky="wens")
         labelsFrame.grid_remove()
-        
-        detailsFrame = DetailSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
-        detailsFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+
+        detailsFrame = DetailSettingsFrame(self,
+                                           self.mainWindow,
+                                           relief="groove",
+                                           borderwidth=1)
+        detailsFrame.grid(row="0",
+                          column="1",
+                          columnspan="10",
+                          rowspan="90",
+                          sticky="wens")
         detailsFrame.grid_remove()
-        
-        fleetFrame = FleetSettingsFrame(self, self.mainWindow, relief="groove", borderwidth=1)
-        fleetFrame.grid(row="0", column="1", columnspan="10", rowspan="90", sticky="wens")
+
+        fleetFrame = FleetSettingsFrame(self,
+                                        self.mainWindow,
+                                        relief="groove",
+                                        borderwidth=1)
+        fleetFrame.grid(row="0",
+                        column="1",
+                        columnspan="10",
+                        rowspan="90",
+                        sticky="wens")
         fleetFrame.grid_remove()
-        
-        self.options = [["General", generalFrame], ["Tracking", linesFrame], ["Labels", labelsFrame],
-                        ["Pilot Breakdown", detailsFrame], ["Fleet Window", fleetFrame]]
-        
-        self.sideBar = SideBar(self, self.mainWindow, bg="white", width="125", relief="groove", borderwidth=1)
-        self.sideBar.grid(row="0", column="0", rowspan="90", sticky="nsew", padx="1", pady="1")
-        for option,frame in self.options:
+
+        self.options = [[tr("General"), generalFrame],
+                        [tr("Tracking"), linesFrame],
+                        [tr("Labels"), labelsFrame],
+                        [tr("Pilot Breakdown"), detailsFrame],
+                        [tr("Fleet Window"), fleetFrame]]
+
+        self.sideBar = SideBar(self,
+                               self.mainWindow,
+                               bg="white",
+                               width="125",
+                               relief="groove",
+                               borderwidth=1)
+        self.sideBar.grid(row="0",
+                          column="0",
+                          rowspan="90",
+                          sticky="nsew",
+                          padx="1",
+                          pady="1")
+        for option, frame in self.options:
             self.sideBar.addOption(option, self.switchTab)
-        
-        tk.Frame(self, height="20", width="10").grid(row="99", column="1", columnspan="5")
-        
+
+        tk.Frame(self, height="20", width="10").grid(row="99",
+                                                     column="1",
+                                                     columnspan="5")
+
         buttonFrame = tk.Frame(self)
         buttonFrame.grid(row="100", column="0", columnspan="5")
-        okButton = tk.Button(buttonFrame, text="  Apply All  ", command=self.doSettings)
+        okButton = tk.Button(buttonFrame,
+                             text=tr("  Apply All  "),
+                             command=self.doSettings)
         okButton.grid(row="0", column="0")
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
-        cancelButton = tk.Button(buttonFrame, text="  Cancel  ", command=self.destroy)
+        cancelButton = tk.Button(buttonFrame,
+                                 text=tr("  Cancel  "),
+                                 command=self.destroy)
         cancelButton.grid(row="0", column="2")
-        
-        tk.Frame(self, height="20", width="10").grid(row="101", column="1", columnspan="5")
-        
+
+        tk.Frame(self, height="20", width="10").grid(row="101",
+                                                     column="1",
+                                                     columnspan="5")
+
     def switchTab(self, title):
         for option, frame in self.options:
             if option == title:
@@ -135,14 +202,14 @@ class SettingsWindow(tk.Toplevel):
                     self.geometry("550x600")
             else:
                 frame.grid_remove()
-            
-            
-        
+
     def doSettings(self):
         if settings.lowCPUMode:
-            if not tk.messagebox.askokcancel("Are you sure?", "Applying settings while in 'Low CPU Fleet Mode'" + 
-                                         " will not apply until after you end Fleet Mode.\n\n" + 
-                                         "It will also remove most of your settings."):
+            if not tk.messagebox.askokcancel(
+                    tr("Are you sure?"),
+                    tr("Applying settings while in 'Low CPU Fleet Mode'") +
+                    tr(" will not apply until after you end Fleet Mode.")+"\n\n" +
+                    tr("It will also remove most of your settings.")):
                 return
         settingsToApply = {}
         for option, frame in self.options:
@@ -150,9 +217,9 @@ class SettingsWindow(tk.Toplevel):
             if returnValue == None:
                 return
             settingsToApply.update(returnValue)
-        
+
         settings.setSettings(**settingsToApply)
-        
+
         self.mainWindow.animator.changeSettings()
-        
+
         self.destroy()
