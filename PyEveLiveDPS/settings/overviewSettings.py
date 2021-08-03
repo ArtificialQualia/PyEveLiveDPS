@@ -71,9 +71,9 @@ class OverviewNotification(tk.Toplevel):
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
-        warningText = tr("\nWARNING:\n\n") + \
+        warningText = "\n"+tr("WARNING:") +"\n\n"+ \
                       tr("If you use custom EVE overview settings or you use an overview pack like Z-S, SaraShawa, etc.\n") + \
-                      tr("You need to import your overview settings into PELD.\n\n") + \
+                      tr("You need to import your overview settings into PELD.") +"\n\n"+ \
                       tr("You can access these settings from the character menu at any time.")
 
         tk.Label(self, image="::tk::icons::warning").grid(column="0",
@@ -186,7 +186,7 @@ class OverviewSettingsWindow(tk.Toplevel):
                 logging.exception('Exception playing gif:')
                 logging.exception(e)
 
-        pictureLabelText = tr("NOTE: If you have separate overviews for different characters \n") + \
+        pictureLabelText = tr("NOTE: If you have separate overviews for different characters ") +"\n"+ \
                            tr("you will need to export your settings to different files")
         belowPictureLabel = tk.Label(canvasFrame, text=pictureLabelText)
         belowPictureLabel.grid(row="2", column="1")
@@ -260,7 +260,7 @@ class OverviewSettingsWindow(tk.Toplevel):
             overviewFile = self.overviewFiles[characterName]
         else:
             overviewFile = tr('Using PELD default overview setting')
-        fileString = overviewFile or 'Using default EVE overview settings'
+        fileString = overviewFile or tr('Using PELD default overview setting')
         overviewLabel = tk.Label(innerFrame, text=fileString)
         overviewLabel.grid(row="2", column="0", columnspan="5", sticky="w")
 
@@ -305,7 +305,8 @@ class OverviewSettingsWindow(tk.Toplevel):
                 if 'shipLabelOrder' not in overviewSettings or 'shipLabels' not in overviewSettings:
                     tk.messagebox.showerror(
                         tr("Error"),
-                        tr("Overview settings not in YAML file:\n") + path)
+                        tr("Overview settings not in YAML file:") + "\n" +
+                        path)
                     return
                 for shipLabel in overviewSettings['shipLabels']:
                     shipLabel[1] = dict(shipLabel[1])
@@ -314,28 +315,29 @@ class OverviewSettingsWindow(tk.Toplevel):
                             logging.warning(shipLabel[1]['type'] + " not in " +
                                             str(path))
                             tk.messagebox.showerror(tr("Error"), tr("Error: The '{0}' is disabled in these ").format(shipLabel[1]['type']) + \
-                              tr("overview settings.  You need to enable the display of this label for PELD to track properly.\n\n") + \
-                              tr("You can enable it on the 'ships' tab of your overview settings in EVE.\n\n") + \
+                              tr("overview settings.  You need to enable the display of this label for PELD to track properly.") +"\n\n"+ \
+                              tr("You can enable it on the 'ships' tab of your overview settings in EVE.") +"\n\n"+ \
                               tr("Don't forget to export your overview settings again!"))
         except:
             logging.error("Error processing overview settings file: " +
                           str(path))
             tk.messagebox.showerror(
                 tr("Error"),
-                tr("Error processing overview settings file:\n") + str(path))
+                tr("Error processing overview settings file:") + "\n" +
+                str(path))
             return
 
         self.overviewFiles[characterName] = path
         label.configure(text=path)
 
     def revertPELDDefault(self, characterName, label):
-        self.overviewFiles[
-            characterName] = "Using PELD default overview setting"
+        self.overviewFiles[characterName] = tr(
+            "Using PELD default overview setting")
         label.configure(text=self.overviewFiles[characterName])
 
     def revertEVEDefault(self, characterName, label):
-        self.overviewFiles[
-            characterName] = "Using default EVE overview settings"
+        self.overviewFiles[characterName] = tr(
+            "Using default EVE overview settings")
         label.configure(text=self.overviewFiles[characterName])
 
     def bindMousewheel(self, event):
@@ -365,9 +367,9 @@ class OverviewSettingsWindow(tk.Toplevel):
 
     def doSettings(self):
         for characterName, settingsFile in self.overviewFiles.items():
-            if settingsFile == "Using PELD default overview setting":
+            if settingsFile == tr("Using PELD default overview setting"):
                 del self.overviewFiles[characterName]
-            elif settingsFile == "Using default EVE overview settings":
+            elif settingsFile == tr("Using default EVE overview settings"):
                 self.overviewFiles[characterName] = None
 
         settings.setOverviewFiles(self.overviewFiles)

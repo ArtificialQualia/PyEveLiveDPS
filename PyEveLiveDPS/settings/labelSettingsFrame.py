@@ -12,15 +12,15 @@ from localization import tr
 
 class LabelSettingsFrame(tk.Frame):
     text = {
-        "dpsOut": tr("DPS Out")+":",
-        "dpsIn": tr("DPS In")+":",
-        "logiOut": tr("Logi Out")+":",
-        "logiIn": tr("Logi In")+":",
-        "capTransfered": tr("Cap Out")+":",
-        "capRecieved": tr("Cap In")+":",
-        "capDamageOut": tr("Cap Dmg Out")+":",
-        "capDamageIn": tr("Cap Dmg In")+":",
-        "mining": tr("Mining")+":"
+        "dpsOut": tr("DPS Out") + ":",
+        "dpsIn": tr("DPS In") + ":",
+        "logiOut": tr("Logi Out") + ":",
+        "logiIn": tr("Logi In") + ":",
+        "capTransfered": tr("Cap Out") + ":",
+        "capRecieved": tr("Cap In") + ":",
+        "capDamageOut": tr("Cap Dmg Out") + ":",
+        "capDamageIn": tr("Cap Dmg In") + ":",
+        "mining": tr("Mining") + ":"
     }
 
     def __init__(self, parent, mainWindow, **kwargs):
@@ -35,10 +35,10 @@ class LabelSettingsFrame(tk.Frame):
         tk.Label(
             self,
             text=tr(
-                "Labels on the left grid will be attached to the left side of the window.\n"
-            ) +
-            tr("Labels on the right grid will be attached to the right side of the window.\n\n"
-               ) +
+                "Labels on the left grid will be attached to the left side of the window."
+            ) + "\n" +
+            tr("Labels on the right grid will be attached to the right side of the window."
+               ) + "\n\n" +
             tr("You can drag and drop labels to move them to a different position in the grid."
                )).grid(row="0", column="1", columnspan="5", pady=10)
         tk.Label(
@@ -49,9 +49,10 @@ class LabelSettingsFrame(tk.Frame):
         tk.Label(
             self,
             text=tr(
-                "The number box represents how many decimal places the label will use. 0 is no decimal places.\n"
-            ) +
-            tr("The checkbox is to represent the number in thousands.\n\n") +
+                "The number box represents how many decimal places the label will use. 0 is no decimal places."
+            ) + "\n" +
+            tr("The checkbox is to represent the number in thousands.") +
+            "\n\n" +
             tr("For instance, if you choose '3' decimals, and check the box, the number 1,234 will show as 1.234K"
                )).grid(row="100", column="1", columnspan="5", pady=10)
 

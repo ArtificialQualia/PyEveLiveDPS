@@ -58,8 +58,9 @@ class FleetWindow(tk.Toplevel):
         nameDescription = tk.Label(
             self,
             text=tr(
-                "To use a different character for fleet mode, choose a different\n"
-            ) + tr(" character in the 'Character...' menu on the main window"))
+                "To use a different character for fleet mode, choose a different"
+            ) + "\n" +
+            tr(" character in the 'Character...' menu on the main window"))
         font = tkFont.Font(font=nameDescription['font'])
         font.config(slant='italic')
         nameDescription['font'] = font
@@ -132,7 +133,7 @@ class FleetWindow(tk.Toplevel):
         buttonFrame = tk.Frame(self)
         buttonFrame.grid(row="100", column="0", columnspan="10")
         self.loginButton = tk.Button(buttonFrame,
-                                     text="  Login  ",
+                                     text=tr("  Login  "),
                                      command=self.login)
         self.loginButton.grid(row="0", column="0")
         tk.Frame(buttonFrame, height="1", width="30").grid(row="0", column="1")
@@ -173,7 +174,7 @@ class FleetWindow(tk.Toplevel):
             if self.lowCPUVar.get():
                 settings.lowCPUMode = True
             self.mainWindow.topLabel.configure(
-                text="Fleet Mode ({0})".format(self.characterName))
+                text=tr("Fleet Mode ({0})").format(self.characterName))
             self.mainWindow.topLabel.grid()
             self.mainWindow.fleetWindow.characterName = self.characterName
             self.mainWindow.animator.dataQueue = self.sockMgr.dataQueue

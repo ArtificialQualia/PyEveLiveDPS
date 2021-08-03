@@ -825,7 +825,7 @@ class Settings(FileSystemEventHandler):
             logging.exception(e)
             tk.messagebox.showerror(
                 tr("Error"),
-                tr("Error loading overview settings file:\n") + overviewFile)
+                tr("Error loading overview settings file:")+"\n" + overviewFile)
             return None
 
     def setSettings(self,

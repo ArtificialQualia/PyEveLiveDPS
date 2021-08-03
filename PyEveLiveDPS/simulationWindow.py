@@ -27,11 +27,10 @@ class SimulationWindow(tk.Toplevel):
 
         self.columnconfigure(0, weight=1)
 
-        tk.Label(
-            self,
-            text=tr(
-                "For each item, a random number will be chosen\n in the range you specify every cycle."
-            )).grid(row="0", column="0", columnspan="10")
+        tk.Label(self,
+                 text=tr("For each item, a random number will be chosen") +
+                 "\n" + tr("in the range you specify every cycle.")).grid(
+                     row="0", column="0", columnspan="10")
 
         tk.Frame(self, height="20", width="1").grid(row="1",
                                                     column="1",

@@ -104,8 +104,8 @@ class GeneralSettingsFrame(tk.Frame):
         if ((secondsSetting * 1000) / intervalSetting <= 10):
             tk.messagebox.showerror(
                 tr("Error"),
-                tr("(Seconds to average DPS*1000)/(Graph update interval) must be > 10.\n"
-                   ) +
+                tr("(Seconds to average DPS*1000)/(Graph update interval)")+ tr("must be > 10.")
+                    +"\n"+
                 tr("If it is less than 10, we won't have enough data to draw an accurate graph!"
                    ))
             return
@@ -113,10 +113,9 @@ class GeneralSettingsFrame(tk.Frame):
         if ((secondsSetting * 1000) / intervalSetting < 20):
             okCancel = tk.messagebox.askokcancel(
                 tr("Continue?"),
-                tr("(Seconds to average DPS*1000)/(Graph update interval)\n is < 20\n"
-                   ) +
-                tr("(This is ok, but it is recommended to increase your (Seconds to average DPS) or decrease your (Graph update interval) to improve your graphing experience.\n"
-                   ) + tr("Would you like to keep these settings?"))
+                tr("(Seconds to average DPS*1000)/(Graph update interval)")+"\n"+tr("is < 20")+"\n"+
+                tr("This is ok, but it is recommended to increase your (Seconds to average DPS) or decrease your (Graph update interval) to improve your graphing experience."
+                   ) +"\n"+ tr("Would you like to keep these settings?"))
             if not okCancel:
                 return
 
@@ -131,12 +130,12 @@ class GeneralSettingsFrame(tk.Frame):
         if (secondsSetting / intervalSetting > 1):
             okCancel = tk.messagebox.askokcancel(
                 tr("Continue?"),
-                tr("(Seconds to average DPS)/(Graph update interval)\n is > 1\n"
-                   ) +
-                tr("This is ok, but it is recommended to decrease your (Graph update interval) to improve performance.\n"
-                   ) +
-                tr("You don't need such a low graph update interval if you are using a high (Seconds to average DPS)\n"
-                   ) + tr("Would you like to keep these settings?"))
+                tr("(Seconds to average DPS)/(Graph update interval)")+"\n"+tr("is > 1")+"\n"
+                    +
+                tr("This is ok, but it is recommended to decrease your (Graph update interval) to improve performance."
+                   ) +"\n"+
+                tr("You don't need such a low graph update interval if you are using a high (Seconds to average DPS)"
+                   ) +"\n"+ tr("Would you like to keep these settings?"))
             if not okCancel:
                 return
 

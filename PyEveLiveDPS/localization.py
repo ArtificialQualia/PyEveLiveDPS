@@ -2,7 +2,7 @@
 Localization for PELD GUI strings.
 """
 from json import loads
-import os
+import os, sys
 
 __all__ = ["TLocalization", "tr", "current_lang", "search_path_list"]
 
@@ -40,11 +40,16 @@ path = ""
 s_ = os.sep
 current_lang = TLocalization()
 
+# for test
+MEIPASS = sys.__MEIPASS if "__MEIPASS" in dir(sys) else "."
+
 # define where to search for language files.
 # the order matters.
 search_path_list = [
-    "lang.json", "lang.jsonc", f".{s_}lang{s_}lang.json",
-    f".{s_}lang{s_}lang.jsonc"
+    f"{MEIPASS}{s_}lang.json",
+    f"{MEIPASS}{s_}lang{s_}lang.json",
+    f"{MEIPASS}{s_}lang{s_}lang.json",
+    f"{MEIPASS}{s_}lang{s_}lang.jsonc",
 ]
 
 # and search them.

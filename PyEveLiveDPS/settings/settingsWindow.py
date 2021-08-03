@@ -208,7 +208,7 @@ class SettingsWindow(tk.Toplevel):
             if not tk.messagebox.askokcancel(
                     tr("Are you sure?"),
                     tr("Applying settings while in 'Low CPU Fleet Mode'") +
-                    tr(" will not apply until after you end Fleet Mode.\n\n") +
+                    tr(" will not apply until after you end Fleet Mode.")+"\n\n" +
                     tr("It will also remove most of your settings.")):
                 return
         settingsToApply = {}
