@@ -12,6 +12,7 @@ environment:
 install:
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "pip install pypiwin32==219"
+    - "pip install pefile==2019.4.18"
     - "pip install pyinstaller==3.4"
     - "pip install -r requirements.txt"
     - "choco install -y InnoSetup"
