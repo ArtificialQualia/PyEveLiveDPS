@@ -52,7 +52,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> energy neutralized <",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> energy drained to <",
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*> units of .*<b>(.+)</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*> units of <.*?><.*?>(.+?)<"
     },
     'russian': {
         'character': "(?<=Слушатель: ).*",
@@ -72,7 +72,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> единиц запаса энергии накопителя получено от <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> энергии нейтрализовано <",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> энергии извлечено и передано <",
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*(?:<localized .*?>)?(.+)\*<"
     },
     'french': {
         'character': "(?<=Auditeur: ).*",
@@ -92,7 +92,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> points de capaciteur transférés à distance par <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*> d'énergie neutralisée aux dépens de <",
         'nosTaken': "\(combat\) <.*?><b>([0-9]+).*> d'énergie siphonnée en faveur de <",
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*(?:<localized .*?>)?(.+)\*<"
     },
     'german': {
         'character': "(?<=Empfänger: ).*",
@@ -112,7 +112,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> Fernenergiespeicher übertragen von <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>\-([0-9]+).*> Energie neutralisiert <",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> Energie transferiert zu <",
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*(?:<localized .*?>)?(.+)\*<"
     },
     'japanese': {
         'character': "(?<=傍聴者: ).*",
@@ -132,7 +132,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*> remote capacitor transmitted by <",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>のエネルギーが解放されました<",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*> エネルギードレイン 攻撃者:<",
-        'mined': "\(mining\) .* <b><.*?><.*?>([0-9]+).*<b>(?:<localized .*?>)?(.+)\*</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*(?:<localized .*?>)?(.+)\*<"
     },
     'chinese':{
         'character': "(?<=收听者: ).*",
@@ -152,7 +152,7 @@ _logLanguageRegex = {
         'capTransferedIn': "\(combat\) <.*?><b>([0-9]+).*>远程电容传输量由<",
         'capNeutralizedIn': "\(combat\) <.*?ffe57f7f><b>([0-9]+).*>能量中和<",
         'nosTaken': "\(combat\) <.*?><b>\-([0-9]+).*>被吸取到<",
-        'mined': "\(mining\) .*<b><.*?><.*?>([0-9]+).*>个单位的.*<b>(.+)</b>"
+        'mined': "\(mining\) .*? <.*?><.*?>([0-9]+).*(?:<localized .*?>)?(.+)\*<"
         }
 }
 
