@@ -1,6 +1,6 @@
 matplotlib==2.0.2
 watchdog==0.8.3
-git+git://github.com/miguelgrinberg/python-engineio@51da0be#egg=python-engineio
+python-engineio==3.10.0
 python-socketio==4.3.1
 requests==2.21.0
 websocket-client==0.56.0
