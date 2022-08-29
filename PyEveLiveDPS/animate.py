@@ -261,7 +261,7 @@ class Animator(threading.Thread):
         if not self.graphDisabled:
             self.graph.subplot.margins(0,0)
             self.graph.graphFigure.axes[0].set_ylim(bottom=0, top=100)
-            self.graph.graphFigure.canvas.draw()
+            self.graph.graphFigure.canvas.draw_idle()
         
         # reset fleet data
         characterName = self.mainWindow.fleetWindow.characterName

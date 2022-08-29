@@ -101,8 +101,12 @@ ENV/
 # mypy
 .mypy_cache/
 
-.vscode
-
 /.project
 /.pydevproject
 .settings/org.eclipse.core.resources.prefs
+
+# Hoed's stuff:
+
+.vscode
+.DS_Store
+Temp

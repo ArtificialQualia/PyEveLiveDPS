@@ -52,7 +52,7 @@ class PlaybackFrame(tk.Frame):
         
     def timeChanged(self, newValue):
         self.timeLine.set_data([newValue, newValue], [0, self.highestValue])
-        self.graphFigure.canvas.draw()
+        # self.graphFigure.canvas.draw_idle()
         self.logtime = self.startTime + datetime.timedelta(seconds=int(newValue))
         self.timeVariable.set(self.logtime.strftime("%H:%M:%S"))
         
@@ -142,5 +142,5 @@ class PlaybackFrame(tk.Frame):
         #self.graphFigure.axes[0].set_xlim(0, len(yValues))
         self.subplot.margins(0.005,0.01)
         
-        self.graphCanvas.show()
+        self.graphCanvas.draw_idle()
         self.mainWindow.makeDraggable(self.graphCanvas.get_tk_widget())

@@ -1,9 +1,13 @@
+# Building
+
 ## Building a new release
+
 New releases are automatically built using [AppVeyor](https://www.appveyor.com).  This allows non-Windows users to be able to make builds, and also makes the entire process of making a release easier.
 
 If you are just building locally for testing, see below about "Building locally"
 
 ## How to use AppVeyor
+
 AppVeyor is configured via the `appveyor.yml` file.  Currently, it automatically builds on tag and pushes the zipped executable and README back to GitHub Releases.
 
 Whenever it's time for a new release, simply push a tag so AppVeyor takes notice.
@@ -33,12 +37,15 @@ Automatic builds need to be enabled at AppVeyor and the `auth_token` needs to be
 From here on, AppVeyor will autonomously process each tagged commit without further intervention.
 
 ## Building locally
+
 To build locally, you must build from a Windows machine.  
 You may encounter errors about missing libraries (api-ms-win-crt-*.DLL), depending on your version of Windows.  This is 'ok' in most cases, but may not work on all devices.  Follow the instructions [here](https://github.com/pyinstaller/pyinstaller/issues/1566) about downloading the Windows SDK and adding the .dll folders to your PATH.  
 Run the following commands with **Python 3.5**:
-```
+
+```txt
 pip install -r requirements.txt
 pip install pyinstaller
 pyinstaller setup.spec
 ```
+
 Executable will then be located in ./dist/
