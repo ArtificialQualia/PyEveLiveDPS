@@ -16,10 +16,9 @@ Here is an example of what it looks like in regular mode and compact mode:
 As of 2.0, PELD includes a breakdown of values based on pilot and weapon type.  Here are some examples:  
 ![Breakdown pvp](https://i.imgur.com/Id7wUuE.png) ![Breakdown pve](https://i.imgur.com/GAUtC5a.png)
 
-For FCs, PELD now has a Fleet Mode that allows you to view the combat statistics of your entire fleet when they use PELD.  
-This is facilitated by a new website: https://peld-fleet.com/ ([peld-fleet source code](https://github.com/ArtificialQualia/PELD-Server))  
-The FC view looks like this:  
-![peld-fleet FC view](https://i.imgur.com/B7fP3qx.png)
+~PELD now has a Fleet Mode that allows you to view the combat statistics of your entire fleet when they use PELD.~  
+Note: the primary peld-fleet.com website has been taken offline due to lack of user interest, changes in the EVE API, and hosting fees.  
+The source code for peld-fleet.com is still available on github and could be hosted by someone else if it were to be fixed. ([peld-fleet source code](https://github.com/ArtificialQualia/PELD-Server))  
 
 ## Download and Running
 Download the latest version from here:  
