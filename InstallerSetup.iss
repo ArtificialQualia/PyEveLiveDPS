@@ -37,4 +37,4 @@ Name: "{group}\Uninstall PELD"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\PELD"; Filename: "{app}\PELD.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\PELD.exe"; Description: "Run PELD"; WorkingDir: "{app}"; Flags: postinstall
+Filename: "{app}\PELD.exe"; Description: "Run PELD"; WorkingDir: "{app}"; Flags: postinstall skipifsilent nowait unchecked
