@@ -54,6 +54,7 @@ for:
 
     install:
       - "export PATH=$HOME/$PYTHON:$HOME/$PYTHON/Scripts:$PATH"
+      - "pip install --upgrade urllib3==1.25.11"
       - "pip install pyinstaller==3.5"
       - "pip install -r requirements.txt"
 
@@ -61,17 +62,17 @@ for:
       - echo "version = '$(git describe)'" > PyEveLiveDPS/version.py
 
     build_script:
-      - "pyinstaller setup-standalone.spec"
+      - "pyinstaller setup-linux.spec"
 
     after_build:
-      - "mv dist/PELD-standalone peld_linux"
+      - "mv dist/peld-linux peld-linux"
 
     artifacts:
       - path: PELD-standalone*.exe
         name: PELD-standalone
       - path: PELD-installer*.exe
         name: PELD-installer
-      - path: peld_linux
+      - path: peld-linux
         name: PELD-linux
   
 deploy:
