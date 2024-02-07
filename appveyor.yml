@@ -7,14 +7,14 @@ build:
 
 environment:
   matrix:
-    - job_name: Windows build
-      appveyor_build_worker_image: Visual Studio 2013
-      platform: x86
-      PYTHON: "C:\\Python34"
+    # - job_name: Windows build
+    #   appveyor_build_worker_image: Visual Studio 2013
+    #   platform: x86
+    #   PYTHON: "C:\\Python34"
     - job_name: Linux build
       appveyor_build_worker_image: Ubuntu1604
       platform: x64
-      PYTHON: "$HOME/venv3.4"
+      PYTHON: "venv3.4"
 
 for:
   - matrix:
@@ -53,7 +53,7 @@ for:
         - job_name: Linux build
 
     install:
-      - "export PATH=$PYTHON;$PYTHON/Scripts;$PATH"
+      - "export PATH=$HOME/$PYTHON;$HOME/$PYTHON/Scripts;$PATH"
       - "pip install pyinstaller==3.4"
       - "pip install -r requirements.txt"
 
