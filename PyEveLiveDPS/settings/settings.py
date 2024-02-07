@@ -11,6 +11,7 @@ import platform
 import os
 import json
 import copy
+import sys
 import tkinter as tk
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -163,7 +164,7 @@ class Settings(FileSystemEventHandler):
             self.newProfileWindow.wm_title("Rename Profile")
             
         try:
-            self.newProfileWindow.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.newProfileWindow.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.newProfileWindow.iconbitmap("app.ico")
