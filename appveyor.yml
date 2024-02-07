@@ -14,7 +14,7 @@ environment:
     - job_name: Linux build
       appveyor_build_worker_image: Ubuntu1604
       platform: x64
-      PYTHON: "venv3.4.10"
+      PYTHON: "venv3.5"
 
 for:
   - matrix:
@@ -54,11 +54,11 @@ for:
 
     install:
       - "export PATH=$HOME/$PYTHON:$HOME/$PYTHON/Scripts:$PATH"
-      - "pip install pyinstaller==3.4"
+      - "pip install pyinstaller==3.5"
       - "pip install -r requirements.txt"
 
     before_build:
-      - echo "version = '$(git describe)'" | Out-File -encoding utf8 PyEveLiveDPS/version.py"
+      - echo "version = '$(git describe)'" > PyEveLiveDPS/version.py
 
     build_script:
       - "pyinstaller setup-standalone.spec"
