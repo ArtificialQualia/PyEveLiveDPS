@@ -56,7 +56,7 @@ class OverviewNotification(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Overview Settings Warning")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")
@@ -103,7 +103,7 @@ class OverviewSettingsWindow(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Overview Settings")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")
@@ -145,7 +145,8 @@ class OverviewSettingsWindow(tk.Toplevel):
         topLabel.grid(row="0", column="1")
             
         try:
-            self.image = AnimatedGif(canvasFrame, sys._MEIPASS + '\\images\\peld-overview-export.gif')
+            path = os.path.join(sys._MEIPASS, 'images', 'peld-overview-export.gif')
+            self.image = AnimatedGif(canvasFrame, path)
             self.image.grid(row="1", column="1")
             self.image.start()
         except Exception:

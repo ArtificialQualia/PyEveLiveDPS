@@ -1,4 +1,6 @@
 
+import os
+import sys
 import tkinter as tk
 from peld import settings
 
@@ -15,7 +17,7 @@ class SimulationWindow(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Simulation Settings")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")

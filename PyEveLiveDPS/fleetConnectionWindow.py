@@ -1,4 +1,5 @@
 
+import os
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
@@ -31,7 +32,7 @@ class FleetWindow(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Fleet Mode")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")
@@ -183,7 +184,7 @@ class SocketNotificationWindow(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Awaiting Login")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")

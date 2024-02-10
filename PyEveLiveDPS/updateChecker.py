@@ -6,6 +6,8 @@ UpdateChecker:
   
 """
 
+import os
+import sys
 import threading
 import json
 import version
@@ -45,7 +47,7 @@ class UpdateNotificaitonWindow(tk.Toplevel):
         self.wm_title("PELD Update Notification")
         
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep +  'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")

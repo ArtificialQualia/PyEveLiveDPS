@@ -8,6 +8,7 @@ Some of the styling for this window comes from BaseWindow,
 It also holds many of the main components for the app, like animator
 """
 
+import os
 import tkinter as tk
 import tkinter.font as tkFont
 import platform
@@ -39,7 +40,7 @@ class MainWindow(tk.Tk):
         # Set title and icon for alt+tab and taskbar
         self.wm_title("PyEveLiveDPS")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")

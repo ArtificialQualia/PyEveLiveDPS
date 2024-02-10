@@ -49,7 +49,8 @@ class SideBar(tk.Frame):
             chosenImage = "gear.png"
             
         try:
-            image = tk.PhotoImage(file=sys._MEIPASS + '\\images\\' + chosenImage)
+            path = os.path.join(sys._MEIPASS, 'images', chosenImage)
+            image = tk.PhotoImage(file=path)
             button.configure(image=image)
             button.image = image
         except Exception:
@@ -73,7 +74,7 @@ class SettingsWindow(tk.Toplevel):
         self.wm_attributes("-topmost", True)
         self.wm_title("PyEveLiveDPS Settings")
         try:
-            self.iconbitmap(sys._MEIPASS + '\\app.ico')
+            self.iconbitmap(sys._MEIPASS + os.pathsep + 'app.ico')
         except Exception:
             try:
                 self.iconbitmap("app.ico")
