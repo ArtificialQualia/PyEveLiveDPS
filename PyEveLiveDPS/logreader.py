@@ -19,7 +19,6 @@ import re
 import os
 import datetime
 import time
-import platform
 import tkinter as tk
 from peld import settings
 import logging
@@ -163,19 +162,14 @@ class CharacterDetector(FileSystemEventHandler):
         self.mainWindow = mainWindow
         self.characterMenu = characterMenu
         self.observer = Observer()
-        
-        if (platform.system() == "Windows"):
-            import win32com.client
-            oShell = win32com.client.Dispatch("Wscript.Shell")
-            self.path = oShell.SpecialFolders("MyDocuments") + "\\EVE\\logs\\Gamelogs\\"
-        else:
-            self.path = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
-        
-        self.menuEntries = []
         self.logReaders = _logReaders
         self.selectedIndex = IntVar()
         self.playbackLogReader = None
-        
+        self.menuEntries = []
+        self._start()
+
+    def _start(self):
+        self.path = settings.getLogLocation()
         try:
             oneDayAgo = datetime.datetime.now() - datetime.timedelta(hours=24)
             fileList = sorted(os.listdir(self.path), key=lambda file: os.stat(os.path.join(self.path, file)).st_mtime)
@@ -186,13 +180,13 @@ class CharacterDetector(FileSystemEventHandler):
                 except ValueError:
                     continue
                 if (fileTime >= oneDayAgo):
-                    self.addLog(self.path + filename)
-        
+                    self.addLog(os.path.join(self.path, filename))
+
             self.selectedIndex.set(0)
-            
+
             if len(self.menuEntries) == 0:
                 self.characterMenu.menu.add_command(label='No character logs detected for past 24 hours', state=tk.DISABLED)
-            
+
             self.observer.schedule(self, self.path, recursive=False)
             self.observer.start()
         except FileNotFoundError:
@@ -205,6 +199,16 @@ class CharacterDetector(FileSystemEventHandler):
         self.characterMenu.menu.add_separator()
         from settings.overviewSettings import OverviewSettingsWindow
         self.characterMenu.menu.add_command(label='Open overview settings', command=OverviewSettingsWindow)
+
+    def restart(self):
+        self.observer.stop()
+        self.observer.join()
+        self.characterMenu.menu.delete(0, tk.END)
+        self.menuEntries.clear()
+        self.logReaders.clear()
+        self.playbackLogReader = None
+        self.observer = Observer()
+        self._start()
         
     def on_created(self, event):
         self.addLog(event.src_path)

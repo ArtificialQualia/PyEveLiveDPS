@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 import tkinter.font as tkFont
 from peld import settings
@@ -41,6 +42,10 @@ class GeneralSettingsFrame(tk.Frame):
         self.transparencyVar.set(settings.getCompactTransparency())
         self.addSetting(self.transparencyVar, "Window transparency percentage in compact mode:", 
                         "100 is fully visible, 0 is invisible")
+
+        self.logLocationVar = tk.StringVar()
+        self.logLocationVar.set(settings.getLogLocation())
+        self.addSetting(self.logLocationVar, "Location of EVE Gamelogs:", "Full path to the Gamelogs directory")
         
         
     def addSetting(self, var, labelText, descriptorText):
@@ -111,6 +116,15 @@ class GeneralSettingsFrame(tk.Frame):
         if (compactTransparencySetting < 1 or compactTransparencySetting > 100):
             tk.messagebox.showerror("Error", "Please enter a value between 1-100 for compact transparency percentage")
             return  
+
+        logLocation = str(self.logLocationVar.get())
+        if not os.path.exists(logLocation):
+            tk.messagebox.showerror("Error", f"The path '{logLocation}' does not exist")
+            return None
+
         
-        return {"seconds": secondsSetting, "interval": intervalSetting, 
-                "compactTransparency": compactTransparencySetting, "graphDisabled": self.graphDisabled.var.get()}
+        return {"seconds": secondsSetting, 
+                "interval": intervalSetting, 
+                "compactTransparency": compactTransparencySetting, 
+                "graphDisabled": self.graphDisabled.var.get(),
+                "logLocation": logLocation}
