@@ -78,8 +78,8 @@ If you are running from source on Linux, in rare cases you may need to modify lo
 This is what the program defaults to, `~\MyDocuments\EVE\logs\GameLogs`
 
 ### Linux:
-- Steam: `~.var/app/com.eveonline.EveOnline/data/prefix/drive_c/users/steamuser/Documents/EVE/logs/GameLogs`
-- Litrus: `~/Games/eve-online/drive_c/users/ian/Documents/EVE/logs/GameLogs`
+- Steam: `~/.var/app/com.eveonline.EveOnline/data/prefix/drive_c/users/steamuser/Documents/EVE/logs/GameLogs`
+- Lutris: `~/Games/eve-online/drive_c/users/ian/Documents/EVE/logs/GameLogs`
 - Flatpak (eve-o install): `~/.var/app/com.eveonline.EveOnline/data/staging_prefix/drive_c/users/steamuser/Documents/EVE/logs/GameLogs`
 
 If none of those work you can use the command `find ~ -type d -name EVE` to get a general idea of where the logs might be

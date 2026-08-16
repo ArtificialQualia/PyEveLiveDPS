@@ -139,9 +139,7 @@ class GeneralSettingsFrame(tk.Frame):
             tk.messagebox.showerror("Error", "Please enter a value between 1-100 for compact transparency percentage")
             return  
 
-        logLocation = str(self.logLocationVar.get())
-        if logLocation.startswith("~"):
-            logLocation = os.path.expanduser(logLocation)
+        logLocation = os.path.expanduser(str(self.logLocationVar.get()))
         if not os.path.exists(logLocation):
             tk.messagebox.showerror("Error", f"The path '{logLocation}' does not exist")
             return None

@@ -208,7 +208,11 @@ class CharacterDetector(FileSystemEventHandler):
         self.logReaders.clear()
         self.playbackLogReader = None
         self.observer = Observer()
-        self._start()
+        try:
+            self._start()
+        except Exception as e:
+            logging.error('Failed to restart log reader, invalid log file path: ' + str(e))
+            messagebox.showerror("Error", "Failed to restart log reader, invald log file path:\n\n" + str(e))
         
     def on_created(self, event):
         self.addLog(event.src_path)
