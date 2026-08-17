@@ -153,7 +153,10 @@ class SettingsWindow(tk.Toplevel):
             settingsToApply.update(returnValue)
         
         settings.setSettings(**settingsToApply)
-        
+
+        if 'logLocation' in settingsToApply:
+            self.mainWindow.characterDetector.restart()
+
         self.mainWindow.animator.changeSettings()
-        
+
         self.destroy()
