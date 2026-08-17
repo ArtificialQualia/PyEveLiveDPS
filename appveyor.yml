@@ -14,7 +14,7 @@ environment:
     - job_name: Linux build
       appveyor_build_worker_image: Ubuntu1604
       platform: x64
-      PYTHON: "venv3.5"
+      PYTHON: "venv3.6"
 
 for:
   - matrix:
@@ -55,7 +55,8 @@ for:
     install:
       - "export PATH=$HOME/$PYTHON:$HOME/$PYTHON/Scripts:$PATH"
       - "pip install --upgrade urllib3==1.25.11"
-      - "pip install pyinstaller==3.5"
+      - "pip install pyinstaller==3.6"
+      - "pip install --upgrade pip setuptools wheel"
       - "pip install -r requirements.txt"
 
     before_build:
