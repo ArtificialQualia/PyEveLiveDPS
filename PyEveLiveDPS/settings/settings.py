@@ -337,6 +337,19 @@ class Settings(FileSystemEventHandler):
         except KeyError:
             self.setSettings(graphDisabled=0)
             return self.currentProfile["graphDisabled"]
+
+    def getLogLocation(self):
+        try:
+            return self.currentProfile["logLocation"]
+        except KeyError:
+            if platform.system() == "Windows":
+                import win32com.client
+                oShell = win32com.client.Dispatch("Wscript.Shell")
+                default = oShell.SpecialFolders("MyDocuments") + "\\EVE\\logs\\Gamelogs\\"
+            else:
+                default = os.environ['HOME'] + "/Documents/EVE/logs/Gamelogs/"
+            self.setSettings(logLocation=default)
+            return default
         
     def getLabels(self):
         try:
@@ -678,7 +691,7 @@ class Settings(FileSystemEventHandler):
                     interval=None, seconds=None,
                     windowHeight=None, windowWidth=None, windowX=None, windowY=None, compactTransparency=None,
                     labels=None, labelColumns=None, graphDisabled=None,
-                    detailsOrder=None, detailsWindowShow=None):
+                    detailsOrder=None, detailsWindowShow=None, logLocation=None):
         """ 
         this funciton is dumb, ugly, and deprecated.
         Settings should be set through properties
@@ -726,7 +739,9 @@ class Settings(FileSystemEventHandler):
             self.detailsWindowShow = detailsWindowShow
         if not detailsOrder == None:
             self.currentProfile["detailsOrder"] = detailsOrder
-        
+        if not logLocation == None:
+            self.currentProfile["logLocation"] = logLocation
+
         self.writeSettings()
     
     def switchProfile(self):

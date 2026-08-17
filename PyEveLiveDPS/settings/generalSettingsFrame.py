@@ -1,5 +1,7 @@
+import os
 import tkinter as tk
 import tkinter.font as tkFont
+import tkinter.filedialog
 from peld import settings
 
 class GeneralSettingsFrame(tk.Frame):
@@ -41,8 +43,33 @@ class GeneralSettingsFrame(tk.Frame):
         self.transparencyVar.set(settings.getCompactTransparency())
         self.addSetting(self.transparencyVar, "Window transparency percentage in compact mode:", 
                         "100 is fully visible, 0 is invisible")
+
+        self.logLocationVar = tk.StringVar()
+        self.logLocationVar.set(settings.getLogLocation())
+        # Uses custom entry method for better ergonomics then reusing existing addSettings method
+        logLabel = tk.Label(self, text="Location of EVE Gamelogs:")
+        logLabel.grid(row=self.counter, column=1, columnspan=3, sticky="w")
+        logDescriptor = tk.Label(self, text="See the README.md or github page for common log file locations")
+        logDescFont = tkFont.Font(font=logDescriptor['font'])
+        logDescFont.config(slant='italic')
+        logDescriptor['font'] = logDescFont
+        logDescriptor.grid(row=self.counter+1, column=1, columnspan=3)
+        self.logLocationEntry = tk.Entry(self, textvariable=self.logLocationVar, state='readonly')
+        self.logLocationEntry.grid(row=self.counter+2, column=0, columnspan=5, sticky="ew", padx=10)
+        browseButton = tk.Button(self, text=" Browse... ", command=self.browseLogLocation)
+        browseButton.grid(row=self.counter+3, column=1, columnspan=2)
+        tk.Frame(self, height="20", width="10").grid(row=self.counter+4, column=1, columnspan=5)
+        self.counter += 5
         
         
+    def browseLogLocation(self):
+        path = tk.filedialog.askdirectory(
+            initialdir=self.logLocationVar.get(),
+            title="Select EVE Gamelogs directory"
+        )
+        if path:
+            self.logLocationVar.set(path)
+
     def addSetting(self, var, labelText, descriptorText):
         centerFrame = tk.Frame(self)
         centerFrame.grid(row=self.counter, column="1", columnspan="2")
@@ -111,6 +138,15 @@ class GeneralSettingsFrame(tk.Frame):
         if (compactTransparencySetting < 1 or compactTransparencySetting > 100):
             tk.messagebox.showerror("Error", "Please enter a value between 1-100 for compact transparency percentage")
             return  
+
+        logLocation = os.path.expanduser(str(self.logLocationVar.get()))
+        if not os.path.exists(logLocation):
+            tk.messagebox.showerror("Error", f"The path '{logLocation}' does not exist")
+            return None
+
         
-        return {"seconds": secondsSetting, "interval": intervalSetting, 
-                "compactTransparency": compactTransparencySetting, "graphDisabled": self.graphDisabled.var.get()}
+        return {"seconds": secondsSetting, 
+                "interval": intervalSetting, 
+                "compactTransparency": compactTransparencySetting, 
+                "graphDisabled": self.graphDisabled.var.get(),
+                "logLocation": logLocation}

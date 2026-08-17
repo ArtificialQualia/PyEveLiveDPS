@@ -71,4 +71,13 @@ Ensure your python includes tkinter (often downloaded as a separate package on p
 
 If you want to build an .exe or binary yourself, see BUILDING.md
 
-If you are running from source on Linux, in rare cases you may need to modify logreader.py to point to the correct directory where your eve logs are stored.
+## Common Log Locations:
+### Windows:
+This is what the program defaults to, `~\MyDocuments\EVE\logs\GameLogs`
+
+### Linux:
+- Steam: `~/.var/app/com.eveonline.EveOnline/data/prefix/drive_c/users/steamuser/Documents/EVE/logs/GameLogs`
+- Lutris: `~/Games/eve-online/drive_c/users/ian/Documents/EVE/logs/GameLogs`
+- Flatpak (eve-o install): `~/.var/app/com.eveonline.EveOnline/data/staging_prefix/drive_c/users/steamuser/Documents/EVE/logs/GameLogs`
+
+If none of those work you can use the command `find ~ -type d -name EVE` to get a general idea of where the logs might be
