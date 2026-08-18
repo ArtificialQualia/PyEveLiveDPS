@@ -141,7 +141,7 @@ class GeneralSettingsFrame(tk.Frame):
 
         logLocation = os.path.expanduser(str(self.logLocationVar.get()))
         if not os.path.exists(logLocation):
-            tk.messagebox.showerror("Error", f"The path '{logLocation}' does not exist")
+            tk.messagebox.showerror("Error", "The path " + logLocation + " does not exist")
             return None
 
         
