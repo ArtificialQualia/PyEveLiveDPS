@@ -52,10 +52,10 @@ for:
       only:
         - job_name: Linux build
 
-    stack: python 3.5
-
     install:
-      - "export PATH=$HOME/$PYTHON:$HOME/$PYTHON/Scripts:$PATH"
+      - "export PATH=$HOME/$PYTHON:$HOME/$PYTHON/Scripts:$HOME/$PYTHON/bin:$PATH"
+      - "chmod +x $HOME/$PYTHON/bin/activate"
+      - "source $HOME/$PYTHON/bin/activate"
       - "pip install --upgrade urllib3==1.25.11"
       - "pip install pyinstaller==3.5"
       - "pip install --upgrade pip setuptools wheel"
